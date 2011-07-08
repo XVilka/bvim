@@ -64,9 +64,13 @@ extern	struct	param	params[];
 #define	P_LI		13	/* lines */
 #define P_WL		14	/* Wordlength for w, W, b, B command */
 #define	P_WS		15	/* wrapscan */
-#define	P_CO		16	/* color/attribute setting */
+#define	P_C1		16	/* color1 (line numbers) setting */
+#define P_C2		17  /* color2 (hex bytes) setting */
+#define P_C3		18  /* color3 (source bytes) setting */
 
 /*
  * Macro to get the value of a parameter
  */
 #define	P(n)	(params[n].nvalue)
+
+void set_palette(void);

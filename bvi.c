@@ -34,9 +34,15 @@
 #include "set.h"
 
 #ifdef HAVE_LOCALE_H
-#	include <locale.h>
+#include <locale.h>
 #endif
 
+#ifdef HAVE_LUA_H
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+#include "bscript.h"
+#endif
 
 char	*copyright  = "Copyright (C) 1996-2004 by Gerhard Buergmann";
 
@@ -102,7 +108,6 @@ usage()
 	exit(1);
 }
 
-
 int
 main(argc, argv)
 	int argc;
@@ -119,6 +124,10 @@ main(argc, argv)
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_ALL, "");
 #endif
+#ifdef HAVE_LUA_H
+	bvi_lua_init();
+#endif
+
 	poi = strrchr(argv[0], DELIM);
 
 	if (poi) strncpy(progname, ++poi, 7);
@@ -228,8 +237,12 @@ main(argc, argv)
 
 	/****** Initialisation of curses ******/
 	initscr();
+	if (has_colors() != FALSE) {
+		start_color();
+		set_palette();
+	}
+	
 	attrset(A_NORMAL);
-
 	maxy = LINES;
 	if (params[P_LI].flags & P_CHANGED) maxy = P(P_LI);
 	scrolly = maxy / 2;

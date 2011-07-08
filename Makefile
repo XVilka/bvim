@@ -19,31 +19,31 @@
 #
 ###############################################
 
-srcdir = @srcdir@
-prefix = @prefix@
-exec_prefix = @exec_prefix@
+srcdir = .
+prefix = /usr/local
+exec_prefix = ${prefix}
 
-bindir = $(DESTDIR)@bindir@
-mandir = $(DESTDIR)@mandir@
-libdir = $(DESTDIR)@libdir@
+bindir = $(DESTDIR)${exec_prefix}/bin
+mandir = $(DESTDIR)${prefix}/man
+libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
 
 OBJS   =  bvi.o comm.o set.o re.o io.o edit.o recomp.o bscript.o
 HEADER =  bvi.h set.h bscript.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
-CC     =  @CC@
-CFLAGS =  @CFLAGS@ @CPPFLAGS@
-DEFS   =  @DEFS@
-LDFLAGS=  @LDFLAGS@
-LIBS   =  @LIBS@
+CC     =  gcc
+CFLAGS =  -g -O2 
+DEFS   =  -DHAVE_CONFIG_H -DHAVE_LUA_H
+LDFLAGS=  
+LIBS   =   -lncurses -llua
 SHELL  =  /bin/sh
 
 
 
-INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
-INSTALL_DATA = @INSTALL_DATA@
+INSTALL = /usr/bin/install -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL} -m 644
 
 
 all: bvi bmore

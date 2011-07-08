@@ -53,9 +53,9 @@ struct	param	params[] = {
 	{ "window",		"window",	25,		"",	P_NUM },
 	{ "wordlength",	"wl",		4,		"",	P_NUM },
 	{ "wrapscan",	"ws",		TRUE,	"",	P_BOOL },
-#if defined(__MSDOS__) && !defined(DJGPP)
-	{ "color",		"co",		7,		"",	P_NUM  },
-#endif
+	{ "color1",		"clr1",		4,		"", P_NUM },
+	{ "color2",		"clr2",		7,		"", P_NUM },
+	{ "color3",		"clr3",		5,		"", P_NUM },
 	{ "",			"",			0,		"",	0, }		/* end marker */
 
 };
@@ -123,14 +123,25 @@ doset(arg)
 					params[i].nvalue = strtol(s, &s, 10);
 				}
 				params[i].flags |= P_CHANGED;
-#if defined(__MSDOS__) && !defined(DJGPP)
-				if (i == P_CO) {
-					textcolor(P(P_CO) & 0x07);
-					textbackground((P(P_CO) & 0xf0) >> 4);
-					clrscr();
+
+				if (i == P_C1) {
+					/* set color for memory position */
+					set_palette();
 					repaint();
 				}
-#endif
+
+				if (i == P_C2) {
+					/* set color for hexadecimal bytes */
+					set_palette();
+					repaint();
+				}
+
+				if (i == P_C3) {
+					/* set color for original bytes */
+					set_palette();
+					repaint();
+				}
+
 				if (i == P_CM) {
 					if (((COLS - AnzAdd - 1) / 4) >= P(P_CM)) {
 						Anzahl = P(P_CM);
@@ -199,6 +210,21 @@ showparms(all)
 	wait_return(TRUE);
 }
 
+void set_palette()
+{
+	if ((P(P_C1) > 7) | (P(P_C2) > 7) | (P(P_C3) > 7))
+	{
+		init_pair(1, COLOR_BLUE, COLOR_BLACK);
+		init_pair(2, COLOR_WHITE, COLOR_BLACK);
+		init_pair(3, COLOR_MAGENTA, COLOR_BLACK);
+	}
+	else
+	{
+		init_pair(1, P(P_C1), COLOR_BLACK);
+		init_pair(2, P(P_C2), COLOR_BLACK);
+		init_pair(3, P(P_C3), COLOR_BLACK);
+	}
+}
 
 /* reads the init file (.bvirc) */
 int

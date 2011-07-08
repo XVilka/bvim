@@ -462,13 +462,20 @@ statpos()
 	attrset(A_NORMAL);
 }
 
+void printcolorline(int y, int x, int palette, char* string)
+{
+	attron(COLOR_PAIR(palette));
+	mvaddstr(y, x, string);
+	attroff(COLOR_PAIR(palette));
+}
 
 void
 printline(mempos, scpos)
 	PTR	mempos;
 	int	scpos;
 {
-	int		print_pos;
+	int	print_pos;
+	int nxtpos = 0;
 	unsigned char Zeichen;
 
 	if (mempos > maxpos) {
@@ -477,6 +484,12 @@ printline(mempos, scpos)
 		sprintf(linbuf, addr_form, (long)(mempos - mem + P(P_OF)));
 		*string = '\0';
 	}
+	strcat(linbuf, "|");
+	/* load color from P(P_C1) */
+	printcolorline(scpos, 0, 1, linbuf);
+	nxtpos = 10;
+	*linbuf = '\0';
+
 	for (print_pos = 0; print_pos < Anzahl; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
 			sprintf(tmpbuf, "   ");
@@ -492,8 +505,13 @@ printline(mempos, scpos)
 			*(string + print_pos) = '.';
 	}
 	*(string + Anzahl) = '\0';
-	strcat(linbuf, string);
-	mvaddstr(scpos, 0, linbuf);
+	/* load color from P(P_C2) */
+	printcolorline(scpos, nxtpos, 2, linbuf);
+
+	/* strcat(linbuf, string); */
+	nxtpos += strlen(linbuf);
+	/* load color from P(P_C3) */
+	printcolorline(scpos, nxtpos, 3, string);
 }
 
 

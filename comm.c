@@ -32,6 +32,13 @@
 #include "bvi.h"
 #include "set.h"
 
+#ifdef HAVE_LUA_H
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+#include "bscript.h"
+#endif
+
 #ifdef HAVE_UNISTD_H
 #	include <unistd.h>
 #endif
@@ -99,6 +106,7 @@ docmdline(cmdline)
 	char	buff[CMDSZ];
 	char	cmdbuf[CMDSZ];
 	char	cmdname[MAXNAME];
+	char	luacmdbuf[CMDSZ];
 	char	*cmd;
 	char	*p;
 	size_t	len;
@@ -358,6 +366,19 @@ docmdline(cmdline)
 				if (doset(c_argv[n])) return;
 			}
 		}
+	} else if (!strncmp("lua", cmdname, len) && CMDLNG(3, 2)) {
+		if (c_argc == 0) {
+			emsg("Error: empty lua command!");
+		} else {
+			//bvi_run_lua_string(c_argv);
+			luacmdbuf[0] = '\0';
+			for (n = 0; n < c_argc; n++) {
+				strcat(luacmdbuf, " ");
+				strcat(luacmdbuf, c_argv[n]);
+			}
+			bvi_run_lua_string(luacmdbuf);
+		}
+		return;
 	} else if (!strncmp("args", cmdname, len) && CMDLNG(4, 2)) {
 		if (chk_comm(NO_ADDR|NO_ARG)) return;
 		string[0] = '\0';
@@ -635,7 +656,13 @@ do_exit()
 	if ((curfile + 1) < numfiles) {
 		sprintf(string, "%d %s", numfiles - curfile - 1, morefiles);
 		emsg(string);
-	} else quit();
+	} else 
+	{
+#ifdef HAVE_LUA_H
+		bvi_lua_finish();
+#endif
+		quit();
+	}
 }
 
 

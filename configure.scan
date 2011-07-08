@@ -1,27 +1,28 @@
-dnl Process this file with autoconf to produce a configure script.
-AC_INIT(bvi.c)
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
 
-dnl Checks for programs.
+AC_PREREQ([2.68])
+AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+AC_CONFIG_SRCDIR([bmore.h])
+AC_CONFIG_HEADERS([config.h])
+
+# Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
 
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lcurses:
-AC_CHECK_LIB(curses, main)
-dnl Replace `main' with a function in -lncurses:
-AC_CHECK_LIB(ncurses, main)
+# Checks for libraries.
 
-dnl Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h unistd.h)
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h limits.h locale.h stdlib.h string.h termios.h unistd.h])
 
-dnl Checks for typedefs, structures, and compiler characteristics.
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
-dnl Checks for library functions.
-AC_TYPE_SIGNAL
-AC_CHECK_FUNCS(strdup strtol)
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memchr memmove setlocale strcasecmp strchr strdup strerror strrchr strtol])
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
