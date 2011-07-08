@@ -24,7 +24,7 @@ prefix = /usr/local
 exec_prefix = ${prefix}
 
 bindir = $(DESTDIR)${exec_prefix}/bin
-mandir = $(DESTDIR)${prefix}/man
+mandir = $(DESTDIR)${prefix}/share/man
 libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
@@ -34,7 +34,7 @@ HEADER =  bvi.h set.h bscript.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
 CFLAGS =  -g -O2 
-DEFS   =  -DHAVE_CONFIG_H -DHAVE_LUA_H
+DEFS   =  -DHAVE_CONFIG_H
 LDFLAGS=  
 LIBS   =   -lncurses -llua
 SHELL  =  /bin/sh
