@@ -782,6 +782,29 @@ smsg(s)
 	}
 }
 
+/*** display window ***/
+void
+wmsg(s, height, width)
+	char	*s;
+	int height;
+	int width;
+{
+	WINDOW *msg_win;
+	int starty = (LINES - height) / 2;	/* Calculating for a center placement */
+	int startx = (COLS - width) / 2;	/* of the window		*/
+	int ch;
+	refresh();
+	msg_win = newwin(height, width, starty, startx);
+	box(msg_win, 0, 0);
+	wrefresh(msg_win);
+	mvwaddstr(msg_win, 1, 2, s);
+	wrefresh(msg_win);
+	while((ch = getch()) != KEY_F(1)) {}
+	wborder(msg_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	wrefresh(msg_win);
+	delwin(msg_win);
+	repaint();
+}
 
 /************* displays s on status line *****************/
 void

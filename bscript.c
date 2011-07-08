@@ -23,7 +23,8 @@ static int bvi_load(lua_State *L)
 {
 	char* filename;
 	int n = lua_gettop(L);
-		if (n = 1)
+	
+	if (n = 1)
 	{
 		filename = (char*) lua_tostring(L, 1);
 		load(filename);
@@ -91,9 +92,32 @@ static int bvi_status_line_msg(lua_State *L)
 	return 0;
 }
 
+/* Display message in the window */
+/* lua: msg_window(message) */
+static int bvi_msg_window(lua_State *L)
+{
+	char* message;
+	int height, width;
+	int n = lua_gettop(L);
+	if (n = 1)
+	{
+		message = (char*) lua_tostring(L, -1);
+		wmsg(message, 3, strlen(message) + 4);
+	}
+	else if (n = 3)
+	{
+		message = (char*) lua_tostring(L, 1);
+		height = (int) lua_tonumber(L, 2);
+		width = (int) lua_tonumber(L, 3);
+		wmsg(message, height, width);
+	}
+	return 0;
+}
+
 /* Undo */
 static int bvi_undo(lua_State *L)
 {
+	do_undo();
 	return 0;
 }
 
@@ -179,18 +203,25 @@ static int bvi_setpage(lua_State *L)
 
 void bvi_lua_init()
 {
+	struct luaL_reg bvi_methods[] = {
+		{ "save", bvi_save },
+		{ "load", bvi_load },
+		{ "exec", bvi_exec },
+		{ "display_error", bvi_display_error },
+		{ "msg_window", bvi_msg_window },
+		{ "undo", bvi_undo },
+		{ "redo", bvi_redo },
+		{ "insert", bvi_insert },
+		{ "overwrite", bvi_overwrite },
+		{ "remove", bvi_remove },
+		{ "scrolldown", bvi_scrolldown },
+		{ "scrollup", bvi_scrollup },
+		{ "setpage", bvi_setpage },
+		{ NULL, NULL }
+	};
 	lstate = lua_open();
 	luaL_openlibs(lstate);
-	lua_pushcfunction(lstate, bvi_save);
-	lua_setglobal(lstate, "bvi_save");
-	lua_pushcfunction(lstate, bvi_load);
-	lua_setglobal(lstate, "bvi_load");
-	lua_pushcfunction(lstate, bvi_exec);
-	lua_setglobal(lstate, "bvi_exec");
-	lua_pushcfunction(lstate, bvi_scrolldown);
-	lua_setglobal(lstate, "bvi_scrolldown");
-	lua_pushcfunction(lstate, bvi_scrollup);
-	lua_setglobal(lstate, "bvi_scrollup");
+	luaL_register(lstate, "bvi", bvi_methods);
 }
 
 int bvi_run_lua_script(char* name)

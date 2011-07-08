@@ -278,7 +278,13 @@ COMMAND SUMMARY
          :/pat/,$ foo   search pattern pat and and copy
                         through end of file
 
-       Positioning within file:
+       Scripting
+		 :lua <some script>		directly run lua snippet from
+						command line
+		 :run <script name>		run <script name>.lua script
+						from plugins directory
+
+	   Positioning within file:
          ^B      backward screen
          ^F      forward  screen
          ^D      scroll down half screen
