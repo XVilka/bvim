@@ -339,9 +339,11 @@ do_shell()
 	addch('\n');
 	savetty();
 #ifdef DJGPP
-	system("");
-#else
-	system(shell);
+	int shresult = system("");
+	emsg("DOS have no support for shell commands!");
+else
+	int shresult = system(shell);
+	msg("shell executed successfully!");
 #endif
 	resetty();
 }

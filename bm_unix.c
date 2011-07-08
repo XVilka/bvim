@@ -161,6 +161,7 @@ doshell(cmd)
 	char	*shell;
 	char	cline[128];
 #endif
+	int		shresult;
 
 	printf("\n");
 
@@ -178,7 +179,9 @@ doshell(cmd)
 #endif
 
 	reset_tty();
-	system(cmd);
+	shresult = system(cmd);
+	if (shresult == SIGQUIT)
+		fprintf(stderr, "[Shell execution error]");
 	set_tty();
 	printf("\r");
 	home();

@@ -931,7 +931,7 @@ emsg(s)
 	putchar('\r');
 	cleartoeol();
 	highlight();
-	PRINTF(s);
+	PRINTF("%s", s);
 	normal();
 	fflush(stdout);
 	prompt = 0;

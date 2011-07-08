@@ -13,7 +13,7 @@ lua_State *lstate;
 /* lua: save(filename, [start, end, flags]) */
 static int bvi_save(lua_State *L)
 {
-	// save(filename, start, end, flags);
+	/* save(filename, start, end, flags); */
 	return 0;
 }
 
@@ -22,17 +22,18 @@ static int bvi_save(lua_State *L)
 static int bvi_load(lua_State *L)
 {
 	char* filename;
+	int mode;
 	int n = lua_gettop(L);
 	
-	if (n = 1)
+	if (n == 1)
 	{
 		filename = (char*) lua_tostring(L, 1);
 		load(filename);
 	}
-	else if (n = 2)
+	else if (n == 2)
 	{
 		filename = (char*) lua_tostring(L, 1);
-		int mode = (int) lua_tonumber(L, 2);
+		mode = (int) lua_tonumber(L, 2);
 		if (mode == 1)
 		{
 			addfile(filename);
@@ -99,12 +100,12 @@ static int bvi_msg_window(lua_State *L)
 	char* message;
 	int height, width;
 	int n = lua_gettop(L);
-	if (n = 1)
+	if (n == 1)
 	{
 		message = (char*) lua_tostring(L, -1);
 		wmsg(message, 3, strlen(message) + 4);
 	}
-	else if (n = 3)
+	else if (n == 3)
 	{
 		message = (char*) lua_tostring(L, 1);
 		height = (int) lua_tonumber(L, 2);
@@ -128,7 +129,7 @@ static int bvi_redo(lua_State *L)
 }
 
 /* Set any bvi parameter (analog of :set param cmd) */
-static int bvi_set_param(lua_State *L)
+static int bvi_set(lua_State *L)
 {
 	return 0;
 }
@@ -206,14 +207,18 @@ void bvi_lua_init()
 	struct luaL_reg bvi_methods[] = {
 		{ "save", bvi_save },
 		{ "load", bvi_load },
+		{ "file", bvi_file },
 		{ "exec", bvi_exec },
 		{ "display_error", bvi_display_error },
+		{ "display_status_msg", bvi_status_line_msg },
 		{ "msg_window", bvi_msg_window },
+		{ "set", bvi_set },
 		{ "undo", bvi_undo },
 		{ "redo", bvi_redo },
 		{ "insert", bvi_insert },
 		{ "overwrite", bvi_overwrite },
 		{ "remove", bvi_remove },
+		{ "cursor", bvi_cursor },
 		{ "scrolldown", bvi_scrolldown },
 		{ "scrollup", bvi_scrollup },
 		{ "setpage", bvi_setpage },
@@ -226,12 +231,13 @@ void bvi_lua_init()
 
 int bvi_run_lua_script(char* name)
 {
-	char filename[256]; 
+	char filename[256];
+	int err;
 	filename[0] = '\0';
 	strcat(filename, "plugins/");
 	strcat(filename, name);
 	strcat(filename, ".lua");
-	int err = luaL_loadfile(lstate, filename);
+	err = luaL_loadfile(lstate, filename);
 	if (err)
 	{
 		emsg("Error: cant open lua script file!");

@@ -174,7 +174,7 @@ hex_comp(smem, pattern)
 	char	*comp;
 	int		cc, ccm;
 	char	*counter;
-	int		count, nr;
+	unsigned int count, nr;
 
 	comp = smem;
 	poi = pattern;
@@ -261,7 +261,7 @@ hex_comp(smem, pattern)
 int
 hexchar()
 {
-	int		nr;
+	unsigned int nr;
 	char	tmpbuf[3];
 
 	if (isxdigit(*poi)) {

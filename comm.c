@@ -113,6 +113,7 @@ docmdline(cmdline)
 	int		n, ok;
 	int		force = 0;
 	int		saveflag;
+	int		shresult;
 
 	if (cmdline == NULL) return;
 	if (*cmdline == '"') return; 	/** comment **/
@@ -199,7 +200,9 @@ docmdline(cmdline)
 		if (edits) msg("[No write]|[No write since last change]");
 		savetty();
 		endwin();
-		system(cmdbuf + 1);
+		shresult = system(cmdbuf + 1);
+		if (shresult == SIGQUIT) 
+			fprintf(stderr, "[Shell execution error]");
 		fprintf(stderr, "[Hit return to continue]");
 		getchar();
 		doupdate();
@@ -799,7 +802,7 @@ wmsg(s, height, width)
 	wrefresh(msg_win);
 	mvwaddstr(msg_win, 1, 2, s);
 	wrefresh(msg_win);
-	while((ch = getch()) != KEY_F(1)) {}
+	while((ch = getch()) == -1) {}
 	wborder(msg_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
 	wrefresh(msg_win);
 	delwin(msg_win);

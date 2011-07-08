@@ -62,7 +62,7 @@ off_t
 edit(mode)
 	int	mode;
 {
-	int		ch, ch1;
+	unsigned int		ch, ch1;
 	size_t	len;
 	off_t	count = 0L;
 	off_t	buffer = BUFFER;

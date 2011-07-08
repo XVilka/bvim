@@ -488,7 +488,7 @@ main(argc, argv)
 					} else if (cmdstr[0] == '$') {
 						inaddr = filesize + P(P_OF) - 1L;
 					} else {
-						long ltmp;
+						unsigned long ltmp;
 						sscanf(cmdstr, "%lx", &ltmp);
 						inaddr = (off_t)ltmp;
 					}

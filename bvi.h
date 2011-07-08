@@ -124,6 +124,9 @@
 #   define DELIM	'/'
 #endif
 
+/* Define escape key */
+#define KEY_ESC		27
+
 #define MAXCMD	255
 #define BUFFER	1024
 
@@ -200,6 +203,7 @@ extern  off_t   block_begin, block_end, block_size;
 	void	do_mark(int, PTR), badcmd(char *), movebyte(void);
 	void	docmdline(char *), do_over(PTR, off_t, PTR), do_put(PTR, off_t, PTR);
 	void	jmpproc(int), printline(PTR, int);
+	void	wmsg(char *);
 	int		addfile(char *);
 	int		bregexec(PTR, char *);
 	int		chk_comm(int);
@@ -263,7 +267,7 @@ extern  off_t   block_begin, block_end, block_size;
 	PTR		calc_addr();
 	PTR		do_ft();
 	char	*patcpy();
-	void	setpage(), msg(), emsg(), smsg();
+	void	setpage(), msg(), emsg(), smsg(), wmsg();
 	void	usage(), bvi_init(), statpos(), setcur();
 	void	showparms(), toggle(), scrolldown(), scrollup();
 	void	fileinfo();

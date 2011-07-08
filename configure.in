@@ -30,6 +30,7 @@ hpux9*) DEFS=${DEFS-"-DMINICURSES"}
 	;;
 esac
 
+CPPFLAGS="${CPPFLAGS} -Wall -pedantic"
 
 dnl Checks for programs.
 AC_PROG_INSTALL
