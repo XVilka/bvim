@@ -47,18 +47,18 @@
 #	include "patchlevel.h"
 #	include "config.h"
 #	include <unistd.h>
-# if HAVE_NCURSES_H
+#ifdef HAVE_NCURSES_H
 #   include <ncurses.h>
-# else
+#else
 #   include <curses.h>
-# endif 
-# if HAVE_TERM_H
+#endif 
+#ifdef HAVE_TERM_H
 #	include <term.h>
-# else
-#  if HAVE_NCURSES_TERM_H
-#	include <ncurses/term.h>
-#  endif
-# endif
+#else
+#ifdef HAVE_NCURSES_TERM_H
+#include <ncurses/term.h>
+#endif
+#endif
 #endif
 
 

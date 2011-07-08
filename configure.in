@@ -24,7 +24,7 @@ dnl Solaris needs for tputs 'putc(char)' instead of 'putc(int)'
 case "$host_os" in
 solaris*)
 	CPPFLAGS="${CPPFLAGS} -D_MSE_INT_H"
-	AC_DEFINE([NEED_PUTC_CHAR])
+	AC_DEFINE([NEED_PUTC_CHAR],[],[putc_char is needed])
 	;;
 hpux9*) DEFS=${DEFS-"-DMINICURSES"}
 	;;
@@ -60,13 +60,13 @@ AC_ARG_WITH(ncurses,
 
 AC_CHECK_HEADER(ncurses.h,[
     AC_CHECK_LIB([ncurses], [initscr],[
-        AC_DEFINE([HAVE_NCURSES_H]) LIBS="${LIBS} -lncurses" ],[
+        AC_DEFINE([HAVE_NCURSES_H],[],[ncurses header file existance]) LIBS="${LIBS} -lncurses" ],[
         AC_CHECK_LIB([curses], [initscr],[
-        AC_DEFINE([HAVE_CURSES_H]) LIBS="${LIBS} -lcurses"],[
+        AC_DEFINE([HAVE_CURSES_H],[],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
         AC_MSG_ERROR([bvi requires the curses library])])])],[
     AC_CHECK_HEADER(curses.h,[
         AC_CHECK_LIB([curses], [initscr],[
-		AC_DEFINE([HAVE_CURSES_H]) LIBS="${LIBS} -lcurses"],[
+		AC_DEFINE([HAVE_CURSES_H],[],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
 		AC_MSG_ERROR([bvi requires the curses library])])],[
 		AC_MSG_ERROR([bvi requires the curses library])])])
 
@@ -81,7 +81,7 @@ AC_ARG_WITH(lua,
 
 AC_CHECK_HEADER(lua.h,[
 	AC_CHECK_LIB([lua], [lua_pcall],[
-		AC_DEFINE([HAVE_LUA_H]) DEFS="${DEFS} -DHAVE_LUA_H" LIBS="${LIBS} -llua"],[
+		AC_DEFINE([HAVE_LUA_H],[],[Lua header file existance]) DEFS="${DEFS} -DHAVE_LUA_H" LIBS="${LIBS} -llua"],[
 		AC_MSG_ERROR([bvi requires lua])])],[
 		AC_MSG_ERROR([bvi requires lua])])
 
