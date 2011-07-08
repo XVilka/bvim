@@ -62,12 +62,12 @@ AC_CHECK_HEADER(ncurses.h,[
     AC_CHECK_LIB([ncurses], [initscr],[
         AC_DEFINE([HAVE_NCURSES_H],[1],[ncurses header file existance]) LIBS="${LIBS} -lncurses" ],[
         AC_CHECK_LIB([curses], [initscr],[
-        AC_DEFINE([HAVE_CURSES_H],[1],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
-        AC_MSG_ERROR([bvi requires the curses library])])])],[
+			AC_DEFINE([HAVE_CURSES_H],[1],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
+			AC_MSG_ERROR([bvi requires the curses library])])])],[
     AC_CHECK_HEADER(curses.h,[
         AC_CHECK_LIB([curses], [initscr],[
-		AC_DEFINE([HAVE_CURSES_H],[1],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
-		AC_MSG_ERROR([bvi requires the curses library])])],[
+			AC_DEFINE([HAVE_CURSES_H],[1],[curses header file existance]) LIBS="${LIBS} -lcurses"],[
+			AC_MSG_ERROR([bvi requires the curses library])])],[
 		AC_MSG_ERROR([bvi requires the curses library])])])
 
 dnl Check if lua requested
@@ -79,11 +79,16 @@ AC_ARG_WITH(lua,
 	fi
 ])
 
-AC_CHECK_HEADER(lua.h,[
-	AC_CHECK_LIB([lua], [lua_pcall],[
-		AC_DEFINE([HAVE_LUA_H],[1],[Lua header file existance]) DEFS="${DEFS} -DHAVE_LUA_H" LIBS="${LIBS} -llua"],[
+AC_CHECK_HEADER(lua5.1/lua.h,[
+	AC_CHECK_LIB([lua5.1], [lua_pcall],[
+		AC_DEFINE([HAVE_LUA_H],[1],[Lua header file existance]) LIBS="${LIBS} -llua5.1"],[
 		AC_MSG_ERROR([bvi requires lua])])],[
-		AC_MSG_ERROR([bvi requires lua])])
+	AC_CHECK_HEADER(lua.h,[
+		AC_CHECK_LIB([lua], [lua_pcall],[
+			AC_DEFINE([HAVE_LUA_H],[1],[Lua header file existance]) LIBS="${LIBS} -llua"],[
+			AC_MSG_ERROR([bvi requires lua])])],[
+		AC_MSG_ERROR([bvi requires lua])])],[
+	AC_MSG_ERROR([bvi requires lua])])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl AC_TYPE_SIZE_T
