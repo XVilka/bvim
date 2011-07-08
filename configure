@@ -4028,7 +4028,7 @@ $as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
 if test "x$ac_cv_lib_ncurses_initscr" = xyes; then :
 
 
-$as_echo "#define HAVE_NCURSES_H /**/" >>confdefs.h
+$as_echo "#define HAVE_NCURSES_H 1" >>confdefs.h
  LIBS="${LIBS} -lncurses"
 else
 
@@ -4071,7 +4071,7 @@ $as_echo "$ac_cv_lib_curses_initscr" >&6; }
 if test "x$ac_cv_lib_curses_initscr" = xyes; then :
 
 
-$as_echo "#define HAVE_CURSES_H /**/" >>confdefs.h
+$as_echo "#define HAVE_CURSES_H 1" >>confdefs.h
  LIBS="${LIBS} -lcurses"
 else
 
@@ -4124,7 +4124,7 @@ $as_echo "$ac_cv_lib_curses_initscr" >&6; }
 if test "x$ac_cv_lib_curses_initscr" = xyes; then :
 
 
-$as_echo "#define HAVE_CURSES_H /**/" >>confdefs.h
+$as_echo "#define HAVE_CURSES_H 1" >>confdefs.h
  LIBS="${LIBS} -lcurses"
 else
 
@@ -4195,7 +4195,7 @@ $as_echo "$ac_cv_lib_lua_lua_pcall" >&6; }
 if test "x$ac_cv_lib_lua_lua_pcall" = xyes; then :
 
 
-$as_echo "#define HAVE_LUA_H /**/" >>confdefs.h
+$as_echo "#define HAVE_LUA_H 1" >>confdefs.h
  DEFS="${DEFS} -DHAVE_LUA_H" LIBS="${LIBS} -llua"
 else
 

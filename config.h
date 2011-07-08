@@ -11,7 +11,7 @@
 #define HAVE_INTTYPES_H 1
 
 /* Lua header file existance */
-#define HAVE_LUA_H /**/
+#define HAVE_LUA_H 1
 
 /* Define to 1 if you have the `memmove' function. */
 #define HAVE_MEMMOVE 1
@@ -20,7 +20,7 @@
 #define HAVE_MEMORY_H 1
 
 /* ncurses header file existance */
-#define HAVE_NCURSES_H /**/
+#define HAVE_NCURSES_H 1
 
 /* Define to 1 if you have the <ncurses/term.h> header file. */
 /* #undef HAVE_NCURSES_TERM_H */

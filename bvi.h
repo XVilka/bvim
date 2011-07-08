@@ -45,7 +45,7 @@
 #else
 #	include "patchlevel.h"
 #	include "config.h"
-#ifdef HAVE_NCURSES_H
+#if HAVE_NCURSES_H
 #   include <ncurses.h>
 #else
 #   include <curses.h>
