@@ -174,7 +174,7 @@ hex_comp(smem, pattern)
 	char	*comp;
 	int		cc, ccm;
 	char	*counter;
-	unsigned int count, nr;
+	int count, nr;
 
 	comp = smem;
 	poi = pattern;
