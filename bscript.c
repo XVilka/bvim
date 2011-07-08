@@ -179,19 +179,38 @@ static int bvi_setpage(lua_State *L)
 
 void bvi_lua_init()
 {
-	/* Declare a Lua State, open the Lua State and load the libraries (see above). */
 	lstate = lua_open();
 	luaL_openlibs(lstate);
 	lua_pushcfunction(lstate, bvi_save);
-	lua_setglobal(lstate, "save");
+	lua_setglobal(lstate, "bvi_save");
 	lua_pushcfunction(lstate, bvi_load);
-	lua_setglobal(lstate, "load");
+	lua_setglobal(lstate, "bvi_load");
 	lua_pushcfunction(lstate, bvi_exec);
-	lua_setglobal(lstate, "exec");
+	lua_setglobal(lstate, "bvi_exec");
 	lua_pushcfunction(lstate, bvi_scrolldown);
-	lua_setglobal(lstate, "scrolldown");
+	lua_setglobal(lstate, "bvi_scrolldown");
 	lua_pushcfunction(lstate, bvi_scrollup);
-	lua_setglobal(lstate, "scrollup");
+	lua_setglobal(lstate, "bvi_scrollup");
+}
+
+int bvi_run_lua_script(char* name)
+{
+	char filename[256]; 
+	filename[0] = '\0';
+	strcat(filename, "plugins/");
+	strcat(filename, name);
+	strcat(filename, ".lua");
+	int err = luaL_loadfile(lstate, filename);
+	if (err)
+	{
+		emsg("Error: cant open lua script file!");
+		lua_pop(lstate, 1);
+	}
+	else
+	{
+		lua_pcall(lstate, 0, LUA_MULTRET, 0);
+	}
+	return 0;
 }
 
 int bvi_run_lua_string(char* string)

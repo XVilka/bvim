@@ -370,7 +370,6 @@ docmdline(cmdline)
 		if (c_argc == 0) {
 			emsg("Error: empty lua command!");
 		} else {
-			//bvi_run_lua_string(c_argv);
 			luacmdbuf[0] = '\0';
 			for (n = 0; n < c_argc; n++) {
 				strcat(luacmdbuf, " ");
@@ -393,6 +392,13 @@ docmdline(cmdline)
 		if (chk_comm(NO_ADDR|ONE_FILE)) return;
 		if (read_rc(c_argv[0])) sysemsg(c_argv[0]);
 		refresh();
+	} else if (!strncmp("run", cmdname, len) && CMDLNG(3,2)) {
+		if (c_argc == 0) {
+			emsg("Error: empty plugin name!");
+		} else {
+			bvi_run_lua_script(c_argv[0]);
+		}
+		return;
 	} else if (!strncmp("cd", cmdname, len) && CMDLNG(2, 2)) {
 		if (chk_comm(NO_ADDR|ONE_FILE)) return;
 		if (!force) {
