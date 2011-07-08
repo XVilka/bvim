@@ -1,0 +1,209 @@
+<HTML><HEAD>
+<TITLE>BVI: Colon (ex) Commands</TITLE>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="bvi.css">
+</HEAD><BODY BGCOLOR="#ffffff">
+<A NAME="top"></A>
+
+<TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD WIDTH=99%>
+<A CLASS=head HREF="overview.html">Command Overview</A>
+<BR><FONT CLASS=sub>Colon (ex) Commands</FONT>
+</TD><TD ALIGN=RIGHT VALIGN=BOTTOM WIDTH=116 ROWSPAN=2>
+<A HREF="index.html">
+<IMG SRC="gif/bvi_s.gif" ALT="BVI" WIDTH="116" HEIGHT="62" BORDER=0></A>
+</TD></TR>
+<TR><TD VALIGN=BOTTOM>
+<HR NOSHADE>
+</TD></TR></TABLE>
+<P>
+
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| Colon (ex) Cmds
+]
+</CENTER>
+<P>
+<BLOCKQUOTE>
+When forming a colon command, the first character, the colon, can be
+followed by zero, one or two addresses. These addresses are byte
+addresses, in contrast to vi, which uses line addresses.<BR>
+The byte addresses can be given in decimal notation or, with a 
+leading zero, in hexadecimal notation. If you have specified an
+address offset (e.g. <B>:set offset=256</B>), this offset has to be
+added to the byte addresses.<BR>
+Without an address, the whole file is affected or the current cursor
+position is used (depending of the command).
+<P>
+<CENTER>
+<TABLE BORDER=1 CELLPADDING=4>
+<TR><TH>Address</TH><TH>Corresponding bytes</TH></TR>
+<TR><TH>.</TH><TD>The current byte</TD></TR>
+<TR><TH>7</TH><TD>The seventh byte of file (if offset=0)</TD></TR>
+<TR><TH>.-<I>n</I></TH><TD><I>n</I> bytes before the current byte</TD></TR>
+<TR><TH>.+<I>n</I></TH><TD><I>n</I> bytes after the current byte</TD></TR>
+<TR><TH>'<I>x</I></TH><TD>The byte marked with <I>x</I></TD></TR>
+<TR><TH>^</TH><TD>The first byte in file</TD></TR>
+<TR><TH>$</TH><TD>The last byte</TD></TR>
+<TR><TH>''</TH><TD>The previous current byte</TD></TR>
+<TR><TH>/pat/</TH><TD>The first byte that matches <I>pat</I></TD></TR>
+<TR><TH>#12 A4 6F#</TH><TD>The first byte that matches hex pattern</TD></TR>
+</TABLE>
+</CENTER>
+</BLOCKQUOTE>
+
+<TABLE WIDTH=100%>
+<TR BGCOLOR=#CCCCCC><TH WIDTH=20%>Command</TH><TH WIDTH=40%>BVI</TH><TH WIDTH=40%>VI</TH></TR>
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>File<BR>Commands</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD><B>:w</B><BR>
+ <B>:w</B> %.new<BR>
+ <B>:w</B> filename<BR>
+ <B>:w&gt;&gt;</B> existingfile<BR>
+ <B>:w!</B> file<BR>
+ <B>:e</B> newfile<BR>
+ <B>:e!</B><BR>
+ <B>:f</B><BR>
+ <B>:f</B> newname<BR>
+ </TD>
+ <TD>Write to the current file<BR>
+ Write to current.new<BR>
+ Write to filename<BR>
+ Append to existing file<BR>
+ Overwrite existing file<BR>
+ Terminate session and edit <I>newfile</I><BR>
+ Reload the current file<BR>
+ Prints current filename and some additional info<BR>
+ Changes the current filename to <I>newname</I>
+ </TD></TR>
+</TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=2>Substitute<BR>Commands</TD>
+<TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD><B>:s/pattern/replace/</B><BR> 
+ <B>:s/pattern/replace/g</B><BR>
+ <B>:s/pattern/replace/gc</B></TD>
+ <TD>Search for pattern and replace it once<BR>
+ Search for pattern and replace it global<BR>
+ Search for pattern and replace it global conditional (ask)
+ </TD></TR>
+</TABLE>
+<TR><TD>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD><B>:s\80 af\ff ff\</B></TD>
+ <TD>Binary search and replace
+ </TD></TR>
+ </TABLE>
+ <TD BGCOLOR=#FFCCCC>Not available</TD></TR>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Edit<BR>Commands</TD>
+<TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD VALIGN=TOP><B>:a</B> <I>m</I><BR>
+ <B>:c</B> <I>m</I> &nbsp;<BR>
+ <B>:i</B> <I>m</I></B></TD>
+ <TD>append<BR>
+ change<BR>
+ insert
+ bytes, where <I>m</I> is a(scii), b(inary), d(ecimal), h(exadecimal)
+ or o(ctal). You can type in several (screen) lines of bytes, a line
+ with only a '<B>.</B>' in it terminates the command.
+ </TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+Usually not available in vi but in ex (without the <I>m</I> - modifier).
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Logical<BR>Operations</TD>
+<TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD><B>:and</B> <I>n</I><BR>
+ <B>:or</B> <I>n</I><BR>
+ <B>:xor</B> <I>n</I><BR>
+ <B>:neg<BR>
+ :not<BR>
+ :sl</B> <I>i</I><BR>
+ <B>:sr</B> <I>i</I><BR>
+ <B>:rr</B> <I>i</I><BR>
+ <B>:rl</B> <I>i</I></TD>
+ <TD>and <I>n</I><BR>
+ or <I>n</I><BR>
+ exclusive or <I>n</I><BR>
+ negate<BR>
+ invert<BR>
+ shift left <I>i</I> bits<BR>
+ shift right <I>i</I> bits<BR>
+ rotate left <I>i</I> bits<BR>
+ rotate right <I>i</I> bits
+ </TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+	Not available.
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=2>Miscellaneous</TD>
+<TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+ <B>:g</B>/<I>pat</I>/p<BR>
+ <B>:n<BR>
+ :q<BR>
+ :rew<BR>
+ :sh<BR>
+ :so</B> file<BR>
+ <B>:ve<BR>
+ :x<BR>
+ :!</B> <I>command</I><BR>
+ </TD><TD>
+ Global search for pattern <I>pat</I><BR>
+ Next file to edit<BR>
+ Exit session without saving the file<BR>
+ Rewind to first file<BR>
+ spawn a new shell<BR>
+ Read and execute a file with colon commands<BR>
+ Version of the editor<BR>
+ Exit session, save the file if changed<BR>
+ execute a system <I>command</I><BR>
+ </TD></TR>
+</TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFCCCC>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>Currently not available</TD></TR>
+</TABLE>
+</TD><TD>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<B>:map</B><BR>
+<B>:unm</B>(ap)<BR>
+<B>:ab</B>(breviate)<BR>
+<B>:una</B>(bbreviate)<BR>
+</TD></TR>
+</TABLE>
+</TD></TR>
+</TABLE>
+<P>
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| Colon (ex) Cmds
+]
+</CENTER>
+<P>
+<FONT SIZE=-1>
+<A CLASS="btop" HREF="#top"><IMG BORDER=0 WIDTH=16 HEIGHT=7 SRC="gif/up.gif"
+ALT="Back to the top">Back to the top</A>
+</FONT>
+<HR NOSHADE>
+<I>Last update: October 30<SUP>th</SUP> 1999 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</I>
+
+
+</BODY></HTML>

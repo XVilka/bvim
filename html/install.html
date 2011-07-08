@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Installation</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<font color="#ffffff" class="thl">Installation<br></font>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1"></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Installation</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+The following steps are necessary to get bvi running:
+<h2>UNIX</h2>
+The Unix version of bvi needs the curses (ncurses) library
+for cursor movement.
+<ol>
+<li>Download the source package from the Download Page</li>
+<li>Unzip the package with the command:</li>
+<pre class="examp">
+    # gunzip -c bvi-1.3.2.src.tar.gz | tar xvf
+</pre>
+<li>Change to the directory <tt class="examp">bvi-1.3.2</tt> and type
+<pre class="examp">
+    # ./configure
+    # make
+</pre></li>
+
+<li>Type `<tt class="examp">make install</tt>' for copying the executable files
+and manual pages to the final directories.
+<br>
+By default, `<tt class="examp">make install</tt>' will install the package's files in
+<tt class="examp">`/usr/local/bin', `/usr/local/man'</tt>, etc.
+You can specify an
+installation prefix other than `<tt class="examp">/usr/local</tt>' by giving
+`<tt class="examp">configure</tt>' the option
+`<tt class="examp">--prefix=PATH</tt>'. Use the
+`<tt class="examp">--with-ncurses</tt>' option to configure to specify an
+alternate search path for Ncurses outside the normal 
+<tt class="examp">include/lib</tt> search path. 
+<p>
+You will find now four new commands:
+<pre class="examp">
+    bvi     The binary editor
+    bview   The readonly version of bvi
+    bedit   The beginners version of bvi
+    bmore   The binary more program
+</pre></li>
+<li>Use `<tt class="examp">make uninstall</tt>' to remove the installed
+files from your file system.<br>
+You can remove the program binaries and object files from the
+source code directory by typing `<tt class="examp">make clean</tt>'.
+To also remove the files that `<tt class="examp">configure</tt>' created
+(so you can compile the package for
+a different kind of computer), type `<tt class="examp">make distclean</tt>'. </li>
+</ol>
+						
+<h2>MSDOS</h2>
+Beginning with <b>version 1.3.2</b> you may use the DJGPP environment to
+compile <b>bvi</b> for working under both Win32 and DOS.
+<p>
+The MSDOS version (Borland C) exists for historical reasons and is not
+supported anymore:
+<blockquote>
+<p>
+You have to convert the sourcefiles from the UNIX textformat to
+the MSDOS textformat first. This can be done e.g. by loading and
+saving them with the MSDOS standard editor `edit'.
+<p>
+The MSDOS version is using the conio routines of the 
+Borland - C compilers for cursor movement. The <tt>doscur.h</tt>
+header file substitutes the curses commands.<br>
+<strong>Bvi</strong> is using the "HUGE" memory model, <strong>bmore</strong>
+needs the "TINY" model to
+be able to convert it to a .COM file.
+
+<ol>
+<li>Download the source package from the Download Page</li>
+<li>Unzip the package with the command:
+<pre class="examp">
+    gunzip -c bvi-1.3.2.src.tar.gz | tar xvf
+</pre></li>
+<li> Load the tcconfig file (located in the <TT>bc</TT> subdirectory
+for Borland - C).</li>
+
+<li> Press F9-Make</li>
+</ol>
+</blockquote>
+<p><small>
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</small>
+<hr noshade>
+<i>Last update: February 12<sup>th</sup> 2004 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

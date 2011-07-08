@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Quick Tutorial</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<font color="#ffffff" class="thl">Quick Tutorial<br></font>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+This tutorial will explain all commands which behaves different to
+vi. Note that, if you are on a Linux system, you will probably
+have an 'improved' version of vi. Bvi is more similar to the standard
+version.
+
+<H3>The Screen</H3>
+<CENTER>
+<TABLE WIDTH=10 CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD BGCOLOR=#ffccff><PRE CLASS="examp">
+000000
+00000C
+000018
+000024
+000030
+00003C
+000048
+000054
+000060
+00006C
+000078
+000084
+000090
+00009C</PRE></TD><TD BGCOLOR=#ccffcc><PRE CLASS="examp">
+ 7F <tt class="inv">4</tt>5 4C 46 01 01
+ 00 00 00 00 01 00
+ 00 00 00 00 00 00
+ 00 00 00 00 34 00
+ 0C 00 09 00 00 00
+ 00 00 00 00 55 89
+ 53 C7 45 A4 00 00
+ 00 00 00 83 7D 08
+ 8C 02 00 00 E9 6F
+ 00 00 00 00 6A 03
+ 45 08 50 E8 FC FF
+ 0C 85 D2 75 17 6A
+ E9 43 02 00 00 8D
+ 0C 85 D2 75 0D C7</PRE></TD><TD BGCOLOR=#ccffcc><PRE CLASS="examp">
+ 01 00 00 00 00 00
+ 03 00 01 00 00 00
+ 00 00 0C 07 00 00
+ 00 00 00 00 28 00
+ 00 00 00 00 00 00
+ E5 83 EC 68 57 56
+ 00 00 C7 45 A0 01
+ 00 75 13 6A 00 E8
+ 02 00 00 8D B4 26
+ 68 90 00 00 00 8B
+ FF FF 89 C2 83 C4
+ 01 E8 60 02 00 00
+ 74 26 00 8D BC 27
+ 45 A0 00 00 00 00</PRE></TD><TD BGCOLOR=#FFCCCC><PRE CLASS="examp">
+ .ELF........
+ ............
+ ............
+ ....4.....(.
+ ............
+ ....U....hWV
+ S.E......E..
+ ....}..u.j..
+ .....o.....&
+ ....j.h.....
+ E.P.........
+ ...u.j..`...
+ .C....t&...'
+ ...u..E.....</PRE></TD></TR>
+<TR BGCOLOR=#FFFFCC><TD COLSPAN=2 CLASS="examp">"set.o" 3500 bytes</TD>
+<TD COLSPAN=2 ALIGN=RIGHT CLASS="examp"><B>000001  \105 0x45  69 'E'</B></TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The screen is divided into four areas, symbolized by four different
+colors. The magenta area contents the addresses in hexadecimal
+notation. The green area contents the values of the edited file in
+hexadecimal notation. The red area contents the same bytes in ASCII
+representation. The yellow status line displays on the left side the
+current status messages and on the right site the current position
+of the cursor and the value of the byte on this address in octal,
+hexadecimal, decimal and ASCII notation.
+<BR>
+You can toggle between the Hex and ASCII value of the same byte by
+pressing the <FONT COLOR=#AAAAAA><B>TAB</B></FONT> key both in command
+and input mode.
+
+<H3>Command Line Options</H3>
+There are some additional command line options in <B>bvi</B>:<BR>
+
+<BLOCKQUOTE>
+<B><TT>-f <I>script</I></TT></B>
+</BLOCKQUOTE>
+This command provides a means for collecting a series of <I>ex</I>
+(colon) commands into a script file, then using this file to edit
+other files. Since there is no binary stream editor <I>bsed</I>, you
+can use this option to make several global changes in a binary file.
+You can do this of course with the <i>source</I> command (<B>:so file</B>)
+from within bvi too.
+
+<BLOCKQUOTE>
+<B><TT>-b <I>begin</I></TT></B>
+</BLOCKQUOTE>
+This option causes bvi to load a file not from start but from address
+<I>begin</I>.
+
+<BLOCKQUOTE>
+<B><TT>-e <I>end</I></TT></B>
+</BLOCKQUOTE>
+This option causes bvi to load a file not till end but till address
+<I>end</I>.
+
+<BLOCKQUOTE>
+<B><TT>-s <I>size</I></TT></B>
+</BLOCKQUOTE>
+This option causes bvi not to load the complete file but only <I>size</I>
+bytes. This option can also be used to read a file reported with a 
+length 0 like some files in the Linux <TT CLASS="examp">/proc</TT>
+directory.
+<P>
+<I>begin, end</I> or <I>size</I> can be an integer value (decimal or
+hexadecimal) or an integer value with an appended <B>k</B> (for
+multiply by 1024) or <B>m</B> (for multiply by 1.048.576).
+<P>
+You should use at most two of the three address options to avoid ambiguity!
+
+
+<H3>Not Implemented Commands</H3>
+<P>
+<UL>
+<LI><B><TT>:map</TT></B> and <B><TT>:unmap</TT></B> (Macros)
+<LI><B><TT>:abbreviate</TT></B> (<B><TT>:ab</TT></B>) and <B><TT>:una</TT></B>
+<LI>no named buffers.
+</UL>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: October 19<sup>th</sup> 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

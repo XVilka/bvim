@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: bmore</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<font color="#ffffff" class="thl">bmore<br></font>
+<a class="ths" href="bmore_cmd.html">Commands</a><br>
+<a class="ths" href="bmore_opt.html">Options</a><br>
+<a class="ths" href="man_bmore.html">man - Page</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">bmore</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+<strong>bmore</strong> is a filter that displays the contents of a binary
+file on the terminal, one screenful at a time. It normally pauses after each
+screenful, and prints <b>--More--</b> at the bottom of the screen.
+<strong>bmore</strong> provides a two-line over­ lap between screens for
+continuity. If bmore is reading from a file rather than a pipe,
+the percentage of characters displayed so far is also shown.
+<p>
+<strong>bmore</strong> scrolls up to display one more screen line in
+response to a <font color="#aaaaaa"><b>RETURN</b></font> character; it displays another
+screenful in response to a <font color="#aaaaaa"><b>SPACE</b></font> character. Other commands are listed below.
+<P>
+The screen is divided in three sections or panes: The byte
+offset (extreme left), the hex pane (middle), and an ascii
+pane (right) which shows as printable characters those
+bytes in the hex pane. On an 80 column terminal there
+will be sixteen hex values and their ASCII values on each
+screen line (can be changed with the <b>-n</b> option).
+<p>
+Note that (as one would expect) the first
+byte has the offset 0 (zero).
+<P>
+<center>
+<table width="10" cellspacing="0" cellpadding="0" border="0">
+<tr><td bgcolor="#ffccff"><pre class="examp">
+000000
+00000C
+000018
+000024
+000030
+00003C
+000048
+000054
+000060
+*
+00016C
+000178
+000184
+000190
+00009C</pre></td><td bgcolor="#ccffcc"><pre class="examp">
+ 7F 45 4C 46 01 01
+ 00 00 00 00 01 00
+ 00 00 00 00 00 00
+ 00 00 00 00 34 00
+ 0C 00 09 00 00 00
+ 00 00 00 00 55 89
+ 53 C7 45 A4 00 00
+ 00 00 00 83 7D 08
+ 8C 02 00 00 E9 6F
+
+ 00 00 00 00 6A 03
+ 45 08 50 E8 FC FF
+ 0C 85 D2 75 17 6A
+ E9 43 02 00 00 8D
+ 0C 85 D2 75 0D C7</pre></td><td bgcolor="#ccffcc"><pre class="examp">
+ 01 00 00 00 00 00
+ 03 00 01 00 00 00
+ 00 00 0C 07 00 00
+ 00 00 00 00 28 00
+ 00 00 00 00 00 00
+ E5 83 EC 68 57 56
+ 00 00 C7 45 A0 01
+ 00 75 13 6A 00 E8
+ 02 00 00 8D B4 26
+
+ 68 90 00 00 00 8B
+ FF FF 89 C2 83 C4
+ 01 E8 60 02 00 00
+ 74 26 00 8D BC 27
+ 45 A0 00 00 00 00</pre></td><td bgcolor="#ffcccc"><pre class="examp">
+ .ELF........
+ ............
+ ............
+ ....4.....(.
+ ............
+ ....U....hWV
+ S.E......E..
+ ....}..u.j..
+ .....o.....&
+
+ ....j.h.....
+ E.P.........
+ ...u.j..`...
+ .C....t&...'
+ ...u..E.....</pre></td></tr>
+<tr bgcolor="#ffffcc"><td colspan="4" class="examp">
+<font class="inv">--More--(5%) </font>
+</td></tr>
+</table>
+</center>
+<p>
+Equal lines will only displayed once, a star (*) is the placeholder 
+for one or more lines equal to the line above.
+</p>
+<p><small>
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</small>
+<hr noshade>
+<i>Last update: October 13<sup>th</sup> 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

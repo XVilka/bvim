@@ -1,0 +1,117 @@
+<HTML><HEAD>
+<TITLE>BVI: Cursor Movements</TITLE>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="bvi.css">
+</HEAD><BODY BGCOLOR="#ffffff">
+<A NAME="top"></A>
+
+<TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD WIDTH=99%>
+<A CLASS=head HREF="overview.html">Command Overview</A>
+<BR><FONT CLASS=sub>Cursor Movements</FONT>
+</TD><TD ALIGN=RIGHT VALIGN=BOTTOM WIDTH=116 ROWSPAN=2>
+<A HREF="index.html">
+<IMG SRC="gif/bvi_s.gif" ALT="BVI" WIDTH="116" HEIGHT="62" BORDER=0></A>
+</TD></TR>
+<TR><TD VALIGN=BOTTOM>
+<HR NOSHADE>
+</TD></TR></TABLE>
+<P>
+<CENTER>
+[ Cursor Movements
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<TABLE WIDTH=100%>
+<TR BGCOLOR=#CCCCCC><TH WIDTH=20%>Command</TH><TH WIDTH=40%>BVI</TH><TH WIDTH=40%>VI</TH></TR>
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Cursor<BR>movements</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TH>h, <FONT COLOR=#888888>ARROW_LEFT</FONT></TH>
+ <TD>move cursor one character to the left</TD></TR>
+<TR><TH>j, +, ^N, ^J, <FONT COLOR=#888888>ARROW_DOWN</FONT>,
+ <FONT COLOR=#888888>RETURN</FONT>
+</TH><TD>move cursor down one line</TD></TR>
+<TR><TH>k, -, <FONT COLOR=#888888>ARROW_UP</FONT></TH>
+ <TD>move cursor up one line</TD></TR>
+<TR><TH>l, <FONT COLOR=#888888>ARROW_RIGHT</FONT>,
+ <FONT COLOR=#888888>SPACE</FONT>
+</TH><TD>move cursor one character to the right</TD></TR>
+<TR><TH>H</TH><TD>move cursor to home position, upper left corner of screen</TD></TR>
+<TR><TH>M</TH><TD>move cursor to the begin of the middle line of the screen</TD></TR>
+<TR><TH>L</TH><TD>move cursor to the begin of the last line of the screen</TD></TR>
+</TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Move to<BR>begin<BR>and end of<BR>(screen) line</TD>
+<TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>^</TH><TD>move cursor to the first byte of Hex section</TD></TR>
+ <TR><TH>$</TH><TD>move cursor to the last byte of Ascii section</TD></TR>
+ <TR><TH><FONT COLOR=#888888>TAB</FONT></TH><TD>toggle cursor between the same byte in Hex and Ascii section</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; ^ &nbsp;</TH>
+  <TD>move cursor to the first nonblank character of line</TD></TR>
+ <TR><TH>$</TH><TD>move cursor to end of line</TD></TR>
+ <TR><TH>0</TH><TD>move cursor to the real begin of line</TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Move<BR>by<BR>words</TD>
+<TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; w &nbsp;</TH>
+  <TD>forward to next string delimited with a nonprinting char</TD></TR>
+ <TR><TH>b</TH>
+  <TD>back to previous string delimited with a nonprinting char</TD></TR>
+ <TR><TH>e</TH>
+  <TD>end of current word </TD></TR>
+ <TR><TH>W</TH>
+  <TD>forward to next string delimited with a \0 or \n</TD></TR>
+ <TR><TH>B</TH>
+  <TD>back to previous string delimited with a nonprinting char</TD></TR>
+ <TR><TH>E</TH>
+  <TD>end of a blank-delimited word</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; w &nbsp;</TH>
+  <TD>move cursor forward to begin of next word</TD></TR>
+ <TR><TH>e</TH>
+  <TD>move cursor to end of current word</TD></TR>
+ <TR><TH>b</TH>
+  <TD>move cursor back to begin of current or previous word</TD></TR>
+ <TR><TH>W</TH>
+  <TD>move cursor forward to begin of next word, ignoring punctuation</TD>
+  </TR>
+ <TR><TH>B</TH>
+  <TD>move cursor back to begin of last word, ignoring punctuation</TD>
+  </TR>
+ </TABLE>
+</TD></TR>
+
+</TABLE>
+<P>
+<CENTER>
+[ Cursor Movements
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<FONT SIZE=-1>
+<A CLASS="btop" HREF="#top"><IMG BORDER=0 WIDTH=16 HEIGHT=7 SRC="gif/up.gif"
+ALT="Back to the top">Back to the top</A>
+</FONT>
+<HR NOSHADE>
+<I>Last update: October 30<SUP>th</SUP> 1999 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</I>
+
+
+</BODY></HTML>

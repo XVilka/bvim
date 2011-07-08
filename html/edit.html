@@ -1,0 +1,195 @@
+<HTML><HEAD>
+<TITLE>BVI: Edit Commands</TITLE>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="bvi.css">
+</HEAD><BODY BGCOLOR="#ffffff">
+<A NAME="top"></A>
+
+<TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD WIDTH=99%>
+<A CLASS=head HREF="overview.html">Command Overview</A>
+<BR><FONT CLASS=sub>Edit Movements</FONT>
+</TD><TD ALIGN=RIGHT VALIGN=BOTTOM WIDTH=116 ROWSPAN=2>
+<A HREF="index.html">
+<IMG SRC="gif/bvi_s.gif" ALT="BVI" WIDTH="116" HEIGHT="62" BORDER=0></A>
+</TD></TR>
+<TR><TD VALIGN=BOTTOM>
+<HR NOSHADE>
+</TD></TR></TABLE>
+<P>
+
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| Edit Cmds
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+If you would like to use the insert and delete commands, you have to
+enable them with the <B>:set memmove</B> option. These commands are
+locked per default, because you must not move bytes to a different
+address for many types of binary files (e.g. executables, database files,
+etc.). If you usually edit files where bytes can be moved, you can add
+the <B>:set memmove</B> directive to your <B><TT>.bvirc</TT></B> file.
+<P>
+<TABLE WIDTH=100%>
+<TR BGCOLOR=#CCCCCC><TH WIDTH=20%>Command</TH><TH WIDTH=40%>BVI</TH><TH WIDTH=40%>VI</TH></TR>
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Replace<BR>bytes</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TH>&nbsp; r &nbsp;</TH>
+ <TD>replace a single byte, no ESC needed</TD></TR>
+<TR><TH>R</TH>
+ <TD>replace multiple bytes until you type ESC</TD></TR>
+<TR><TH>~</TH>
+ <TD>toggle between uppercase and lowercase of a byte</TD></TR>
+</TD></TR>
+</TABLE>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Append<BR>bytes</TD>
+<TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; A &nbsp;</TH><TD>append bytes at end of file</TD></TR>
+ <TR><TH>D</TH><TD>delete bytes to end of file</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; A &nbsp;</TH><TD>append characters at end of line</TD></TR>
+ <TR><TH>D</TH><TD>delete characters to end of line</TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=3>Insert<BR>bytes</TD>
+<TD COLSPAN=2 BGCOLOR=#CCFFCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; i &nbsp;</TH>
+  <TD>insert byte in front of cursor position</TD></TR>
+ <TR><TH>a</TH>
+  <TD>insert byte after cursor position</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; I &nbsp; </TH><TD>insert byte at begin of file</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; I &nbsp;</TH><TD>insert characters at begin of line</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>o</TH><TD>insert new line below current line</TD></TR>
+ <TR><TH>O</TH><TD>insert new line above current line</TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=4>Delete<BR>bytes</TD>
+<TD COLSPAN=2 BGCOLOR=#CCFFCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; x &nbsp;</TH>
+  <TD>delete byte at of cursor position</TD></TR>
+ <TR><TH>X</TH><TD>delete byte in front of cursor position</TD></TR>
+ <TR><TH>d<FONT COLOR=#888888>SPACE</FONT></TH><TD>delete byte at cursor position</TD></TR>
+ <TR><TH>df<FONT COLOR=#FF0000>C</FONT></TH>
+   <TD>delete from current position to next character <FONT COLOR=#FF0000>C</FONT></TD></TR>
+ <TR><TH>d/<FONT COLOR=#FF0000>xyz</FONT></TH>
+   <TD>delete from current position to first occurance of matching pattern
+   <FONT COLOR=#FF0000>xyz</FONT>
+   </TD></TR>
+ <TR><TH>d?<FONT COLOR=#FF0000>xyz</FONT></TH>
+   <TD>delete from current position to first occurance of matching pattern
+   <FONT COLOR=#FF0000>xyz</FONT> in reverse direction
+   </TD></TR>
+ <TR><TH>d'<FONT COLOR=#FF0000>a</FONT></TH><TD>delete from current position to mark <FONT COLOR=#FF0000>a</FONT></TD></TR>
+ <TR><TH>d<FONT COLOR=#FF0000>n</FONT>G</TH><TD>delete from current position to byte with (decimal) address <FONT COLOR=#FF0000>n</FONT></TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available, because there are no lines, sentences,
+ paragraphs or sections in a binary file</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>dd &nbsp;</TH><TD>delete line</TD></TR>
+ <TR><TH>d)</TH><TD>delete from cursor position through first
+  following end of sentence</TD></TR>
+ <TR><TH>d}</TH><TD>delete from cursor position through first
+  following end of paragraph</TD></TR>
+ <TR><TH>d]</TH><TD>delete from cursor position through first
+  following end of section</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>d\<FONT COLOR=#FF0000>6a 56 ff</FONT> &nbsp;</TH>
+ <TD>delete from cursor position to first occurance of hex pattern
+  <FONT COLOR=#FF0000>6a 56 ff</FONT></TD></TR>
+ <TR><TH>d#<FONT COLOR=#FF0000>6a 56 ff</FONT> &nbsp;</TH>
+ <TD>delete from cursor position to first occurance of hex pattern
+  <FONT COLOR=#FF0000>6a 56 ff</FONT> in reverse direction</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>D</TH><TD ROWSPAN=2>delete from current position to EOF</TD></TR>
+ <TR><TH>&nbsp; d$ &nbsp;</TH></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>D</TH><TD ROWSPAN=2>delete from current position to end of line</TD></TR>
+ <TR><TH>&nbsp; d$ &nbsp;</TH></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=2>Undo<BR>edits</TD>
+<TD COLSPAN=2 BGCOLOR=#CCFFCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; u &nbsp;</TH>
+  <TD>Undo the most recent change</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; U &nbsp;</TH><TD>Undo all of the changes made to the current line</TD></TR>
+ </TABLE>
+</TD></TR>
+
+</TABLE>
+<P>
+Note that most of the commands can be used with a decimal repeat count in front
+of the command!
+<P>
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| Edit Cmds
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<FONT SIZE=-1>
+<A CLASS="btop" HREF="#top"><IMG BORDER=0 WIDTH=16 HEIGHT=7 SRC="gif/up.gif"
+ALT="Back to the top">Back to the top</A>
+</FONT>
+<HR NOSHADE>
+<I>Last update: September 30<SUP>th</SUP> 1999 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</I>
+
+
+</BODY></HTML>

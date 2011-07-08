@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Editing Files</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<font color="#ffffff" class="ths">Editing Files<br></font>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick tutorial</font>
+<br><font class="sub">Editing Files</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+Inserting or deleting bytes can be dangerous on some kind of files,
+because binary files are mostly executables, database files or maybe
+graphic files. So you must not shift the remaining bytes to another
+address.
+Therefor commands for inserting or deleting bytes are disabled by
+default.
+You can use the <B>r</B> command to change a single byte, or
+the <B>R</B> command to replace multiple characters. You can use a 
+numeric prefix for both commands.
+<P>
+You can add characters at the end of the file using the <B>A</B> command.
+If you start with an empty file, you can create a binary file from
+scratch. If the cursor is in the ASCII section of the screen and you
+type <B><TT>100Ax</TT><FONT COLOR=#AAAAAA>ESC</FONT></B>, you create a file
+which contents 100 x'es.
+<P>
+The <B>D</B> command can be used to truncate a file at a certain position.
+Since there are no lines in a binary file, the <B>D</B> command deletes
+to end of file.
+<P>
+If you have to edit a binary file where it does not matter to move bytes
+to a different address, you can enable the insert and delete commands by
+typing <B>:set memmove</B>. 
+Now you are able to use the <B>i</B> command for inserting bytes, the
+<B>x</B> or <B>X</B> command to delete the byte over or before the cursor
+and those types of <B>d</B> commands, which does not rely on text lines
+(e.g. <B>d<FONT COLOR=#AAAAAA>SPACE</FONT></B>, <B>df<TT>C</TT>, d/<TT>xyz</TT>,
+d$, d'a, d<TT>n</TT>G</B>).
+
+<P>
+All edits can be undone by pressing the <B>u</B> key.
+<H4>Using ex (colon) commands</H4>
+The edit commands of the <B>ex</B> editor are usually not available in
+standard <B>vi</B> implementations (<TT>:i[nsert], :a[ppend]</TT>
+and <TT>:c[hange]</TT>). In <B><FONT COLOR=#FF0000>bvi</B></FONT>
+they <I>are</I> available with extended options. There are five
+modifiers <TT>a[scii], b[inary], d[ecimal], h[exadecimal]</TT> and
+<TT>o[ctal]</TT> (ascii is default). Therefor you can insert, append
+or change data in all five representations.
+<P>
+<B>Example:</B><BR>
+you would like to append a file with data available in decimal
+representation:
+<BLOCKQUOTE><PRE CLASS=examp>
+:a d
+0 12 3 128 255 17 0 0 255 255
+23 24 25 128 6 6 6
+.
+</PRE></BLOCKQUOTE>
+A line with only a period (.) in it will terminate the command.
+<BR>
+You must not type values greater than a byte value (255 decimal, FF hex).
+This causes an abandon of the command.<BR>
+Pressing the <FONT COLOR=#888888>RETURN</FONT> key does <I>not</I> insert
+a newline - character into the file. If you use <B>:i a</B> (insert
+ascii) you can use the special characters \n, \r, \t and \0.
+<P>
+An additional advantage is, that all typed bytes are inserted into the
+file at once. If you insert characters in vi - mode, for every byte typed,
+the whole remaining file has to be moved one position backwards.
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: June 1<sup>st</sup>  2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

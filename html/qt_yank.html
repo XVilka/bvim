@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Yank and Put</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<font color="#ffffff" class="ths">Yank and Put<br></font>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+<br><font class="sub">Yank and Put</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+Starting with version 1.2.0 there is a new syntax for the yank and put
+commands! Yank is now more similare to vi.
+<P>
+<TABLE>
+<TR><TD><B>y<FONT COLOR=#888888>SPACE</FONT></B></TD>
+ <TD>yanks byte under cursor</TD></TR>
+<TR><TD><B><FONT COLOR=#FF0000>n</FONT>y<FONT COLOR=#888888>SPACE</FONT></B>
+ </TD>
+ <TD>yanks <FONT COLOR=#FF0000>n</FONT> bytes, beginning at cursor
+ position</TD></TR>
+<TR><TD><B>yf<FONT COLOR=#FF0000>C</FONT></B></TD>
+ <TD>yanks from current position to next
+ character <FONT COLOR=#FF0000>C</FONT></TD></TR>
+<TR><TD><B>y/<FONT COLOR=#FF0000>xyz</FONT></B></TD>
+ <TD>yanks from current position to first matching
+ pattern <FONT COLOR=#FF0000>xyz</FONT></TD></TR>
+<TR><TD><B>y$</B></TD><TD>yanks from current position to EOF</TD></TR>
+<TR><TD><B>y'<FONT COLOR=#FF0000>a</FONT></B></TD>
+ <TD>yanks from current position to mark <FONT COLOR=#FF0000>a</FONT></TD></TR>
+<TR><TD><B>y<FONT COLOR=#FF0000>n</FONT>G</B></TD>
+ <TD>yanks from current position to byte with (decimal)
+ address <FONT COLOR=#FF0000>n</FONT></TD></TR>
+<TR><TD><B><TT>o</B></TT></TD>
+ <TD>overwrites the bytes after the cursor with the contents of the yank
+ or delete buffer</TD></TR>
+<TR><TD><B><TT>p</B></TT></TD><TD>puts the contents of the yank or delete
+ buffer after the cursor</TD></TR>
+<TR><TD><B><TT>P</B></TT></TD><TD>appends the contents of the buffer to end
+ of file</TD></TR>
+</TABLE>
+
+<H3>Using ex (colon) Commands</H3>
+<B>:y</B>(ank)
+<BLOCKQUOTE>
+<I>yank</I> can be used with one or two addresses specified. One address
+with no <I>count</I> specified copies the specified byte into the buffer.
+Two addresses with no <I>count</I> specified copies multiple bytes 
+starting and ending with the specified bytes. Two addresses and a <I>count</I>
+value copies <I>count</I> bytes starting at the second specified address (the
+first address is ignored). If no address is specified, the current address
+ist used by <I>yank</I>.<BR>
+Examples:
+<BLOCKQUOTE>
+	:<I>start_addr,end_addr</I> y <FONT COLOR=#888888>RETURN</FONT><BR>
+	:<I>start_addr</I> y <I>byte_count</I><FONT COLOR=#888888>RETURN</FONT><BR>
+	:y <I>byte_count</I><FONT COLOR=#888888>RETURN</FONT><BR>
+</BLOCKQUOTE>
+</BLOCKQUOTE>
+<P>
+<B>:pu</B>(t)
+<BLOCKQUOTE>
+Restores previously deleted or yanked bytes after the address specified
+in the <I>put</I> command.
+</BLOCKQUOTE>
+<P>
+<B>:o</B>(verwrite)
+<BLOCKQUOTE>
+Overwrites bytes after the specified address with previously deleted or yanked
+bytes.
+</BLOCKQUOTE>
+<P>
+NOTE: There are currently no namend buffers available.
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: June 1<sup>st</sup> 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

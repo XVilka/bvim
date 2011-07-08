@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Search Commands</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<font color="#ffffff" class="ths">Search Commands<br></font>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+<br><font class="sub">Search Commands</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+Additional to the well known <B>/</B> and <B>?</B> for searching ASCII
+strings there are two new commands for searching binary strings. These
+are the keys <B>\</B> and <B>#</B>. 
+<P>
+In the ASCII search commands <B>/</B> and <B>?</B> you can use \n, \r,
+\t and \0. You can also use regular expressions. Do <I>not</I> use
+<B>^</B> and <B>$</B>, because there are no lines in a binary file.
+Type <B><TT>/foo\0</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B> to 
+search for the null terminated string <I>foo</I> in the file.
+<P>
+In the Hex section you can search for a sequence of bytes in hexadecimal
+notation, e.g. <NOBR><B><TT>\01 AF 12</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B>,
+</NOBR> which is the same as <NOBR><B><TT>\01AF12</TT><FONT COLOR=#AAAAAA>
+RETURN</FONT></B></NOBR>.
+You can also use regular expressions and quoted ASCII strings. Inside of
+the quotes no character is treated as a special character!<BR>
+Example: &nbsp;
+<B><TT>\01 [^AF DE] "foo" 00 </TT><FONT COLOR=#AAAAAA>RETURN</FONT></B>
+<BR>
+This means: Search for a string beginning with 01, the second character
+must not be a hex <TT>AF</TT> or <TT>DE</TT>, followed by the ASCII
+characters <TT>foo</TT>, terminated with a binary zero.
+
+<H3>Global Search</H3>
+There is also a global search option available, but only with the
+print option.<BR>
+Example:
+<BLOCKQUOTE>
+<B><TT>:g/text_pattern/p</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B>
+<BR>or<BR>
+<B><TT>:g\hex_pattern\p</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B>
+</BLOCKQUOTE>
+This commands are displaying all found patterns, one per screen line.
+Of course you can limit the search to a certain part of the file by
+specifying the starting and ending address.<BR>
+Other forms of the global search command 
+are line oriented, therefor <B>not</B> useful for binary files and
+<B>not implemented</B>, e.g.<BR>
+<BLOCKQUOTE>
+<TABLE>
+<TR><TD>:g/pattern/d</TD><TD>Delete all lines containing <I>pattern</I></TD></TR>
+<TR><TD>:g/pattern/y</TD><TD>Yank all lines containing <I>pattern</I></TD></TR>
+<TR><TD>:g!/pattern/p</TD><TD>Print all lines <B>not</B> containing <I>pattern</I></TD></TR>
+</TABLE>
+</BLOCKQUOTE>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: Thu Jun 01 12:00:00 CEST 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

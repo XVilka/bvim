@@ -1,0 +1,614 @@
+.rn '' }`
+''' $RCSfile$$Revision$$Date$
+'''
+''' $Log$
+'''
+.de Sh
+.br
+.if t .Sp
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.de Ip
+.br
+.ie \\n(.$>=3 .ne \\$3
+.el .ne 3
+.IP "\\$1" \\$2
+..
+.de Vb
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve
+.ft R
+
+.fi
+..
+'''
+'''
+'''     Set up \*(-- to give an unbreakable dash;
+'''     string Tr holds user defined translation string.
+'''     Bell System Logo is used as a dummy character.
+'''
+.tr \(*W-|\(bv\*(Tr
+.ie n \{\
+.ds -- \(*W-
+.ds PI pi
+.if (\n(.H=4u)&(1m=24u) .ds -- \(*W\h'-12u'\(*W\h'-12u'-\" diablo 10 pitch
+.if (\n(.H=4u)&(1m=20u) .ds -- \(*W\h'-12u'\(*W\h'-8u'-\" diablo 12 pitch
+.ds L" ""
+.ds R" ""
+'''   \*(M", \*(S", \*(N" and \*(T" are the equivalent of
+'''   \*(L" and \*(R", except that they are used on ".xx" lines,
+'''   such as .IP and .SH, which do another additional levels of
+'''   double-quote interpretation
+.ds M" """
+.ds S" """
+.ds N" """""
+.ds T" """""
+.ds L' '
+.ds R' '
+.ds M' '
+.ds S' '
+.ds N' '
+.ds T' '
+'br\}
+.el\{\
+.ds -- \(em\|
+.tr \*(Tr
+.ds L" ``
+.ds R" ''
+.ds M" ``
+.ds S" ''
+.ds N" ``
+.ds T" ''
+.ds L' `
+.ds R' '
+.ds M' `
+.ds S' '
+.ds N' `
+.ds T' '
+.ds PI \(*p
+'br\}
+.\"	If the F register is turned on, we'll generate
+.\"	index entries out stderr for the following things:
+.\"		TH	Title 
+.\"		SH	Header
+.\"		Sh	Subsection 
+.\"		Ip	Item
+.\"		X<>	Xref  (embedded
+.\"	Of course, you have to process the output yourself
+.\"	in some meaninful fashion.
+.if \nF \{
+.de IX
+.tm Index:\\$1\t\\n%\t"\\$2"
+..
+.nr % 0
+.rr F
+.\}
+.TH BVI 1 "BVI Version 1.3.2" "3/Jan/2004" "User Commands"
+.IX Title "BVI 1"
+.UC
+.IX Name "bvi, bview - visual display editor for binary files"
+.if n .hy 0
+.if n .na
+.ds C+ C\v'-.1v'\h'-1p'\s-2+\h'-1p'+\s0\v'.1v'\h'-1p'
+.de CQ          \" put $1 in typewriter font
+.ft CW
+'if n "\c
+'if t \\&\\$1\c
+'if n \\&\\$1\c
+'if n \&"
+\\&\\$2 \\$3 \\$4 \\$5 \\$6 \\$7
+'.ft R
+..
+.\" @(#)ms.acc 1.5 88/02/08 SMI; from UCB 4.2
+.	\" AM - accent mark definitions
+.bd B 3
+.	\" fudge factors for nroff and troff
+.if n \{\
+.	ds #H 0
+.	ds #V .8m
+.	ds #F .3m
+.	ds #[ \f1
+.	ds #] \fP
+.\}
+.if t \{\
+.	ds #H ((1u-(\\\\n(.fu%2u))*.13m)
+.	ds #V .6m
+.	ds #F 0
+.	ds #[ \&
+.	ds #] \&
+.\}
+.	\" simple accents for nroff and troff
+.if n \{\
+.	ds ' \&
+.	ds ` \&
+.	ds ^ \&
+.	ds , \&
+.	ds ~ ~
+.	ds ? ?
+.	ds ! !
+.	ds /
+.	ds q
+.\}
+.if t \{\
+.	ds ' \\k:\h'-(\\n(.wu*8/10-\*(#H)'\'\h"|\\n:u"
+.	ds ` \\k:\h'-(\\n(.wu*8/10-\*(#H)'\`\h'|\\n:u'
+.	ds ^ \\k:\h'-(\\n(.wu*10/11-\*(#H)'^\h'|\\n:u'
+.	ds , \\k:\h'-(\\n(.wu*8/10)',\h'|\\n:u'
+.	ds ~ \\k:\h'-(\\n(.wu-\*(#H-.1m)'~\h'|\\n:u'
+.	ds ? \s-2c\h'-\w'c'u*7/10'\u\h'\*(#H'\zi\d\s+2\h'\w'c'u*8/10'
+.	ds ! \s-2\(or\s+2\h'-\w'\(or'u'\v'-.8m'.\v'.8m'
+.	ds / \\k:\h'-(\\n(.wu*8/10-\*(#H)'\z\(sl\h'|\\n:u'
+.	ds q o\h'-\w'o'u*8/10'\s-4\v'.4m'\z\(*i\v'-.4m'\s+4\h'\w'o'u*8/10'
+.\}
+.	\" troff and (daisy-wheel) nroff accents
+.ds : \\k:\h'-(\\n(.wu*8/10-\*(#H+.1m+\*(#F)'\v'-\*(#V'\z.\h'.2m+\*(#F'.\h'|\\n:u'\v'\*(#V'
+.ds 8 \h'\*(#H'\(*b\h'-\*(#H'
+.ds v \\k:\h'-(\\n(.wu*9/10-\*(#H)'\v'-\*(#V'\*(#[\s-4v\s0\v'\*(#V'\h'|\\n:u'\*(#]
+.ds _ \\k:\h'-(\\n(.wu*9/10-\*(#H+(\*(#F*2/3))'\v'-.4m'\z\(hy\v'.4m'\h'|\\n:u'
+.ds . \\k:\h'-(\\n(.wu*8/10)'\v'\*(#V*4/10'\z.\v'-\*(#V*4/10'\h'|\\n:u'
+.ds 3 \*(#[\v'.2m'\s-2\&3\s0\v'-.2m'\*(#]
+.ds o \\k:\h'-(\\n(.wu+\w'\(de'u-\*(#H)/2u'\v'-.3n'\*(#[\z\(de\v'.3n'\h'|\\n:u'\*(#]
+.ds d- \h'\*(#H'\(pd\h'-\w'~'u'\v'-.25m'\f2\(hy\fP\v'.25m'\h'-\*(#H'
+.ds D- D\\k:\h'-\w'D'u'\v'-.11m'\z\(hy\v'.11m'\h'|\\n:u'
+.ds th \*(#[\v'.3m'\s+1I\s-1\v'-.3m'\h'-(\w'I'u*2/3)'\s-1o\s+1\*(#]
+.ds Th \*(#[\s+2I\s-2\h'-\w'I'u*3/5'\v'-.3m'o\v'.3m'\*(#]
+.ds ae a\h'-(\w'a'u*4/10)'e
+.ds Ae A\h'-(\w'A'u*4/10)'E
+.ds oe o\h'-(\w'o'u*4/10)'e
+.ds Oe O\h'-(\w'O'u*4/10)'E
+.	\" corrections for vroff
+.if v .ds ~ \\k:\h'-(\\n(.wu*9/10-\*(#H)'\s-2\u~\d\s+2\h'|\\n:u'
+.if v .ds ^ \\k:\h'-(\\n(.wu*10/11-\*(#H)'\v'-.4m'^\v'.4m'\h'|\\n:u'
+.	\" for low resolution devices (crt and lpr)
+.if \n(.H>23 .if \n(.V>19 \
+\{\
+.	ds : e
+.	ds 8 ss
+.	ds v \h'-1'\o'\(aa\(ga'
+.	ds _ \h'-1'^
+.	ds . \h'-1'.
+.	ds 3 3
+.	ds o a
+.	ds d- d\h'-1'\(ga
+.	ds D- D\h'-1'\(hy
+.	ds th \o'bp'
+.	ds Th \o'LP'
+.	ds ae ae
+.	ds Ae AE
+.	ds oe oe
+.	ds Oe OE
+.\}
+.rm #[ #] #H #V #F C
+.SH "NAME"
+.IX Header "NAME"
+bvi, bview \- visual editor for binary files
+.SH "VERSION"
+.IX Header "VERSION"
+bvi-1.3.2
+.SH "SYNOPSIS"
+.IX Header "SYNOPSIS"
+\fBbvi\fR\ \ \ [\fB\-R\fR]\ [\fB\-c\fR\ \fIcmd\fR]\ [\fB\-f\fR\ \fIscript\fR]\ [\fB\-b\fR\ \fIbegin\fR]\ [\fB\-e\fR\ \fIend\fR]\ [\fB\-s\fR\ \fIsize\fR]\ \fIfile\fR...
+\fBbview\fR\ [\fB\-R\fR]\ [\fB\-c\fR\ \fIcmd\fR]\ [\fB\-f\fR\ \fIscript\fR]\ [\fB\-b\fR\ \fIbegin\fR]\ [\fB\-e\fR\ \fIend\fR]\ [\fB\-s\fR\ \fIsize\fR]\ \fIfile\fR...
+.SH "OPTIONS"
+.IX Header "OPTIONS"
+.Ip "\fIfile\fR..." 4
+.IX Item "\fIfile\fR..."
+A  list  of  filenames.  The first one will be the current file and 
+will be read  
+into  the  buffer.  The  cursor  will  be  positioned on the first line of
+the buffer.  You can get to the other files with the ":next" command.  
+.Ip "\fB\-R\fR" 4
+.IX Item "\fB\-R\fR"
+\*(L"Readonly": The readonly flag is set for all the files,
+preventing accidental overwriting with a write command.
+
+.Ip "\fB\-b\fR \fIbegin\fR" 4
+.IX Item "\fB\-b\fR \fIbegin\fR"
+causes bvi to load a file not from the start but from
+offset \fIbegin\fR.
+
+.Ip "\fB\-e\fR \fIend\fR" 4
+.IX Item "\fB\-e\fR \fIend\fR"
+causes bvi to load a file not till end but till address \fIend\fR.
+
+.Ip "\fB\-s\fR \fIsize\fR" 4
+.IX Item "\fB\-s\fR \fIsize\fR"
+causes bvi not to load the complete file but only \fIsize\fR bytes.
+
+.Ip "\fB\-c\fR \fIcmd\fR" 4
+.IX Item "\fB\-c\fR \fIcmd\fR"
+\fIcmd\fR will be  executed  after  the  first
+file  has been read. If the  \fIcmd\fR  contains
+spaces  it  must  be enclosed in double quotes
+(this depends on  the  shell  that  is  used).
+.Ip "\fB\-f\fR \fIscript\fR" 4
+.IX Item "\fB\-f\fR \fIscript\fR"
+This command provides a means for collecting a series of \*(L"ex\*(R"
+(colon) commands into a script file, then using this file to edit
+other files. Since there is no binary stream editor \*(L"bsed\*(R", you
+can use this option to make several global changes in a binary file.
+.SH "DESCRIPTION"
+.IX Header "DESCRIPTION"
+Bvi stands for \*(L"Binary VIsual editor\*(R".
+Bvi is a screen oriented editor for binary files;
+its command set is based on that of the \fIvi\fR\|(1) text editor.
+As a binary editor does not have the concept of \*(L"lines\*(R"
+there are differences from Vi commands wherever the latter are
+line orientate.
+.SH "COMPARISON"
+.IX Header "COMPARISON"
+The main differences between Vi and Bvi are:
+.PP
+The screen is divided in three sections or panes:
+The byte offset (extreme left), the hex pane (middle),
+and an ascii pane (right) which shows as printable characters
+those bytes in the hex pane.
+On an 80 column terminal there will be sixteen hex values
+and their ASCII values on each screen line. 
+Note that (as one would expect) the first byte has the offset \*(L'0\*(R' (zero).
+.PP
+You can toggle between the hex and ascii windows with the tab key (TAB).
+Toggling between these two windows does not change the current
+position (offset) within the file.
+.PP
+No \*(L"lines\*(R" concept:
+Files are treated as one long stream of bytes.  The characters
+\*(L"newline\*(R" and \*(L"carriage return\*(R" are not special, id est they 
+never mark the end of lines.  Therefore the lines on the screen do not
+represent lines in the usual way.  Data is broken across screen lines
+arbitarily.
+As a consequence there are no commands in bvi from ex or vi
+that are based on line numbers, eg \*(L"dd\*(R", \*(L"yy\*(R", \*(L'C\*(R', \*(L'S\*(R', \*(L'o\*(R', \*(L'O\*(R'.
+This also changes the meaning of \*(L"range\*(R" before the \*(L":write\*(R" command
+to a byte offset, ie the command \*(L":100,200w foo\*(R" writes all *bytes*
+(not lines) from offset 100 to offset 200 to the file \*(L"foo\*(R".
+.PP
+No \*(L"text objects":
+There are also no text-specific arrangements like words,
+paragraphs, sentences, sections and so on.
+.PP
+Extended \*(L"ruler":
+The bottom line of the screen shows the current address (byte offset)
+and the current character in these notations:
+.PP
+.Vb 1
+\&        octal, hexadecimal, decimal and ascii.
+.Ve
+Search patterns:
+All search commands understand these special characters:
+.PP
+.Vb 3
+\&     .    any character
+\&     []   set of characters
+\&     *    zero or more occurrences of previous char or set
+.Ve
+But as there is no concept of lines you cannot use the standard symbols
+("anchors") for \*(L"begin-of-line\*(R" ('^') and \*(L"end-of-line\*(R" ('$').
+Searching for the start/end of lines must be done explicitly
+by adding these special characters to your search pattern
+using these meta sequences:
+.PP
+.Vb 4
+\&        \en   newline
+\&        \er   return
+\&        \et   tab
+\&        \e0   binary zero
+.Ve
+Additional search commands:
+Similar to the text search commands there are additional hex-search
+functions \*(L'\e\*(R' and \*(L'#\*(R' which allow to search for any byte value.
+Example:  \*(L"\e62 76 69\*(R" will search for the string \*(L"bvi\*(R".
+Spaces between hex value are optional, so searching
+for \*(L"6775636B6573\*(R" will find \*(L"guckes\*(R".
+.PP
+Changing the length of data (insertion, deletion) moves the data to other addresses;
+this is bad for many cases (eg. databases, program files) and is 
+thus disabled by default. You can enable this commands by typing
+.PP
+\f(CW	:set memmove\fR
+.PP
+\fBBVI Modes:\fR
+.PP
+Command Mode (Normal Mode):
+.PP
+Input is treated as command.  Note that command mode is the default
+mode after startup and after escaping from input mode.
+Use ESC (escape) to cancel a partial (uncompleted) command.
+.PP
+Input Mode:
+.PP
+Input is treated as replacement of current characters or 
+(after the end of the file) is appended
+to the current file.  This mode is entered from command mode by
+typing one of \*(L'i\*(R', \*(L'I\*(R', \*(L'A\*(R', \*(L'r\*(R', or \*(L'R\*(R'.
+You can enter the characters from the keyboard (in the ASCII window) or 
+hexadecimal values (in the HEX window).
+Type TAB to switch between these two windows.
+Type ESC to finish the current input and return to command mode.
+Type CTRL\-C to cancel current command abnormally.
+.PP
+Command line mode (Last Line Mode or : mode):
+.PP
+Similar to vi, this mode is entered by typing one of the 
+characters 
+: / ? \e # !
+The command is terminated and executed by typing a carriage
+return; to cancel a partially typed command, type
+ESC to cancel the current command and return to command mode.
+.SH "ENVIRONMENT"
+.IX Header "ENVIRONMENT"
+The editor recognizes the environment variable BVIINIT as  a
+command  (or  list of commands) to run when it starts up. If
+this variable is undefined, the editor  checks  for  startup
+commands  in  the  file  \fI~/.bvirc\fR  file, which you must own.
+However, if there is a \fI.bvirc\fR owned by you  in  the  current
+directory,  the  editor takes its startup commands from this
+file \- overriding both the file in your home  directory  and
+the environment variable.
+.SH "TERMINOLOGY"
+.IX Header "TERMINOLOGY"
+Characters names are abbreviated as follows:
+     Abbr.     ASCII     name      aka
+     CR        010       carriage return
+     ^A        001       control-a
+     ^H        008       control-h
+     ^I        009       control-i      aka TAB
+     ^U        021       control-u
+     ^Z        026       control-z
+     ESC       027       escape         aka ESC
+     DEL       127       delete
+     LEFT      ---       left  arrow
+     RIGHT     ---       right arrow
+     DOWN      ---       down  arrow
+     UP        ---       up    arrow
+.SH "COMMAND SUMMARY"
+.IX Header "COMMAND SUMMARY"
+See the TERMINOLOGY for a summary on key name abbreviations
+used within the following description of commands.
+.PP
+\fBAbstract:\fR
+  Arrow keys move the cursor on the screen within the current window.
+.PP
+\fBSample commands:\fR
+  :version    show version info
+  <\- v ^ \->   arrow keys move the cursor
+  h j k l     same as arrow keys
+  u           undo previous change
+  ZZ          exit bvi, saving changes
+  :q!         quit, discarding changes
+  /\fItext\fR       search for \fItext\fR
+  ^U ^D       scroll up or down
+.PP
+\fBCounts before bvi commands:\fR
+  Numbers may be typed as a prefix to some commands.
+  They are interpreted in one of these ways.
+.PP
+.Vb 4
+\&  screen column       |
+\&  byte of file        G
+\&  scroll amount       ^D  ^U
+\&  repeat effect       most of the rest
+.Ve
+\fBInterrupting, canceling\fR
+  ESC         end insert or incomplete command
+  DEL         (delete or rubout) interrupts
+.PP
+\fBFile manipulation:\fR
+  ZZ          if file modified, write and exit;
+              otherwise, exit
+  :w          write changed buffer to file
+  :w!         write changed buffer to file, overriding
+              read-only ("forced\*(R" write)
+  :q          quit when no changes have been made
+  :q!         quit and discard all changes
+  :e \fIfile\fR     edit \fIfile\fR
+  :e!         re-read current file, discard all changes
+  :e #        edit the alternate file
+  :e! #       edit the alternate file, discard changes
+  :w  \fIfile\fR    write current buffer to \fIfile\fR
+  :w! \fIfile\fR    write current buffer to \fIfile\fR overriding
+              read-only (this \*(L"overwrites\*(R" the file)
+  :sh         run the command as set with option \*(L"shell\*(R",
+              then return
+  :!\fIcmd\fR       run the command \fIcmd\fR from \*(L"shell\*(R", then
+              return
+  :n          edit next file in the argument list
+  :f          show current filename, modified flag,
+              current byte offset, and percentage of
+              current position within buffer
+  ^G          same as :f
+.PP
+\fBAdditional edit commands\fR
+  You can insert/append/change bytes in ASCII/binary/decimal/
+hexadecimal or octal representation. You can enter several
+(screen) lines of input. A line with only a period (.) in it
+will terminate the command. You must not type in values greater 
+than a byte value. This causes an abandonment of the command.
+Pressing the CR key does not insert a newline \- character into
+the file. If you use ASCII mode you can use the special characters 
+\en, \er, \et and \e0.
+.PP
+.Vb 3
+\&  :i aCR      insert bytes (ASCII) at cursor position
+\&  :a bCR      append bytes (Binary) at end of file
+\&  :c hCR      change bytes (hexadecimal) at cursor position
+.Ve
+\fBBit-level operations\fR
+  :and \fIn\fR      bitwise \*(L'and\*(R' operation with value \fIn\fR
+  :or  \fIn\fR      bitwise \*(L'or\*(R' operation with value \fIn\fR
+  :xor \fIn\fR      bitwise \*(L'xor\*(R' operation with value \fIn\fR
+  :neg        two's   complement
+  :not        logical negation
+  :sl \fIi\fR       shift  each byte \fIi\fR bits to the left
+  :sr \fIi\fR       shift  each byte \fIi\fR bits to the right
+  :rl \fIi\fR       rotate each byte \fIi\fR bits to the left
+  :rr \fIi\fR       rotate each byte \fIi\fR bits to the right
+.PP
+\fBCommand mode addresses\fR
+  :w foo         write current buffer to a file
+                 named \*(L"foo\*(R"
+  :5,10w foo     copy byte 5 through 100 into as
+                 file named foo
+  :.,.+20w foo   copy the current byte and the next
+                 20 bytes to foo
+  :^,'aw foo     write all bytes from the beginning
+                 through marker \*(L'a\*(R'
+  :/\fIpat\fR/,$ foo   search pattern \fIpat\fR and and copy
+                 through end of file
+.PP
+\fBPositioning within file:\fR
+  ^B      backward screen
+  ^F      forward  screen
+  ^D      scroll down half screen
+  ^U      scroll up   half screen
+  \fIn\fRG      go to the specified character
+          (end default), where \fIn\fR is a decimal address
+  /\fIpat\fR    next line matching \fIpat\fR
+  ?\fIpat\fR    previous line matching \fIpat\fR
+  \e\fIhex\fR    jump to next     occurrence of hex string \fIhex\fR
+  #\fIhex\fR    jump to previous occurrence of hex string \fIhex\fR
+  n       repeat last search command
+  N       repeat last search command, but in opposite
+          direction
+.PP
+\fBAdjusting the screen:\fR
+  ^L      clear and redraw screen
+  zCR     redraw screen with current line at top of screen
+  z-      redraw screen with current line at bottom of
+          screen
+  z.      redraw screen with current line at center of
+          screen
+  /\fIpat\fR/z- search for pattern \fIpat\fR and then move currents
+          line to bottom
+  ^E      scroll screen down 1 line
+  ^Y      scroll screen up   1 line
+.PP
+\fBMarking and returning:\fR
+  m\fIx\fR      mark current position with lower-case letter \fIx\fR
+          Note: this command works for all lower-case letters
+  \*(L'\fIx\fR      move cursor to mark \fIx\fR in ASCII section
+  `\fIx\fR      move cursor to mark \fIx\fR in HEX section
+  \*(L'\*(R'      move cursor to previous context in ASCII section
+  ``      move cursor to previous context in HEX section
+ 
+\fBLine positioning:\fR
+  H           jump to first      line on screen ("top")
+  L           jump to last       line on screen ("low")
+  M           jump to middle     line on screen ("middle")
+  \-           jump onto previous line on screen
+  +           jump onto next     line on screen
+  CR          same as +
+  DOWN or j   next     line, same column
+  UP   or k   previous line, same column
+.PP
+\fBCharacter positioning:\fR
+  ^           first byte in HEX window
+  $           end of screen line
+  l or RIGHT  jump onto next byte (within current
+              screen line)
+  h or LEFT   jump onto previous byte (within current
+              screen line)
+  ^H          same as LEFT
+  space       same as RIGHT
+  f\fIx\fR          find next     occurrence of character \fIx\fR
+  F\fIx\fR          find previous occurrence of character \fIx\fR
+  \fIn\fR|          jump onto \fIn\fRth byte/character within current
+              line
+.PP
+\fBStrings:\fR
+  (works similar to the \fIstrings\fR\|(1) command)
+  Note:  \*(L"Words\*(R" are defined as strings of \*(L"nonprinting
+  characters\*(R".
+  e       jump to next     end   of word
+  w       jump to next     begin of word
+  b       jump to previous begin of word
+  W       forward to next string delimited with a
+          \e0 or \en
+  B       back to previous string delimited with a
+          nonprinting char
+.PP
+\fBCorrections during insert:\fR
+  ^H      erase last character (backspace)
+  erase   your erase character, same as ^H (backspace)
+  ESC     ends insertion, back to command mode
+.PP
+\fBAppend and replace:\fR
+  A       append at end of file
+  rx      replace current bte with char \*(L'x\*(R'
+  R       enter replace mode; for all subsequent input,
+          the current byte is overwritten with the next
+		  input character; leave replace mode with ESC.
+.PP
+\fBMiscellaneous Operations:\fR
+  TAB     toggle between ASCII and HEX section
+.PP
+\fBYank and Put:\fR
+  3ySPACE yank 3 characters
+  p       insert contents of yank buffer
+  o       replace text with content of yank buffer
+  P       put back at end of file
+.PP
+\fBUndo, Redo:\fR
+  u       undo last change
+          Note:  Only the last change can be undone.
+          Therefore this commands toggles between the
+          last and second-t-last state of the buffer.
+.PP
+\fBSetting Options:\fR
+  With the :set command you can set options in bvi
+.PP
+.Vb 1
+\&  Option     Default  Description
+.Ve
+.Vb 19
+\&  autowrite  noaw     Save current file, if modified, if you
+\&                      give a :n, :r or ! command
+\&  columns    cm=16    on an 80 character wide terminal
+\&  ignorecase noic     Ignores letter case in searching
+\&  magic      nomagic  Makes . [ * special in patterns
+\&  memmove    nomm     enables insert and delete commands 
+\&  offset     of=0     adds an offset to the diplayed addresses
+\&  readonly   noro     If set, write fails unless you use ! after command
+\&  scroll     sc=1/2 window
+\&                      Number of lines scrolled by ^U and ^D
+\&  showmode   mo       Displays statusline on bottom of the screen
+\&  terse      noterse  Let you obtain shorter error messages
+\&  window     window=screensize
+\&                      Lines in window, can be reduced at slow terminals
+\&  wordlength wl=4     Length of an ASCII-string found by w, W, b or B
+\&  wrapscan   ws       Searches wrap around past the end of the file
+\&  unixstyle  nous     The representation of ascii characters below
+\&                      32 is displayed in the statusline as shown
+\&                      in ascii(7) if unset rather in DOS-style (^A)
+.Ve
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+bvi was developed by Gerhard Buergmann, Vienna, Austria
+\fIGerhard.Buergmann@puon.at\fR
+.SH "WWW"
+.IX Header "WWW"
+Bvi\ Homepage:\ \ http://bvi.sourceforge.net/
+Vi\ Pages:\ \ \ \ \ \ http://www.guckes.net/vi/clones.php3
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (all\ about\ Vi\ and\ its\ clones)
+.SH "FILES"
+.IX Header "FILES"
+\fI\ $HOME/.bvirc\fR\ \ \ \ \ \ \ \ \ \ editor\ startup\ file
+\fI\ ./.bvirc\fR\ \ \ \ \ \ \ \ \ \ \ \ \ \ editor\ startup\ file
+.SH "BUGS"
+.IX Header "BUGS"
+Bvi does not update the screen when the terminal changes its size.
+.SH "SEE ALSO"
+.IX Header "SEE ALSO"
+\fIvi\fR\|(1), \fIstrings\fR\|(1), \fIascii\fR\|(5)
+
+.rn }` ''

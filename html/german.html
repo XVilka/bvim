@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Deutsche Beschreibung</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<font color="#ffffff" class="thl">Deutsche Beschreibung<br></font>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Deutsche Beschreibung</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+Der BVI (Binary-VI) ist ein Editor für Binärfiles. Seine Kommandos sind
+weitgehend an den Standard UNIX Editor VI(1) angelehnt. Der Bildschirm
+ist in einen hexadezimalen und einen ASCII-Bereich geteilt. Einige zusätzliche
+Kommandos wurden zugefügt, einige Kommandos adaptiert und einige Kommandos,
+die bei Binärfiles keinen Sinn machen, wurden weggelassen. Für eine
+Gesamtübersicht siehe Manual Page BVI(1).
+
+<H2>Zusätzliche Kommandos</H2>
+
+Eine wichtige Funktion für binäre Files ist das Suchen nach Hexcodes.
+Dafür gibt es analog zum '/' und '?' - Kommando zusätzlich das '\' und
+das '#' - Kommando.<BR>
+
+Beispiel:<BR>
+\1e f4 56    -   Sucht die angegebene Bytefolge in vorwärts-Richtung<BR>
+#34 5a a4    -   Sucht Bytefolge rückwärts.
+<P>
+Die normalen Textsuchkommandos sind auch vorhanden, wobei zusätzlich ein
+Return, Linefeed oder NULL im Suchstring aufscheinen darf (\n \r oder \0).
+<P>
+Die Kommandos w, W, b, B (nächstes oder vorhergehendes Wort) wurden insoweit
+abgeändert, daß sie eher dem STRINGS(1) - Kommando entsprechen, also in
+einem Binärfile Textstrings suchen. Dabei sucht W und B nach Strings, die
+mit einem \0 oder \n enden, w und b sucht nach Strings, die mit einem
+beliebigen, nicht druckbaren Zeichen enden. Die Stringlänge beträgt 4 Zeichen,
+wobei mit ":set wordlength=x" die Stringlänge auf x Zeichen eingestellt werden
+kann.
+<P>
+Der Bildschirm ist in einen HEX und einen ASCII-Bereich aufgeteilt, wobei
+jederzeit mit der TAB - Taste von einem Bereich in den anderen gewechselt
+werden kann (auch im Eingabemodus). Es kann also bei der Eingabe zwischen
+normalen ASCII-Zeichen und Hex-Eingabe hin- und hergesprungen werden.
+<P>
+
+Am unteren Bildrand befindet sich eine Statusanzeige, welche die Adresse des
+Bytes, auf welchem der Cursor momentan steht, anzeigt. Außerdem wird das Byte
+in oktaler, hexadezimaler, dezimaler und ASCII-Repräsentation anzeigt. Die
+ASCII-Anzeige kann von DOS-Style (27 entspricht ^Z) auf UNIX-Style entsprechend
+Manual Page ASCII(7) umgeschaltet werden (27 entspricht SUB).
+Kommando ist ":set unixstyle". Die Statusanzeige kann mit ":set noshowmode"
+ausgeschaltet werden.
+
+<H2>Regular Expressions</H2>
+
+Für die Suchkommandos sowohl für Text als auch Hex sind Regular Expressions
+zulässig, wobei es die Zeichen ^ und $ für Zeilenanfang und Zeilenende nicht
+gibt. Die Kombination .* ist unzulässig, da sie sich auf jeden Fall auf das
+Ende des Files beziehen würde.
+
+<H2>Zeilen</H2>
+
+Da es in binären Files keine Zeilen gibt (die Darstellung der einzelnen
+Zeilen am Bildschirm hat keinen Bezug zum File) gibt es keinerlei
+zeilenorientierte Kommandos (dd, o, O, yy). Ein Kommando
+wie :s/XXX/UUU/g ändert somit das gesamte File. Zu beachten ist auch, daß
+:s/XX/UUUU/ nicht die beiden X durch vier U ersetzt, sondern die beiden den
+X folgenden Zeichen auch durch U überschrieben werden.
+
+<H2>Editierkommandos</H2>
+
+Da binäre Files häufig ausführbare Programme oder Datenbankfiles sind,
+bei denen Bytes nicht einfach an eine andere Adresse verschoben werden
+d&uuml;rfen, sind Einf&uuml;ge- und L&ouml;schkommandos (z.B. a, i, x)
+deaktiviert. Mit dem Kommando <B>:set memmove</B> k&ouml;nnen sie
+aktiviert werden.
+<P>
+Die Kommandos <B>:a</B> (append), <B>:c</B> (change) und <B>:i</B> (insert)
+k&ouml;nnen benutzt werden, um ein oder mehrere Bytes in ASCII, bin&auml;rer,
+dezimaler, hexadezimaler oder oktaler Schreibweise einzugeben
+(a, b, d, h oder o). Es 
+k&ouml;nnen mehrere (Bildschirm) Zeilen eingegeben werden. Das Kommando
+wird beendet, sobald eine Zeile, die nur aus einem Punkt besteht,
+eingegeben wird.
+<P>
+Beispiel:
+<BLOCKQUOTE>
+<PRE>
+:i b
+1 1001 010101 1111
+11111 1010 1 0 1
+.
+</PRE>
+</BLOCKQUOTE>
+Zu beachten ist, da&szlig; kein Einzelwert den maximalen Byte-Wert (255)
+&uuml;berschreiten darf, da sonst die Eingabe abgebrochen wird. Das
+Dr&uuml;cken der RETURN - Taste f&uuml;hrt zu keinem "RETURN" - Zeichen in
+der Datei, im ASCII - Modus k&ouml;nnen allerdings die Sonderzeichen
+\n, \r, \t und \0 benutzt werden.
+
+<H2>Yank und Put</H2>
+
+Auch hier gilt eine etwas geänderte Funktion. Das <B>y</B> (yank) -
+Kommando ist allerdings ab Version 1.2.0 dem Vi angenähert:<BR>
+<TABLE>
+<TR><TD>5ySPACE</TD><TD>kopiert 5 Zeichen in den Yank-Buffer</TD></TR>
+<TR><TD>o</TD><TD>überschreibt an Cursor - Position die folgenden Zeichen
+mit dem Inhalt des Yank- oder Delete - Puffers</TD></TR>
+<TR><TD>p</TD><TD>fügt an der Cursor - Position den Inhalt des Yank-
+oder Delete - Puffers ein.</TD></TR>
+<TR><TD>P</TD><TD>fügt den Inhalt des Yank- oder Delete - Puffers am Dateiendes
+an.</TD></TR>
+</TABLE>
+<P>
+Das Kommando ":r filename" fügt das angegebene File nicht an der Cursor-
+Position sondern am Dateiende an.
+
+<H2>Adressen</H2>
+
+Das Kommando nG führt nicht zur n. Zeile, sondern zum n. Byte.
+Die Eingabe der Nummer wird dezimal interpretiert. Um eine Adresse
+hexdezimal angeben zu können, kann g eingegeben werden. Es erscheint ein
+Prompt in der Statuszeile, bei dem eine hexadezimale Eingabe erfolgen kann.
+Das erste Byte hat Adresse 0.<BR>
+Die Anzeige der Adressen kann mit einem Offset versehen werden
+(:set offset=256), beispielsweise um für .COM Files in DOS einen Beginn
+bei Adresse 100Hex anzuzeigen. Wird ein offset=1 angegeben, so ist
+hat das erste Byte Adresse 1. Das G - Kommando berücksichtigt den Offset.
+Im Gegensatz dazu zeigt das :f - Kommando immer die Ordnungszahl des
+Bytes an, beginnend mit 1 ohne Berücksichtigung des Offsets.
+
+<H2>Bitweise Kommandos</H2>
+
+Um Manipulationen auf Bit-Ebene durchf&uuml;hren zu k&ouml;nnen, stehen 
+folgende Kommandos zur Verf&uuml;gung:
+<CENTER><TABLE>
+<TR><TD><B>:rl </B><I>n</I></TD><TD>Rotiert Bits links</TD><TD ROWSPAN=4>
+ <I>n</I> ist eine Zahl zwischen 1 und 7</TD></TR>
+ <TR><TD><B>:rr </B><I>n</I></TD><TD>Rotiert Bits rechts</TD></TR>
+ <TR><TD><B>:sl </B><I>n</I></TD><TD>Schiebt Bits links</TD></TR>
+ <TR><TD><B>:sr </B><I>n</I></TD><TD>Schiebt Bits rechts</TD></TR>
+ <TR><TD><B>:and </B><I>i</I></TD><TD>Und Verkn&uuml;pfung</TD><TD ROWSPAN=4>
+ <I>i</I> ist eine Zahl zwischen 0 und 255</TD></TR>
+ <TR><TD><B>:or </B><I>i</I></TD><TD>Oder Verkn&uuml;pfung</TD></TR>
+ <TR><TD><B>:xor </B><I>i</I></TD><TD>Exklusiv-oder Verkn&uuml;pfung</TD></TR>
+ <TR><TD><B>:not </B></TD><TD>Negiert Bytewert</TD></TR>
+ <TR><TD><B>:neg </B></TD><TD>Zweier-Komplement</TD></TR>
+</TABLE></CENTER>
+Wird kein Bereich angegeben, so bezieht sich die Operation auf die gesamte
+Datei. Es k&ouml;nnen zwei Adressen in den &uuml;blichen Schreibweisen
+angegeben werden. Normalerweise wird dezimale Eingabe erwartet, bei
+f&uuml;hrender 0 werden die Adressen Hexadezimal interpretiert.
+<BR>Der Wert <B>i</B> f&uuml;r die logische Verkn&uuml;pfung kann
+dezimal, hexadezimal, oder mit f&uuml;hrendem <I>B</I> in bin&auml;rer
+Schreibweise angegeben werden. Auch bei Eingabe von genau acht 0 und 1
+Werten wird der Byte - Wert bin&auml;r interpretiert.<BR>
+Beispiel:<BR>
+<BLOCKQUOTE CLASS="examp">
+<B><TT>:100,500and 01A </TT><FONT COLOR="#AAAAAA">RETURN</FONT></B><BR>
+<B><TT>:03FA,01000or 00001000 </TT><FONT COLOR="#AAAAAA">RETURN</FONT></B><BR>
+<B><TT>:.rr 3 </TT><FONT COLOR="#AAAAAA">RETURN</FONT></B><BR>
+<B><TT>:'a,$sl 1 </TT><FONT COLOR="#AAAAAA">RETURN</FONT></B><BR>
+</BLOCKQUOTE>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: June 1<sup>st</sup> 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

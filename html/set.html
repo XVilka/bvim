@@ -1,0 +1,117 @@
+<HTML><HEAD>
+<TITLE>BVI: Set Commands</TITLE>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="bvi.css">
+</HEAD><BODY BGCOLOR="#ffffff">
+<A NAME="top"></A>
+
+<TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD WIDTH=99%>
+<A CLASS=head HREF="overview.html">Command Overview</A>
+<BR><FONT CLASS=sub>Set Commands</FONT>
+</TD><TD ALIGN=RIGHT VALIGN=BOTTOM WIDTH=116 ROWSPAN=2>
+<A HREF="index.html">
+<IMG SRC="gif/bvi_s.gif" ALT="BVI" WIDTH="116" HEIGHT="62" BORDER=0></A>
+</TD></TR>
+<TR><TD VALIGN=BOTTOM>
+<HR NOSHADE>
+</TD></TR></TABLE>
+<P>
+
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| Set Options
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<TABLE WIDTH=100%>
+<TR BGCOLOR=#CCCCCC><TH WIDTH=20%>Command</TH><TH WIDTH=40%>BVI</TH><TH WIDTH=40%>VI</TH></TR>
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Search<BR>settings</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD><B>:set wrapscan</B> or <B>:set ws</B><BR>
+ <B>:set nows</B></TD>
+ <TD>When this option is set, pattern searches resulting from a <B>/,
+ ?, n, N</B> (<B>#, \</B>) command automatically wrap around to the opposit end of the file
+ and continue whenever the beginning or end of a file is reached.</TD></TR>
+<TR><TD><B>:set ignorecase</B> or <B>:set ic</B><BR> 
+ <B>:set noic</B></TD>
+ <TD>Uppercase and lowercase characters in text are treated identically
+ in regular expression matching</TD></TR>
+<TR><TD><B>:set magic</B><BR> 
+ <B>:set nomagic</B></TD>
+ <TD>Enables metacharacters for use in regular expressions</TD></TR>
+</TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>Display<BR>options</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD><B>:set showmode</B><BR> 
+ <B>:set noshowmode</B></TD>
+ <TD>Displays a status message in the lowest line on the screen</TD></TR>
+<TR><TD><B>:set terse</B><BR>
+ <B>:set noterse</B></TD>
+ <TD>The terse option lets you obtain shorter error diagnostics.</TD></TR>
+</TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>File<BR>options</TD><TD BGCOLOR=#CCFFCC COLSPAN=2>
+<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+<TR><TD><B>:set readonly</B> or <B> :set ro</B><BR> 
+ <B>:set noro</B></TD>
+ <TD>This option sets the read-only flag for the file being editeds,
+ thus preventing accidental overwriting at the end of the session.</TD></TR>
+<TR><TD><B>:set autowrite</B> or <B>:set aw</B><BR>
+ <B>:set noaw</B></TD>
+ <TD>Causes the contents of the buffer to be written to the current file 
+ if you have modified them and given a <B>:next, :rewind</B> or <B>!</B>
+ command.</TD></TR>
+</TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER>bvi<BR>options</TD>
+<TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD><B>:set columns=13<BR>:set cm=5</B></TD>
+ <TD>You can set the number of bytes displayed in on screenline.
+ Default is max. number divisible by four.</TD></TR>
+ <TR><TD><B>:set memmove<BR>:set nomm</B></TD>
+ <TD>If memmove is set, you can use commands to insert or delete bytes.
+ This can be dangerous for e.g. executable programs.
+ Default is nomemmove.</TD></TR>
+ <TR><TD><B>:set offset=1<BR>:set of=5</B></TD>
+ <TD>An offset is added to all addresses and byte counts. Default 
+ address of the first byte is 0.</TD></TR>
+ <TR><TD><B>:set wordlength=5<BR>:set wl=8</B></TD>
+ <TD>Length of an ASCII-string found by <B>w, W, b</B> or <B>B</B></TD></TR>
+ <TR><TD><B>:set unixstyle<BR>:set nous</B></TD>
+ <TD>displays ASCII characters below 32 in the status line in
+ Unix-style instead of DOS-style</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+	Not available.
+</TD></TR>
+</TD></TR>
+</TABLE>
+
+<P>
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| <A CLASS="thl" HREF="yank.html">Yank and Put Cmds</A>
+| Set Options
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<FONT SIZE=-1>
+<A CLASS="btop" HREF="#top"><IMG BORDER=0 WIDTH=16 HEIGHT=7 SRC="gif/up.gif"
+ALT="Back to the top">Back to the top</A>
+</FONT>
+<HR NOSHADE>
+<I>Last update: October 30<SUP>th</SUP> 1999 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</I>
+
+
+</BODY></HTML>

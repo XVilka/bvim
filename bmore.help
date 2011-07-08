@@ -1,0 +1,26 @@
+
+Most commands optionally preceded by integer argument k.  Defaults in brackets.
+Star (*) indicates argument becomes new default.
+-------------------------------------------------------------------------------
+<space>                 Display next k lines of bytes [current screen size]
+z                       Display next k lines of bytes [current screen size]*
+<return>                Display next k lines of bytes [1]*
+d or ctrl-D             Scroll k lines [current scroll size, initially 11]*
+q or Q or <interrupt>   Exit from bmore
+s                       Skip forward k lines of bytes [1]
+f                       Skip forward k screenfuls of bytes [1]
+b or ctrl-B             Skip backwards k screenfuls of bytes [1]
+'                       Go to place where previous search started
+=                       Display current byte number
+/<regular expression>   Search for kth occurrence of ascii regular expr [1]
+\<regular expression>   Search for kth occurrence of binary regular expr [1]
+n                       Search for kth occurrence of last r.e [1]
+!<cmd> or :!<cmd>       Execute <cmd> in a subshell
+v                       Start up bvi at current position
+w                       Start up bvi reading only a screenful of bytes [screen]
+ctrl-L                  Redraw screen
+:n                      Go to kth next file [1]
+:p                      Go to kth previous file [1]
+:f                      Display current file name and byte position
+.                       Repeat previous command
+-------------------------------------------------------------------------------

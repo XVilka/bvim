@@ -1,0 +1,11 @@
+TD {font-family: Helvetica, Arial, sans-serif;}
+TH {font-family: Helvetica, Arial, sans-serif;}
+STRONG {color:red;}
+.thl {font-family: Helvetica, Arial Narrow, sans-serif; font-size: 12pt; font-weight: bold; text-decoration:none;}
+.ths {font-family: Helvetica, Arial Narrow, sans-serif; font-size: 10pt; text-decoration:none;}
+.btop {text-decoration:none; color:black;}
+.examp {font-family: Courier, monospace;}
+.inv {font-family: Courier, monospace; color: rgb(255,255,255); background-color: rgb(0,0,0);}
+.head {font-family: Helvetica, Arial, sans-serif; font-size: 22pt; font-weight: bold; text-decoration:none;}
+.sub {font-family: Helvetica, Arial, sans-serif; font-size: 16pt; font-weight: bold;}
+.new {font-family: Times, serif; font-weight: bold; font-size: 28pt; color: red;}

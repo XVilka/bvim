@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Bit-wise Operations</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<font color="#ffffff" class="ths">Bit-wise Operations<br></font>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1"></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+<br><font class="sub">Bit-wise Operations</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+To perform logical operations, bvi has a set of bit-level commands.
+The following commands are available:
+<CENTER><TABLE>
+<TR><TD><B>:rl </B><I>n</I></TD><TD>rotate left</TD><TD ROWSPAN=4>
+ <I>n</I> is a number from 1 through 7</TD></TR>
+<TR><TD><B>:rr </B><I>n</I></TD><TD>rotate right</TD></TR>
+<TR><TD><B>:sr </B><I>n</I></TD><TD>shift right</TD></TR>
+<TR><TD><B>:sl </B><I>n</I></TD><TD>shift left</TD></TR>
+<TR><TD><B>:and </B><I>i</I></TD><TD>and operation</TD><TD ROWSPAN=4>
+ <I>i</I> is a number from 0 through 255</TD></TR>
+<TR><TD><B>:or </B><I>i</I></TD><TD>or operation</TD></TR>
+<TR><TD><B>:xor </B><I>i</I></TD><TD>or operation</TD></TR>
+<TR><TD><B>:not </B></TD><TD>negates operation</TD></TR>
+<TR><TD><B>:neg </B></TD><TD>negates operation</TD></TR>
+</TABLE></CENTER>
+<P>
+The <I>i</I> value can be entered as a decimal number (0 - 255),
+a hexadecimal number with a leading zero (0 - 0ff) or a binary number,
+either with a leading B (B101) or exactly eight digits long (00000101).
+<P>
+On default the whole file is affected, but you can use the usual
+colon command address forms. In contrast to vi the addresses designate
+not line numbers but byte numbers. These addresses can be enterd in
+decimal or hexadecimal notation.<BR>
+Examples:
+<BLOCKQUOTE CLASS="examp">
+<B><TT>:100,500and 01A </TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+<B><TT>:03FA,01000or 00001000 </TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+<B><TT>:.rr 3 </TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+<B><TT>:'a,$sl 1 </TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+</BLOCKQUOTE>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: Thu Jun 01 12:00:00 CEST 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

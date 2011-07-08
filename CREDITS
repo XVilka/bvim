@@ -1,0 +1,23 @@
+Patches:
+Guido <guido@bearix.oche.de> sys_errlist
+Christian "naddy" Weisgerber <naddy@mips.rhein-neckar.de> {Free,Open}BSD
+Gunnar Larisch <la@softing.com> ^ZZ bug
+Peter J. Holzer <hjp@wsr.ac.at> setlocale
+Albert Chin-A-Young <china@thewrittenword.com> Makefile.in
+Ralf <rks@ffm.tc.iot.dtag.de> AIX fixes
+Claudio Nieder <claudio@chili.symmetrix.ch> Makefile
+Nico Schmidt <Nico.Schmidt@ipk.fhg.de> r-bug fix
+Steve Waltner <swaltner@lsil.com> Mac OS X support
+Andre Wobst <Andre.Wobst@Physik.Uni-Augsburg.de> AIX fixes
+SimoN <simontdd@netzero.net> bmore: subshell support fixes, DJGPP support
+
+Packages:
+Christian "naddy" Weisgerber <naddy@mips.rhein-neckar.de> Source RPM
+Christian Kurz <shorty@jupiter.rhein-neckar.de> Debian package
+Stijn de Bekker <stijn@debekker.org> Debian package
+Troy Engel <tengel@sonic.net> i386 RPM package
+Thomas Steudten <thomas@steudten.com> RH alpha and x86 RPM package
+
+Doc:
+Sven Guckes <guckes@math.fu-berlin.de>
+Ben <info@leedsnet.com>

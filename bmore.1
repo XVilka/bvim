@@ -1,0 +1,314 @@
+.TH BMORE 1 "3 Jan 2004"
+.SH NAME
+bmore \- browse through a binary file
+.SH SYNOPSIS
+.B bmore
+[
+.B \-acdi
+] [
+.B \-n \fIlines\fP
+] [
+.B \-w \fIcols\fP
+] [
+.B +\fIlinenumber\fP
+] [
+.B +/\fIASCII-pattern\fP
+] [
+.B +\\\\\fIHex-pattern\fP
+] [
+.I filename
+\&.\|.\|. ]
+.LP
+.if n .ti +05i
+.SH DESCRIPTION
+.IX  "bmore command"  ""  "\fLbmore\fP \(em browse binary file"
+.IX  "binary file, browse through" \fLbmore\fP
+.IX  file  "browse bmore"  ""  "browse through binary\(em \fLbmore\fP"
+.IX  display "file by screenfuls \(em \fLbmore\fP"
+.LP
+.B more
+is a filter that displays the contents of a binary
+file
+on the terminal, one screenful at a time.  It normally pauses after
+each screenful, and prints
+.B --More--
+at the bottom of the screen.
+.B bmore
+provides a two-line overlap between screens for continuity.
+If
+.B bmore
+is reading from a file rather than a pipe, the percentage of
+characters displayed so far is also shown.
+.LP
+.B bmore
+scrolls up to display one more screen line in response to a
+.SM RETURN
+character; it displays another screenful in response to a
+.SM SPACE
+character.  Other commands are listed below.
+.LP
+The screen is divided in three sections or panes:
+The byte offset (extreme left), the hex pane (middle),
+and an ascii pane (right) which shows as printable characters
+those bytes in the hex pane.
+On an 80 column terminal there will be sixteen hex values
+and their ASCII values on each screen line.
+Note that (as one would expect) the first byte has the offset \*(L'0\*(R' (zero).
+.LP
+.B bmore
+sets the terminal
+to
+.I noecho
+mode, so that the output can be continuous.
+Commands that you type do not normally show up on your terminal,
+except for the
+.B /
+,
+.B \\\\
+and
+.B !
+commands.
+.LP
+If the standard output is not a terminal,
+.B more
+acts just like
+.BR cat (1V),
+except that a header is printed before each file in a series.
+.SH OPTIONS
+.TP
+.B \-a
+ASCII mode: no hex representation of the contents. Non printable 
+characters are displayed as a dot (.)
+.TP
+.B \-c
+Clear before displaying. Redrawing the screen instead of scrolling.
+.TP
+.B \-d
+Display error messages rather than ringing the terminal bell if
+an unrecognized command is used.
+This is helpful for inexperienced users.
+.TP
+.B \-i
+Ignore case for searching.
+.TP
+.B \-n \fIlines\fP
+Displays the indicated number of \fIlines\fP in each screenful,
+rather than the default (the number of lines in the terminal screen
+less two).
+.TP
+.B \-w \fIcols\fP
+Display number of \fIcols\fP in each line.
+.TP
+.BI + linenumber\fP
+Start up at
+.IR linenumber .
+.TP
+.BI +/ ASCII-pattern\fP
+Start up at the line containing the regular expression
+.IR pattern .
+Note: unlike
+editors, this construct should
+.I not
+end with a
+.RB ` / '.
+If it does, then the trailing slash is taken as a character in the
+search pattern.
+.TP
+.br
+.ne 8
+.SH USAGE
+.SS Commands
+.LP
+The commands take effect immediately;  it is not necessary to
+type a carriage return.
+Up to the time when the command character itself is given,
+the user may type the line kill character to cancel the numerical
+argument being formed.
+In addition, the user may type the erase character to redisplay the
+.RB ` "--More--(\fIxx\fP%)" '
+message.
+.LP
+In the following commands,
+.I i
+is a numerical argument
+.RB ( 1
+by default).
+.TP 10
+.IR i \s-1SPACE\s0
+Display another screenful, or
+.I i
+more lines if
+.I i
+is specified.
+.TP
+.IR i \s-1RETURN\s0
+Display another line, or
+.I i
+more lines, if specified.
+.TP
+.IB i ^D
+(\s-1CTRL\s0\-D)
+Display (scroll down) 11 more lines.
+.I i
+is given, the scroll size is set to
+.IR i\| .
+.TP
+.IR i d
+Same as
+.BR ^D .
+.TP
+.IB i z
+Same as
+.SM SPACE,
+except that
+.IR i\| ,
+if present, becomes the new default number
+of lines per screenful.
+.TP
+.IB i s
+Skip
+.I i\|
+lines and then print a screenful.
+.TP
+.IB i f
+Skip
+.I i
+screenfuls and then print a screenful.
+.TP
+.IB i ^B
+(\s-1CTRL-B\s0)
+Skip back
+.I i
+screenfuls and then print a screenful.
+.TP
+.I b
+Same as
+.B ^B
+(\s-1CTRL-D\s0).
+.TP
+.B q
+.PD 0
+.TP
+.B Q
+.PD
+Exit from
+.BR more .
+.TP
+.B =
+Display the current line number.
+.TP
+.B v
+Drop into the
+.BR bvi (1)
+editor at the current offset of the current
+file.
+.TP
+.B w
+Drop into the
+.BR bvi (1)
+editor at the current offset of the current
+file. Only the portion of the file displayed on the screen will be loaded.
+.TP
+.B h
+Help.  Give a description of all the
+.B more
+commands.
+.TP
+.IB i / pattern
+Search for the
+.IR i\| th
+occurrence of the regular expression
+.IR pattern .
+Display the screenful starting at the file position
+that contains the
+.IR i\| th
+match for the regular expression
+.IR ASCII-pattern ,
+or the end of a pipe, whichever comes first.  If
+.B bmore
+is displaying a file and there is no such match, its position
+in the file remains unchanged.  Regular expressions can be
+edited using erase and kill characters.
+Erasing back past the first column cancels the search command.
+.TP
+.B \'
+Single quote.  Go to the point from which the last search started.
+If no search has been performed in the current file,
+go to the beginning of the file.
+.TP
+.BI ! command
+Invoke a shell to execute
+.IR command\| .
+The characters
+.B %
+and
+.BR ! ,
+when used within
+.I command
+are replaced with the current filename
+and the previous shell command,
+respectively.
+If there is no current filename,
+.B %
+is not expanded. Prepend a backslash to these characters to
+escape expansion.
+.TP
+.IB i :n
+Skip to the
+.IR i\| th
+next filename given in the command line,
+or to the last filename in the list if
+.I i
+is out of range.
+.TP
+.IB i :p
+Skip to the
+.IR i\| th
+previous filename given in the command line,
+or to the first filename if
+.I i
+is out of range.
+If given while
+.B more
+is positioned within a file, go to the
+beginning of the file.
+If
+.B more
+is reading from a pipe,
+.B more
+simply rings the terminal bell.
+.br
+.ne 2
+.TP
+.B :f
+Display the current filename and offset number.
+.br
+.ne 5
+.TP
+.B :q
+.PD 0
+.TP
+.B :Q
+.PD
+Exit from
+.B bmore
+(same as
+.B q
+or
+.B Q ).
+.TP
+.B \&.
+Dot.  Repeat the previous command.
+.TP
+.SH FILES
+.PD 0
+.TP 20
+.B /etc/termcap
+terminal data base
+.TP
+.B /usr/local/share/bmore.help
+help file
+.PD
+.SH "SEE ALSO"
+.BR bvi (1),
+.BR termcap (5)

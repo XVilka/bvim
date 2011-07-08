@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Find and Replace</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<font color="#ffffff" class="ths">Find and Replace<br></font>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<a class="ths" href="qt_set.html">Settings</a><br>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+<br><font class="sub">Find and Replace</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+The <B><TT CLASS="examp">:s</TT></B> (substitute) command behaves a little bit 
+different to that of vi. If you type a command like this in vi &nbsp; <NOBR>
+<B><TT CLASS="examp">:s/XXXX/UU/</TT></B></NOBR> then the four XXXX's are
+replaced by
+two UU's. This means, the file size decreases and all characters after
+the replacement are moved to another position in the file. Since bvi
+does not move characters, only two XX's are replaced by two UU's and
+the third and fourth X still remains in the file.<BR>
+Another example:
+<BLOCKQUOTE>
+<B><TT CLASS="examp">:0,500s/Taste\0/Key\0/</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+</BLOCKQUOTE>
+<P>
+This command replaces within the first 500 bytes of a file the 0 -
+terminated ASCII string &quot;<TT CLASS="examp">Taste</TT>&quot;
+with the 0 - terminated
+string &quot;<TT CLASS="examp">Key</TT>&quot;. After the substitution
+you will find a 
+character sequence &quot;<TT CLASS="examp">Key\0e\0</TT>&quot; in the file.<BR>
+CAUTION: If the replace
+string is longer than the find string, additional bytes are overwritten!
+<BR>
+This behaviour will not be changed by setting the
+<TT CLASS="examp">:set memmove</TT> option!
+<P>
+Of course you can do also binary substitutions, similar to the search
+command. The ability of remembering patterns like <B><TT CLASS="examp">\(pattern\)</TT></B>
+is currently not implemented.
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: Fri Jun 30 22:33:20 CEST 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>

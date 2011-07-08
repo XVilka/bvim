@@ -1,0 +1,44 @@
+BVI - Binary visual editor
+==========================
+http://bvi.sourceforge.net/
+
+This editor for binary files was written by Gerhard Buergmann
+and is distributed under the GPL (GNU Public License).
+
+
+How to compile
+==============
+
+	gunzip -c bvi-1.3.2.tar.gz | tar xvf -
+	cd bvi-1.3.2
+	./configure
+	make
+	make install
+
+
+MAC OS X
+========
+Looks like the curses implementation in Darwin is really limited.
+You should install and use ncurses instead. You can download it from
+ftp.gnu.org; install it and then use
+	./configure --with-ncurses=/usr/local/ncurses-5.2
+
+
+HTML documentation in subdirectory html/
+
+Subscribe to the bvi mailing for support, updates and other news:
+
+	Send a blank email to bvi-subscribe@yahoogroups.com. You will receive a
+	subscription confirmation message. Simply reply this message and your
+	subscription will be complete. 
+
+
+------------------------------------------------------------------------
+PLEASE send any bug reports (and fixes), code for new features,
+comments, questions, etc. (even flames) to:
+
+Gerhard Buergmann
+Vienna, Austria
+E-mail: gerhard@puon.at
+
+

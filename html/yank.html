@@ -1,0 +1,142 @@
+<HTML><HEAD>
+<TITLE>BVI: Yank and Put Commands</TITLE>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="bvi.css">
+</HEAD><BODY BGCOLOR="#ffffff">
+<A NAME="top"></A>
+
+<TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR><TD WIDTH=99%>
+<A CLASS=head HREF="overview.html">Command Overview</A>
+<BR><FONT CLASS=sub>Yank and Put Commands</FONT>
+</TD><TD ALIGN=RIGHT VALIGN=BOTTOM WIDTH=116 ROWSPAN=2>
+<A HREF="index.html">
+<IMG SRC="gif/bvi_s.gif" ALT="BVI" WIDTH="116" HEIGHT="62" BORDER=0></A>
+</TD></TR>
+<TR><TD VALIGN=BOTTOM>
+<HR NOSHADE>
+</TD></TR></TABLE>
+<P>
+
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| Yank and Put Cmds
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+NOTE: the <B>o</B> command (<I>overwriting put</I>) is the only command in
+bvi that uses a key for a complete different purpose than in vi.
+<P>
+<TABLE WIDTH=100%>
+<TR BGCOLOR=#CCCCCC><TH WIDTH=20%>Command</TH><TH WIDTH=40%>BVI</TH><TH WIDTH=40%>VI</TH></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=3>Put<BR>bytes</TD>
+<TD COLSPAN=2 BGCOLOR=#CCFFCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; p &nbsp;</TH>
+  <TD>put the contents of the yank or delete buffer after cursor position</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; P &nbsp;</TH><TD>append the contents of the yank or delete buffer at EOF</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; P &nbsp;</TH><TD>put the contents of the yank or delete buffer
+ before cursor position</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; o &nbsp;</TH><TD>overwrite the following bytes with the contents
+ of the yank or delete buffer</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#CCCCCC ALIGN=CENTER ROWSPAN=4>Yank<BR>bytes</TD>
+<TD COLSPAN=2 BGCOLOR=#CCFFCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>y<FONT COLOR=#888888>SPACE</FONT></TH><TD>yank byte at cursor position</TD></TR>
+ <TR><TH>yf<FONT COLOR=#FF0000>C</FONT></TH>
+   <TD>yank from current position to next character <FONT COLOR=#FF0000>C</FONT></TD></TR>
+ <TR><TH>y/<FONT COLOR=#FF0000>xyz</FONT></TH>
+   <TD>yank from current position to matching pattern <FONT COLOR=#FF0000>xyz</FONT>
+   </TD></TR>
+ <TR><TH>y?<FONT COLOR=#FF0000>xyz</FONT></TH>
+   <TD>yank from current position to matching pattern <FONT COLOR=#FF0000>xyz</FONT> in reverse direction
+   </TD></TR>
+ <TR><TH>y'<FONT COLOR=#FF0000>a</FONT></TH><TD>yank from current position to mark <FONT COLOR=#FF0000>a</FONT></TD></TR>
+ <TR><TH>y<FONT COLOR=#FF0000>n</FONT>G</TH><TD>yank from current position to byte with (decimal) address <FONT COLOR=#FF0000>n</FONT></TD></TR>
+ </TABLE>
+</TD></TR>
+
+<TR><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>yy &nbsp;</TH><TD>yank line</TD></TR>
+ <TR><TH>y)</TH><TD>yank from cursor position through first
+  following end of sentence</TD></TR>
+ <TR><TH>y}</TH><TD>yank from cursor position through first
+  following end of paragraph</TD></TR>
+ <TR><TH>y]</TH><TD>yank from cursor position through first
+  following end of section</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#FFFFFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>y\<FONT COLOR=#FF0000>6a 56 ff</FONT> &nbsp;</TH>
+ <TD>yank from cursor position to first occurance of hex pattern
+  <FONT COLOR=#FF0000>6a 56 ff</FONT></TD></TR>
+ <TR><TH>y#<FONT COLOR=#FF0000>6a 56 ff</FONT> &nbsp;</TH>
+ <TD>yank from cursor position to first occurance of hex pattern
+  <FONT COLOR=#FF0000>6a 56 ff</FONT> in reverse direction</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#FFCCCC>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TD ROWSPAN=2>not available</TD></TR>
+ </TABLE>
+</TD></TR>
+<TR><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; y$ &nbsp;</TH><TD>yank from current position to EOF</TD></TR>
+ </TABLE>
+</TD><TD BGCOLOR=#CCCCFF>
+ <TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0>
+ <TR><TH>&nbsp; y$ &nbsp;</TH><TD>yank from current position to end of line</TD></TR>
+ </TABLE>
+</TD></TR>
+</TABLE>
+<P>
+Note that most of the commands can be used with a decimal repeat count in front
+of the command!
+
+<P>
+<CENTER>
+[ <A CLASS="thl" HREF="cursor.html">Cursor Movements</A>
+| <A CLASS="thl" HREF="edit.html">Edit Cmds</A>
+| Yank and Put Cmds
+| <A CLASS="thl" HREF="set.html">Set Options</A>
+| <A CLASS="thl" HREF="colon.html">Colon (ex) Cmds</A>
+]
+</CENTER>
+<P>
+<FONT SIZE=-1>
+<A CLASS="btop" HREF="#top"><IMG BORDER=0 WIDTH=16 HEIGHT=7 SRC="gif/up.gif"
+ALT="Back to the top">Back to the top</A>
+</FONT>
+<HR NOSHADE>
+<I>Last update: October 30<SUP>th</SUP> 1999 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</I>
+
+
+</BODY></HTML>

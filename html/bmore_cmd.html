@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Commands</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+<font color="#ffffff" class="ths">Commands<br></font>
+<a class="ths" href="bmore_opt.html">Options</a><br>
+<a class="ths" href="man_bmore.html">man - Page</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">bmore</font>
+<br><font class="sub">Commands</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+
+
+Most commands optionally preceded by integer argument <I>k</I>.  Defaults in brackets.
+Star (*) indicates argument becomes new default.
+<P>
+<TABLE>
+<TR><TH><FONT COLOR=#888888>SPACE</FONT></TH>
+    <TD>Display next <I>k</I> lines of bytes </TD><TD>current screen size</TD></TR>
+<TR><TH>z</TH><TD>Display next <I>k</I> lines of bytes </TD>
+    <TD>current screen size*</TD></TR>
+<TR><TH><FONT COLOR=#888888>RETURN</FONT></TH>
+    <TD>Display next <I>k</I> lines of bytes </TD><TD>1*</TD></TR>
+<TR><TD ALIGN=CENTER><B>d</B> or <B><FONT COLOR=#888888>CTRL</FONT> D</B></TH>
+    <TD>Scroll <I>k</I> lines </TD><TD>current scroll size, initially 11*</TD></TR>
+<TR><TD ALIGN=CENTER><B>q</B> or <B>Q</B> or Interrupt</TD>
+    <TD>Exit from bmore</TD></TR>
+<TR><TH>s</TH>
+    <TD>Skip forward <I>k</I> lines of bytes </TD><TD>1</TD></TR>
+<TR><TH>f</TH>
+    <TD>Skip forward <I>k</I> screenfuls of bytes </TD><TD>1</TD></TR>
+<TR><TD ALIGN=CENTER><B>b</B> or <B><FONT COLOR=#888888>CTRL</FONT> B</B></TH>
+    <TD>Skip backwards <I>k</I> screenfuls of bytes </TD><TD>1</TD></TR>
+<TR><TH>'</TH>
+    <TD>Go to place where previous search started</TD></TR>
+<TR><TH>=</TH>
+    <TD>Display current byte number</TD></TR>
+<TR><TH>/<FONT COLOR=#FF0000>regular expr</FONT></TH>
+    <TD>Search for <I>k</I><SUP>th</SUP> occurrence of ascii regular expr </TD><TD>1</TD></TR>
+<TR><TH>\<FONT COLOR=#FF0000>regular expr</FONT></TH>
+    <TD>Search for <I>k</I><SUP>th</SUP> occurrence of binary regular expr </TD><TD>1</TD></TR>
+<TR><TH>n</TH>
+    <TD>Search for <I>k</I><SUP>th</SUP> occurrence of last r.e </TD><TD>1</TD></TR>
+<TR><TD ALIGN=CENTER><B>!<I>cmd</I></B> or <B>:!<I>cmd</I></B></TH>
+    <TD>Execute <I>cmd</I> in a subshell</TD></TR>
+<TR><TH>v</TH>
+    <TD>Start up <B>bvi</B> at current position</TD></TR>
+<TR><TH>w</TH>
+    <TD>Start up <B>bvi</B> reading only a screenful of bytes</TD><TD>screen</TD></TR>
+<TR><TH><FONT COLOR=#888888>CTRL</FONT> L</TH>
+    <TD>Redraw screen</TD></TR>
+<TR><TH>:n</TH>
+    <TD>Go to <I>k</I><SUP>th</SUP> next file</TD><TD>1</TD></TR>
+<TR><TH>:p</TH>
+    <TD>Go to <I>k</I><SUP>th</SUP> previous file</TD><TD>1</TD></TR>
+<TR><TH>:f</TH>
+    <TD>Display current file name and byte position</TD></TR>
+<TR><TH>.</TH>
+    <TD>Repeat previous command</TD></TR>
+</TABLE>
+<P>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: Fri Jun 30 22:05:32 CEST 2000 by Gerhard B&uuml;rgmann</i>
+</td></tr></table>
+</body></html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C/DTD HTML 3.2 Final//EN">
+<html><head>
+<title>BVI: Settings</title>
+<link rel=stylesheet type="text/css" href="bvi.css">
+</head><body bgcolor="#ffffff" background="gif/bg2.gif">
+<a name="top"></a>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td width="1%" valign="top" align="center">
+<img src="gif/dot.gif" width="130" height="1" alt="">
+
+<hr noshade width="60%">
+<p>
+<a class="thl" href="index.html">Home</a><br>
+</p>
+<p>
+<a class="thl" href="quick.html">Quick Tutorial</a><br>
+<a class="ths" href="qt_edit.html">Editing Files</a><br>
+<a class="ths" href="qt_search.html">Search Commands</a><br>
+<a class="ths" href="qt_bit.html">Bit-wise Operations</a><br>
+<a class="ths" href="qt_find.html">Find and Replace</a><br>
+<a class="ths" href="qt_yank.html">Yank and Put</a><br>
+<font color="#ffffff" class="ths">Settings<br></font>
+<a class="ths" href="qt_partial.html">Partial File Read</a><br>
+</p>
+<p>
+<a class="thl" href="download.html">Download</a><br>
+</p>
+<p>
+<a class="thl" href="install.html">Installation</a><br>
+</p>
+<p>
+<a class="thl" href="overview.html">Command Overview</a><br>
+</p>
+<p>
+<a class="thl" href="bmore.html">bmore</a><br>
+</p>
+<p>
+<a class="thl" href="german.html">Deutsche Beschreibung</a><br>
+</p>
+<hr noshade width="60%">
+
+</td>
+<td width="1%"><img src="gif/dot.gif" width="40" height="1" alt=""></td>
+<td width="99%">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="99%">
+<font class="head">Quick Tutorial</font>
+<br><font class="sub">Settings</font>
+</td>
+<td align="right" valign="bottom" width="116" rowspan="2">
+<a href="index.html">
+<img src="gif/bvi_s.gif" alt="BVI" width="116"
+height="62" border="0"></a>
+</td></tr>
+<tr><td valign="bottom">
+<hr noshade>
+</td></tr></table>
+
+<p>
+To customize bvi some additional <B>:set</B> options are
+available. You can add them to your <B><TT CLASS="examp">.bvirc</TT></B>
+file, if you need them all the time.
+
+<H4>columns</H4>
+<BLOCKQUOTE>
+You can set the number of columns on the screen to an arbitrary value.
+This might be useful if you edit a file with a fixed record length.<BR>
+Default value is the max. number of columns, divisible by four.<BR>
+Example: <B><TT>:set columns=13<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B><BR>
+Abbreviation: <B><TT>:set cm=9<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B>
+</BLOCKQUOTE>
+
+<H4>memmove</H4>
+<BLOCKQUOTE>
+This option enables the commands for inserting and deleting bytes.
+<BR>
+Default: <B><TT>:set nomemmove<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B><BR>
+Abbreviation: <B><TT>:set mm<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B>
+</BLOCKQUOTE>
+
+<H4>offset</H4>
+<BLOCKQUOTE>
+You can change the beginning of the displayed byte numbering to a
+certain number. The default address of the first byte is 0. You can
+change it to 1 or to any other number by typing:<BR>
+&nbsp; <B><TT>:set offset=1</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+You can also use a hexadecimal address, if you type a leading zero:<BR>
+&nbsp; <B><TT>:set of=01FF</TT><FONT COLOR=#AAAAAA>RETURN</FONT></B><BR>
+The only commands which are not affected by these numbering is
+<TT><B>:f</B></TT> or <TT><B><FONT COLOR=#AAAAAA>CTRL</FONT>
+-G</B></TT>. These commands always 
+designates the first byte in file as 1.
+</BLOCKQUOTE>
+
+<H4>unixstyle</H4>
+<BLOCKQUOTE>
+The rightmost character in the status line displays the ASCII value of
+the current byte. For values below 32 you can use the notation used on 
+the ascii(7) man page (like NUL, SOH, STX etc.) if you do a<BR>
+<B><TT>:set unixstyle<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B> or a<BR>
+<B><TT>:set us<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B>. If you do a<BR>
+<B><TT>:set nous<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B> you get a
+DOS style representation (^A, ^B, ^C etc.).
+</BLOCKQUOTE>
+
+<H4>wordlength</H4>
+<BLOCKQUOTE>
+This setting is used to define the minimum length of a &quot;word&quot;.
+A &quot;word&quot; is a sequence of ASCII characters within a binary
+file. The commands <B>w, b, e, W, B</B> and <B>E</B> are affected by
+this setting.
+<P>
+Default: <B><TT>:set wordlength=4<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B><BR>
+Abbreviation: <B><TT>:set wl=4<FONT COLOR=#AAAAAA>RETURN</FONT></TT></B>
+</BLOCKQUOTE>
+<p><font size="-1">
+<a class="btop" href="#top">
+<img border="0" width="16" height="7" src="gif/up.gif"
+alt="Back to the top">Back to the top</a>
+</font>
+<hr noshade>
+<i>Last update: Thu Jun 01 12:00:00 CEST 2000 by Gerhard B&uuml;rgmann,
+<a class="btop" href="http://www.purkersdorf-online.at/">Purkersdorf</a>/Austria</i>
+</td></tr></table>
+</body></html>
