@@ -464,9 +464,9 @@ statpos()
 
 void printcolorline(int y, int x, int palette, char* string)
 {
-	attron(COLOR_PAIR(palette));
+	attron(COLOR_PAIR(palette + 1));
 	mvaddstr(y, x, string);
-	attroff(COLOR_PAIR(palette));
+	attroff(COLOR_PAIR(palette + 1));
 }
 
 void
@@ -485,8 +485,8 @@ printline(mempos, scpos)
 		*string = '\0';
 	}
 	strcat(linbuf, "|");
-	/* load color from P(P_C1) */
-	printcolorline(scpos, 0, 1, linbuf);
+	/* load color from C(C_AD) */
+	printcolorline(scpos, 0, C_AD, linbuf);
 	nxtpos = 10;
 	*linbuf = '\0';
 
@@ -505,12 +505,12 @@ printline(mempos, scpos)
 			*(string + print_pos) = '.';
 	}
 	*(string + Anzahl) = '\0';
-	/* load color from P(P_C2) */
-	printcolorline(scpos, nxtpos, 2, linbuf);
+	/* load color from C(C_HX) */
+	printcolorline(scpos, nxtpos, C_HX, linbuf);
 
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);
-	/* load color from P(P_C3) */
+	/* load color from C(C_DT) */
 	printcolorline(scpos, nxtpos, 3, string);
 }
 

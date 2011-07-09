@@ -34,7 +34,17 @@ struct	param {
 	int		flags;
 };
 
+struct color {
+	char	*fullname; /* full name of color attribute */
+	char	*shortname;	/* permissible abbreviation */
+	unsigned int		r;
+	unsigned int		g;
+	unsigned int		b;
+	unsigned int		short_value;
+};
+
 extern	struct	param	params[];
+extern	struct	color	colors[];
 
 #define	P_BOOL		0x01	/* the parameter is boolean */
 #define	P_NUM		0x02	/* the parameter is numeric */
@@ -64,13 +74,25 @@ extern	struct	param	params[];
 #define	P_LI		13	/* lines */
 #define P_WL		14	/* Wordlength for w, W, b, B command */
 #define	P_WS		15	/* wrapscan */
-#define	P_C1		16	/* color1 (line numbers) setting */
-#define P_C2		17  /* color2 (hex bytes) setting */
-#define P_C3		18  /* color3 (source bytes) setting */
+
+/*
+ * colors
+ */
+
+#define C_AD		0	/* Addresses color */
+#define C_HX		1	/* Hexadecimal data window color */
+#define C_DT		2	/* Source data window color */
+#define	C_ER		3	/* Error message color */
+#define C_ST		4	/* Status line color */
 
 /*
  * Macro to get the value of a parameter
  */
 #define	P(n)	(params[n].nvalue)
+#define C_r(n)	(colors[n].r)
+#define C_g(n)	(colors[n].g)
+#define	C_b(n)	(colors[n].b)
+#define C_s(n)	(colors[n].short_value)
+
 
 void set_palette(void);

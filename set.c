@@ -53,11 +53,16 @@ struct	param	params[] = {
 	{ "window",		"window",	25,		"",	P_NUM },
 	{ "wordlength",	"wl",		4,		"",	P_NUM },
 	{ "wrapscan",	"ws",		TRUE,	"",	P_BOOL },
-	{ "color1",		"clr1",		4,		"", P_NUM },
-	{ "color2",		"clr2",		7,		"", P_NUM },
-	{ "color3",		"clr3",		5,		"", P_NUM },
 	{ "",			"",			0,		"",	0, }		/* end marker */
+};
 
+struct color colors[] = { /* RGB definitions and default value, if have no support of 256 colors */
+	{ "addresses",	"addr",		135, 206, 800, COLOR_BLUE },
+	{ "hex",		"hex",		255, 255, 255, COLOR_WHITE },
+	{ "data",		"data",		0, 255, 0, COLOR_GREEN },
+	{ "error",		"err",		255, 69, 0, COLOR_RED },
+	{ "status",		"stat",		255, 255, 255, COLOR_WHITE },
+	{ "",			"",			0,	0,	0, 0 }		/* end marker */
 };
 
 int
@@ -80,6 +85,33 @@ doset(arg)
 	if (!strncmp(arg, "no", 2)) {
 		state = FALSE;
 		arg += 2; }
+	
+	/* extract colors section */
+	if (!strncmp(arg, "color", 5)) {
+		arg = substr(arg, 6, -1);
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			s = colors[i].fullname;
+			if (strncmp(arg, s, strlen(s)) == 0)
+				break;
+			s = colors[i].shortname;
+			if (strncmp(arg, s, strlen(s)) == 0)
+				break;
+		}
+		if (i == 0) {
+			emsg("Wrong color name!");
+			return 0;
+		} else {
+			colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
+			colors[i].g	= atoi(substr(arg, strlen(s) + 5, 3));
+			colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
+			set_palette();
+			repaint();
+		}
+		return 0;
+	} else {
+		emsg(arg);
+		return 1;
+	}
 
 	for (i = 0; params[i].fullname[0] != '\0'; i++) {
 		s = params[i].fullname;
@@ -123,24 +155,6 @@ doset(arg)
 					params[i].nvalue = strtol(s, &s, 10);
 				}
 				params[i].flags |= P_CHANGED;
-
-				if (i == P_C1) {
-					/* set color for memory position */
-					set_palette();
-					repaint();
-				}
-
-				if (i == P_C2) {
-					/* set color for hexadecimal bytes */
-					set_palette();
-					repaint();
-				}
-
-				if (i == P_C3) {
-					/* set color for original bytes */
-					set_palette();
-					repaint();
-				}
 
 				if (i == P_CM) {
 					if (((COLS - AnzAdd - 1) / 4) >= P(P_CM)) {
@@ -212,17 +226,27 @@ showparms(all)
 
 void set_palette()
 {
-	if ((P(P_C1) > 7) | (P(P_C2) > 7) | (P(P_C3) > 7))
-	{
-		init_pair(1, COLOR_BLUE, COLOR_BLACK);
-		init_pair(2, COLOR_WHITE, COLOR_BLACK);
-		init_pair(3, COLOR_MAGENTA, COLOR_BLACK);
-	}
-	else
-	{
-		init_pair(1, P(P_C1), COLOR_BLACK);
-		init_pair(2, P(P_C2), COLOR_BLACK);
-		init_pair(3, P(P_C3), COLOR_BLACK);
+	int i;
+	if (can_change_color()) {
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (init_color(colors[i].short_value, C_r(i), C_g(i), C_b(i)) == ERR)
+				fprintf(stderr, "Failed to set [%d] color!\n", i);
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), COLOR_BLACK);
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), COLOR_BLACK);
+			}
+		}
+	} else { /* if have no support of changing colors */
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), COLOR_BLACK);
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), COLOR_BLACK);
+			}
+		}
 	}
 }
 

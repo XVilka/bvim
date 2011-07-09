@@ -41,7 +41,18 @@ char	*notfound = "Fail|Pattern not found";
 char	*noprev = "No previous expression";
 char	*emptyclass = "Bad character class|Empty byte class '[]' or '[^]' cannot match";
 
-
+char* 
+substr(str, begin, len)
+	const char* str;
+	size_t		begin;
+	size_t		len;
+{	
+	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin + len))
+		return 0;
+	if (len == -1) 
+		len = strlen(str) - begin;
+	return strndup(str + begin, len);
+}
 
 int
 bregexec(start, scan)

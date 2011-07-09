@@ -244,6 +244,7 @@ extern  off_t   block_begin, block_end, block_size;
 	int		vgetc(void), xpos(void), enlarge(off_t);
 	int		getcmdstr(char *, int), read_rc(char *);
 	int		wait_return(int);
+	char*	substr(char*, size_t, size_t);
 #else
 	int		addfile();
 	off_t	alloc_buf(), yd_addr();
@@ -285,5 +286,6 @@ extern  off_t   block_begin, block_end, block_size;
 	int		lineout(), save(), at_least(), read_rc();
 	int		getcmdstr(), enlarge();
 	int		vgetc(), xpos();
+	char*	substr();
 	int		wait_return();
 #endif

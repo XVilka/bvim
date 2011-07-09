@@ -796,9 +796,11 @@ emsg(s)
 
 	if (P(P_EB)) beep();
 	clearstr();
+	attron(COLOR_PAIR(C_ER));
 	attrset(A_REVERSE);
 	cnt = outmsg(s);
 	attrset(A_NORMAL);
+	attroff(COLOR_PAIR(C_ER));
 	if (cnt >= (maxx - 25)) {		/* 25 = status */
 		addch('\n');
 		wait_return(TRUE); }

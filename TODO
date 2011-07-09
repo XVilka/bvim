@@ -1,0 +1,6 @@
+- Add ::unmap feature
+- Add :block selection (can consist from more than one pieces)
+- Add :vsplit and :split feature
+- Add binary diff mode
+- Add checksums calculating
+- Templates support
