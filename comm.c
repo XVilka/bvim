@@ -89,6 +89,7 @@ extern	char	*name;			/* actual filename */
 extern	char	**files;		/* used for "next" and "rewind" */
 extern	int		numfiles, curfile;
 extern	int		errno;
+extern	struct  KEYMAP_ KEYMAP[32];
 
 static	char	oldbuf[CMDSZ];		/** for :!! command **/
 
@@ -107,6 +108,7 @@ docmdline(cmdline)
 	char	cmdbuf[CMDSZ];
 	char	cmdname[MAXNAME];
 	char	luacmdbuf[CMDSZ];
+	char	dispbuf[2048];
 	char	*cmd;
 	char	*p;
 	size_t	len;
@@ -114,6 +116,7 @@ docmdline(cmdline)
 	int		force = 0;
 	int		saveflag;
 	int		shresult;
+	int		map_toggle = 0;
 
 	if (cmdline == NULL) return;
 	if (*cmdline == '"') return; 	/** comment **/
@@ -359,8 +362,53 @@ docmdline(cmdline)
 	c_argc = 0;
 	cmd = strtok(cmdbuf, " \t");
 	while ((c_argv[c_argc] = strtok(NULL, " \t")) != NULL) c_argc++;
-
-	if (!strncmp("set", cmdname, len) && CMDLNG(3, 2)) {
+	if (!strncmp("map", cmdname, len) && CMDLNG(3, 2)) {
+		if (c_argc == 0) {
+			emsg("Error: empty mapping definition!");
+		} else if (c_argc == 1) {
+			if (strncmp(c_argv[0], "all", 3)) {
+				emsg("Map what?");
+			} else {
+				dispbuf[0] = '\0';
+				for (n = 0; n < 32; n++) {
+					if (KEYMAP[n].keycode != 0) {
+						luacmdbuf[0] = '\0';
+						sprintf(luacmdbuf, "map %d %s\n", KEYMAP[n].keycode, KEYMAP[n].cmd);
+						strcat(dispbuf, luacmdbuf);
+						
+					}
+				}
+				msg(dispbuf);
+				wait_return(TRUE);
+			}
+		} else {
+			luacmdbuf[0] = '\0';
+			map_toggle = 0;
+			for (n = 1; n < c_argc; n++) {
+				strcat(luacmdbuf, " ");
+				strcat(luacmdbuf, c_argv[n]);
+			}
+			for (n = 0; n < 32; n++) {
+				if (KEYMAP[n].keycode == atoi(c_argv[0])) {
+					map_toggle = 1;
+					emsg("Already mapped key. Try tomorrow, please!");
+					break;
+				}
+			}
+			if (map_toggle == 0) {
+				for (n = 0; n < 32; n++) {
+					if (KEYMAP[n].keycode == 0) {
+						KEYMAP[n].keycode = atoi(c_argv[0]);
+						strcpy(KEYMAP[n].cmd, luacmdbuf);
+						map_toggle = 1;
+						break;
+					}
+				}
+				if (map_toggle == 0) emsg("There is no empty slots for mapping!");
+			}
+			return;
+		}
+	} else if (!strncmp("set", cmdname, len) && CMDLNG(3, 2)) {
 		if (chk_comm(NO_ADDR)) return;
 		if (c_argc == 0) {
 			doset(NULL);

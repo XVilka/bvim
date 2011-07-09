@@ -140,6 +140,12 @@
 	extern  char    *sys_errlist[];
 #endif
 
+extern struct KEYMAP_ {
+	unsigned int keycode;
+	char cmd[256];
+};
+
+
 extern	char	*version;
 extern	char	addr_form[];
 extern	char    pattern[];

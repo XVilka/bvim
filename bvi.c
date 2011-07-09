@@ -99,6 +99,7 @@ static	int		mark;
 static	int		scrolly;
 static	int		wrstat = 1;
 
+struct KEYMAP_ KEYMAP[32];
 
 void
 usage()
@@ -117,6 +118,7 @@ main(argc, argv)
 	int		lflag;
 	long	count;
 	int		n = 1;
+	int		i = 0;
 	int		script = -1;
 	off_t	inaddr;
 	char	*poi;
@@ -127,7 +129,7 @@ main(argc, argv)
 #ifdef HAVE_LUA_H
 	bvi_lua_init();
 #endif
-
+	for (i = 0; i < 32; i++) KEYMAP[n].keycode = 0;
 	poi = strrchr(argv[0], DELIM);
 
 	if (poi) strncpy(progname, ++poi, 7);
@@ -300,6 +302,11 @@ main(argc, argv)
 			else precount = -1;
 		lflag = arrnum = 0;
 
+		for (i = 0; i < 32; i++) {
+			if (ch == KEYMAP[i].keycode) {
+				docmdline(KEYMAP[i].cmd);
+			}
+		}
 		switch (ch) {
 		case '^':	x = AnzAdd;
 					loc = HEX;
