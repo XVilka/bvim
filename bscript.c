@@ -115,6 +115,27 @@ static int bvi_msg_window(lua_State *L)
 	return 0;
 }
 
+/* Print color line in the any place of window */
+/* lua: print(x, y, palette, string) */
+static int bvi_print(lua_State *L)
+{
+	char* string;
+	unsigned int x, y, palette;
+	int n = lua_gettop(L);
+	if (n == 4) {
+		string = (char*) lua_tostring(L, 4);
+		x = (unsigned int) lua_tonumber(L, 1);
+		y = (unsigned int) lua_tonumber(L, 2);
+		palette = (unsigned int) lua_tonumber(L, 3);
+		if (palette > 16) palette = 1;
+		printcolorline(x, y, palette, string);
+	} else {
+		emsg("Wrong format of lua print() function!");
+	}
+	return 0;
+}
+
+
 /* Undo */
 static int bvi_undo(lua_State *L)
 {
@@ -212,6 +233,7 @@ void bvi_lua_init()
 		{ "display_error", bvi_display_error },
 		{ "display_status_msg", bvi_status_line_msg },
 		{ "msg_window", bvi_msg_window },
+		{ "print", bvi_print },
 		{ "set", bvi_set },
 		{ "undo", bvi_undo },
 		{ "redo", bvi_redo },

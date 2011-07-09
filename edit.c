@@ -470,6 +470,21 @@ void printcolorline(int y, int x, int palette, char* string)
 	attroff(COLOR_PAIR(palette));
 }
 
+void printcolorline_with_highlight(int y, int x, int palette1, int palette2, 
+	char* string, int hl_start, int hl_end)
+{
+	if (palette1 == palette2) {
+		printcolorline(y, x, palette1, string);
+	} else {
+		attron(COLOR_PAIR(palette1));
+		mvaddstr(y, x, string);
+		attroff(COLOR_PAIR(palette1));
+		attron(COLOR_PAIR(palette2));
+		mvaddstr(y, x + hl_start, substr(string, hl_start, hl_end - hl_start));
+		attroff(COLOR_PAIR(palette2));
+	}
+}
+
 void
 printline(mempos, scpos)
 	PTR	mempos;
