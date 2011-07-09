@@ -796,11 +796,11 @@ emsg(s)
 
 	if (P(P_EB)) beep();
 	clearstr();
-	attron(COLOR_PAIR(C_ER));
-	attrset(A_REVERSE);
+	attron(COLOR_PAIR(C_ER + 1));
+	/* attrset(A_REVERSE); */
 	cnt = outmsg(s);
-	attrset(A_NORMAL);
-	attroff(COLOR_PAIR(C_ER));
+	/* attrset(A_NORMAL); */
+	attroff(COLOR_PAIR(C_ER + 1));
 	if (cnt >= (maxx - 25)) {		/* 25 = status */
 		addch('\n');
 		wait_return(TRUE); }
@@ -847,6 +847,7 @@ wmsg(s, height, width)
 	int startx = (COLS - width) / 2;	/* of the window		*/
 	int ch;
 	refresh();
+	attron(COLOR_PAIR(C_WN + 1));
 	msg_win = newwin(height, width, starty, startx);
 	box(msg_win, 0, 0);
 	wrefresh(msg_win);
@@ -856,6 +857,7 @@ wmsg(s, height, width)
 	wborder(msg_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
 	wrefresh(msg_win);
 	delwin(msg_win);
+	attroff(COLOR_PAIR(C_WN + 1));
 	repaint();
 }
 

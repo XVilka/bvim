@@ -57,11 +57,12 @@ struct	param	params[] = {
 };
 
 struct color colors[] = { /* RGB definitions and default value, if have no support of 256 colors */
-	{ "addresses",	"addr",		135, 206, 800, COLOR_BLUE },
-	{ "hex",		"hex",		255, 255, 255, COLOR_WHITE },
-	{ "data",		"data",		0, 255, 0, COLOR_GREEN },
-	{ "error",		"err",		255, 69, 0, COLOR_RED },
+	{ "addresses",	"addr",		135, 206, 500, COLOR_BLUE },
+	{ "hex",		"hex",		600, 600, 600, COLOR_MAGENTA },
+	{ "data",		"data",		0, 800, 400, COLOR_GREEN },
+	{ "error",		"err",		999, 350, 0, COLOR_RED },
 	{ "status",		"stat",		255, 255, 255, COLOR_WHITE },
+	{ "window",		"win",		0, 800, 400, COLOR_YELLOW },
 	{ "",			"",			0,	0,	0, 0 }		/* end marker */
 };
 

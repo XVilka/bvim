@@ -84,6 +84,7 @@ extern	struct	color	colors[];
 #define C_DT		2	/* Source data window color */
 #define	C_ER		3	/* Error message color */
 #define C_ST		4	/* Status line color */
+#define C_WN		5	/* Window color */
 
 /*
  * Macro to get the value of a parameter
