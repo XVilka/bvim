@@ -23,7 +23,6 @@
  * See file COPYING for information on distribution conditions.
  */
 
-
 #include "bmore.h"
 #include <termios.h>
 
@@ -33,18 +32,17 @@
 
 struct termios ostate, nstate;
 
+char *rev_start, *rev_end;	/* enter and exit standout mode */
+char *Home;			/* go to home */
+char *clear_sc;			/* clear screen */
+char *erase_ln;			/* erase line */
 
-char	*rev_start, *rev_end;	/* enter and exit standout mode */
-char	*Home;			/* go to home */
-char	*clear_sc;		/* clear screen */
-char	*erase_ln;		/* erase line */
+extern off_t bytepos, screen_home;
+extern FILE *curr_file;
 
-extern	off_t	bytepos, screen_home;
-extern	FILE	*curr_file;
-
-int		got_int;
-int     fnum, no_intty, no_tty, slow_tty;
-int     dum_opt, dlines;
+int got_int;
+int fnum, no_intty, no_tty, slow_tty;
+int dum_opt, dlines;
 
 #ifdef HAVE_NCURSES_H
 #	undef NEED_PUTC_CHAR
@@ -54,29 +52,29 @@ int     dum_opt, dlines;
  */
 #ifdef NEED_PUTC_CHAR
 
-int
-putchr(char ch)
-{return putchar((int)ch);}
+int putchr(char ch)
+{
+	return putchar((int)ch);
+}
 
 #else
 
-int
-putchr(ch)
-	int ch;
-{return putchar(ch);}
+int putchr(ch)
+int ch;
+{
+	return putchar(ch);
+}
 
 #endif
 
-
-void
-initterm()
+void initterm()
 {
-	char        buf[TBUFSIZ];
+	char buf[TBUFSIZ];
 	static char clearbuf[TBUFSIZ];
-	char        *term;
-	char        *clearptr;
+	char *term;
+	char *clearptr;
 
-	struct  termios nstate;
+	struct termios nstate;
 
 	no_tty = tcgetattr(fileno(stdout), &ostate);
 	if (!no_tty) {
@@ -84,14 +82,13 @@ initterm()
 		/*
 		 * is this really necessary??
 		 *
-		nstate.c_lflag &= ~(ICANON|ECHO|ECHOE|ECHONL);
+		 nstate.c_lflag &= ~(ICANON|ECHO|ECHOE|ECHONL);
 		 */
-		nstate.c_lflag &= ~(ICANON|ECHO|ECHOE|ECHONL);
+		nstate.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL);
 		nstate.c_cc[VMIN] = 1;
 		nstate.c_cc[VTIME] = 0;
 		tcsetattr(fileno(stdin), TCSADRAIN, &nstate);
 	}
-
 #ifdef DJGPP
 	maxx = 80;
 	maxy = 25;
@@ -113,61 +110,57 @@ initterm()
 
 	no_intty = tcgetattr(fileno(stdin), &ostate);
 	tcgetattr(fileno(stderr), &ostate);
-	  
+
 	nstate = ostate;
 	if (!no_tty) {
-		ostate.c_lflag &= ~(ICANON|ECHO);
+		ostate.c_lflag &= ~(ICANON | ECHO);
 	}
 }
 
-
-void
-set_tty()
+void set_tty()
 {
-	if (no_tty) return;
-	ostate.c_lflag &= ~(ICANON|ECHO);
+	if (no_tty)
+		return;
+	ostate.c_lflag &= ~(ICANON | ECHO);
 	stty(fileno(stderr), &ostate);
 }
 
-
-void
-reset_tty()
+void reset_tty()
 {
-	if (no_tty) return;
-	ostate.c_lflag |= ICANON|ECHO;
+	if (no_tty)
+		return;
+	ostate.c_lflag |= ICANON | ECHO;
 	stty(fileno(stderr), &ostate);
 }
 
-
-void
-sig(sig)
-	int sig;
+void sig(sig)
+int sig;
 {
 	reset_tty();
 	printf("\r\n");
 	exit(0);
 }
 
-
 /*
  * doshell() - run a command or an interactive shell
  */
-void
-doshell(cmd)
-	char	*cmd;
+void doshell(cmd)
+char *cmd;
 {
 #ifndef DJGPP
-	char	*getenv();
-	char	*shell;
-	char	cline[128];
+	char *getenv();
+	char *shell;
+	char cline[128];
 #endif
-	int		shresult;
+	int shresult;
 
 	printf("\n");
 
 #ifndef DJGPP
-	if ((shell = getenv("SHELL")) == NULL) shell = "sh";
-	else if(strrchr(shell,'/')) shell=(char *)(strrchr(shell,'/')+1);
+	if ((shell = getenv("SHELL")) == NULL)
+		shell = "sh";
+	else if (strrchr(shell, '/'))
+		shell = (char *)(strrchr(shell, '/') + 1);
 
 	if (cmd[0] == '\0') {
 		sprintf(cline, "%s -i", shell);
@@ -189,9 +182,7 @@ doshell(cmd)
 	bytepos = screen_home;
 }
 
-
-void
-highlight()
+void highlight()
 {
 #ifndef DJGPP
 	if (rev_start && rev_end)
@@ -199,9 +190,7 @@ highlight()
 #endif
 }
 
-
-void
-normal()
+void normal()
 {
 #ifndef DJGPP
 	if (rev_start && rev_end)
@@ -209,79 +198,72 @@ normal()
 #endif
 }
 
-
-void
-clearscreen()
+void clearscreen()
 {
 #ifdef DJGPP
 	/* if (!no_tty)
-	{
-		int	n;
+	   {
+	   int  n;
 
-		for (n = 0; n < maxy; n++) {
-			cleartoeol();
-			printf("\n");
-		}
-	} */
+	   for (n = 0; n < maxy; n++) {
+	   cleartoeol();
+	   printf("\n");
+	   }
+	   } */
 #else
 	tputs(clear_sc, 1, putchr);
 #endif
 }
 
-
-void
-home()
+void home()
 {
 #ifdef DJGPP
-	if (!no_tty) printf("\r");
+	if (!no_tty)
+		printf("\r");
 #else
 	tputs(Home, 1, putchr);
 #endif
 }
 
-
 /* force clear to end of line */
-void
-cleartoeol()
+void cleartoeol()
 {
 #ifdef DJGPP
-	int	n;
+	int n;
 
 	home();
-	if (!no_tty) for (n = 1; n < maxx; n++) printf(" ");
+	if (!no_tty)
+		for (n = 1; n < maxx; n++)
+			printf(" ");
 	home();
 #else
 	tputs(erase_ln, 1, putchr);
 #endif
 }
 
-
-int
-vgetc()
+int vgetc()
 {
-    char cha;
-    extern int errno;
+	char cha;
+	extern int errno;
 
-    errno = 0;
-    if (read(2, &cha, 1) <= 0) {
-        if (errno != EINTR)
-            exit(2);
-    }
-    return (cha);
+	errno = 0;
+	if (read(2, &cha, 1) <= 0) {
+		if (errno != EINTR)
+			exit(2);
+	}
+	return (cha);
 }
-
 
 #ifndef HAVE_MEMMOVE
 /*
  * Copy contents of memory (with possible overlapping).
  */
-char *
-memmove(s1, s2, n)
-	char    *s1;
-	char    *s2;
-	size_t  n;
+char *memmove(s1, s2, n)
+char *s1;
+char *s2;
+size_t n;
 {
 	bcopy(s2, s1, n);
-	return(s1);
+	return (s1);
 }
 #endif

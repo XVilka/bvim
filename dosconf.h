@@ -22,25 +22,25 @@
  * General Public License for more details.
  *
  * See file COPYING for information on distribution conditions.
- */
-
-/* Define if you have the ANSI C header files.  */
+ */  
+    
+/* Define if you have the ANSI C header files.  */ 
 #define STDC_HEADERS 1
-
-/* Define if you have the memmove function.  */
+    
+/* Define if you have the memmove function.  */ 
 #define HAVE_MEMMOVE 1
-
-/* Define if you have the strdup function.  */
+    
+/* Define if you have the strdup function.  */ 
 #define HAVE_STRDUP 1
-
-/* Define if you have the strtol function.  */
+    
+/* Define if you have the strtol function.  */ 
 #define HAVE_STRTOL 1
-
-/* Define if you have the <fcntl.h> header file.  */
+    
+/* Define if you have the <fcntl.h> header file.  */ 
 #define HAVE_FCNTL_H 1
-
-/* Define if you have the <locale.h> header file.  */
+    
+/* Define if you have the <locale.h> header file.  */ 
 #if __TURBOC__ > 0x0400
 #	define HAVE_LOCALE_H 1
-#endif
-
+#endif				/*  */
+    

@@ -29,24 +29,27 @@
 #include    "bvi.h"
 #include    "set.h"
 
-extern	int	precount;
+extern int precount;
 
-char contrd[][4] = {"NUL", " ^A", " ^B", " ^C", " ^D", " ^E", " ^F", "BEL",
-					" BS", "TAB", " NL", "HOM", "CLR", " CR", " ^N", " ^O",
-					" ^P", " ^Q", " ^R", " ^S", " ^T", " ^U", " ^V", " ^W",
-					" ^X", " ^Y", " ^Z", "ESC", " FS", " GS", " RS", " US",
-					"DEL" };
-char contru[][4] = {"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
-					" BS", " HT", " NL", " VT", " NP", " CR", " SO", " SI",
-					"DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
-					"CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
-					"DEL" };
+char contrd[][4] = { "NUL", " ^A", " ^B", " ^C", " ^D", " ^E", " ^F", "BEL",
+	" BS", "TAB", " NL", "HOM", "CLR", " CR", " ^N", " ^O",
+	" ^P", " ^Q", " ^R", " ^S", " ^T", " ^U", " ^V", " ^W",
+	" ^X", " ^Y", " ^Z", "ESC", " FS", " GS", " RS", " US",
+	"DEL"
+};
+
+char contru[][4] = { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
+	" BS", " HT", " NL", " VT", " NP", " CR", " SO", " SI",
+	"DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
+	"CAN", " EM", "SUB", "ESC", " FS", " GS", " RS", " US",
+	"DEL"
+};
+
 char tmpbuf[10];
 char linbuf[256];
 
-static  char    getcbuff[BUFFER];
-static  char    *getcnext = NULL;
-
+static char getcbuff[BUFFER];
+static char *getcnext = NULL;
 
 /* mode: ('A') append
  *       ('R') replace one or more different characters
@@ -58,15 +61,14 @@ static  char    *getcnext = NULL;
  * for insert and append we misuse the undo buffer for the inserted
  * characters (for "." command)
  */
-off_t
-edit(mode)
-	int	mode;
+off_t edit(mode)
+int mode;
 {
-	unsigned int		ch, ch1;
-	size_t	len;
-	off_t	count = 0L;
-	off_t	buffer = BUFFER;
-	off_t	psize;
+	unsigned int ch, ch1;
+	size_t len;
+	off_t count = 0L;
+	off_t buffer = BUFFER;
+	off_t psize;
 
 	if (!filesize && mode == 'i') {
 		mode = 'A';
@@ -77,7 +79,8 @@ edit(mode)
 			return 0L;
 		}
 	}
-	if (precount < 1) precount = 1;
+	if (precount < 1)
+		precount = 1;
 	len = strlen(rep_buf);
 	if (mode == 'r' && current + precount > maxpos) {
 		beep();
@@ -88,24 +91,28 @@ edit(mode)
 		rep_buf[len] = '\0';
 		return 0L;
 	}
-	switch(mode) {
-	case 'A':	edits = U_APPEND;
-				break;
-	case 'R':	edits = U_EDIT;
-				smsg("REPLACE MODE");
-				break;
-	case 'r':	edits = U_EDIT;
-				smsg("REPLACE 1 CHAR");
-				break;
+	switch (mode) {
+	case 'A':
+		edits = U_APPEND;
+		break;
+	case 'R':
+		edits = U_EDIT;
+		smsg("REPLACE MODE");
+		break;
+	case 'r':
+		edits = U_EDIT;
+		smsg("REPLACE 1 CHAR");
+		break;
 	case 'a':
-	case 'i':	edits = U_INSERT;
-				smsg("INSERT MODE");
-				break;
+	case 'i':
+		edits = U_INSERT;
+		smsg("INSERT MODE");
+		break;
 	}
 
 	undo_start = current;
 
-	while((ch = vgetc()) != ESC) {
+	while ((ch = vgetc()) != ESC) {
 		ch &= 0xff;
 		rep_buf[len++] = ch;
 		if (ch == '\t') {
@@ -124,7 +131,8 @@ edit(mode)
 				current--;
 				cur_back();
 				setcur();
-			} else beep();
+			} else
+				beep();
 			continue;
 		}
 		if (loc == HEX) {
@@ -169,8 +177,8 @@ edit(mode)
 			maxpos++;
 			filesize++;
 			/* NEU
-			undo_buf[count++] = ch;
-			*/
+			   undo_buf[count++] = ch;
+			 */
 			count++;
 		} else {
 			undo_buf[count++] = *curpos;
@@ -194,17 +202,22 @@ edit(mode)
 		setcur();
 
 		if (filesize > memsize - 2L) {
-			if (enlarge(100L)) break;
+			if (enlarge(100L))
+				break;
 		}
 
-		if ((mode != 'A' && mode != 'a') && curpos == maxpos - 1) break;
-		if (mode == 'r') { break; }
-wrong:
+		if ((mode != 'A' && mode != 'a') && curpos == maxpos - 1)
+			break;
+		if (mode == 'r') {
+			break;
+		}
+	      wrong:
 		continue;
 	}
 	rep_buf[len++] = ESC;
 	rep_buf[len] = '\0';
-	if (!count) goto escape;
+	if (!count)
+		goto escape;
 
 	if (precount > 1) {
 		switch (mode) {
@@ -213,7 +226,8 @@ wrong:
 		case 'A':
 			psize = count * (precount - 1);
 			if (filesize + psize > memsize - 2L) {
-				if (enlarge(psize + 100L)) return count;
+				if (enlarge(psize + 100L))
+					return count;
 			}
 			if (psize + count > buffer) {
 				if (alloc_buf(psize + count, &undo_buf) == 0L)
@@ -221,17 +235,18 @@ wrong:
 			}
 
 			if (mode == 'i' || mode == 'a') {
-				memmove(current + psize, current, maxpos - curpos);
+				memmove(current + psize, current,
+					maxpos - curpos);
 			}
 
 			/* NEU
-			undo_pos = undo_buf + count - 1L;
-			*/
+			   undo_pos = undo_buf + count - 1L;
+			 */
 			while (--precount) {
 				/* NEU
-				memcpy(undo_pos + 1L, undo_pos - count + 1L, count);
-				undo_pos += count;
-				*/
+				   memcpy(undo_pos + 1L, undo_pos - count + 1L, count);
+				   undo_pos += count;
+				 */
 				memcpy(curpos + 1L, curpos - count + 1L, count);
 				curpos += count;
 			}
@@ -244,7 +259,8 @@ wrong:
 			repaint();
 			break;
 		case 'R':
-			if (current + count * (precount - 1) > maxpos) break;
+			if (current + count * (precount - 1) > maxpos)
+				break;
 			psize = count;
 			while (--precount) {
 				memcpy(undo_buf + psize, curpos + 1L, count);
@@ -268,201 +284,224 @@ wrong:
 		}
 	}
 	cur_back();
-escape:
+      escape:
 	setcur();
 	smsg("");
-	return(count);
+	return (count);
 }
-
 
 /* Do the f, F, t ot T command
  * If flag == 1 save the character in rep_buf
  * else setpage()
  */
-PTR
-do_ft(ch, flag)
-	int	ch, flag;
+PTR do_ft(ch, flag)
+int ch, flag;
 {
-	static	int	chi;
-	static	int	chp = 1;
-	int		dir;
-	size_t	n;
-	PTR		ptr;
+	static int chi;
+	static int chp = 1;
+	int dir;
+	size_t n;
+	PTR ptr;
 
 	switch (ch) {
-		case 1:		beep();
-					return NULL;					/* no previous command */
-		case -1:	if (chp == 'f' || chp == 't') dir = BACKWARD;
-						else dir = FORWARD;
-					break;						/* same again */
-		case 0:		if (chp == 'f' || chp == 't') dir = FORWARD;
-						else dir = BACKWARD;
-					break;						/* same again */
-		default:	chp = ch;
-					if (chp == 'f' || chp == 't') dir = FORWARD;
-						else dir = BACKWARD;
-					chi = vgetc();
-					if (flag) {
-						n = strlen(rep_buf);
-						rep_buf[n++] = chi;
-						rep_buf[n] = '\0';
-					}
+	case 1:
+		beep();
+		return NULL;	/* no previous command */
+	case -1:
+		if (chp == 'f' || chp == 't')
+			dir = BACKWARD;
+		else
+			dir = FORWARD;
+		break;		/* same again */
+	case 0:
+		if (chp == 'f' || chp == 't')
+			dir = FORWARD;
+		else
+			dir = BACKWARD;
+		break;		/* same again */
+	default:
+		chp = ch;
+		if (chp == 'f' || chp == 't')
+			dir = FORWARD;
+		else
+			dir = BACKWARD;
+		chi = vgetc();
+		if (flag) {
+			n = strlen(rep_buf);
+			rep_buf[n++] = chi;
+			rep_buf[n] = '\0';
+		}
 	}
 	ptr = current;
 	do {
 		if (dir == FORWARD) {
 			do {
 				ptr++;
-				if (ptr > maxpos) break;
+				if (ptr > maxpos)
+					break;
 			} while (*ptr != chi);
-			if (ptr > maxpos) break;
+			if (ptr > maxpos)
+				break;
 		} else {
 			do {
 				ptr--;
-				if (ptr < mem) break;
+				if (ptr < mem)
+					break;
 			} while (*ptr != chi);
-			if (ptr < mem) break;
+			if (ptr < mem)
+				break;
 		}
 	} while (--precount > 0);
 	if (*ptr == chi) {
-		if (loc == HEX) toggle();
-		if (chp == 't') ptr--;
-		if (chp == 'T') ptr++;
+		if (loc == HEX)
+			toggle();
+		if (chp == 't')
+			ptr--;
+		if (chp == 'T')
+			ptr++;
 		if (!flag) {
 			setpage(ptr);
 		}
-		return(ptr);
+		return (ptr);
 	}
 	beep();
 	return NULL;
 }
 
-
-void
-do_z(mode)
-	int	mode;
+void do_z(mode)
+int mode;
 {
 	switch (mode) {
-	case '.':	while (y != maxy / 2) {
-					if (y > maxy / 2) {
-						pagepos += Anzahl;
-						y--;
-					} else {
-						if (pagepos == mem) break;
-						pagepos -= Anzahl;
-						y++;
-					}
-				}
+	case '.':
+		while (y != maxy / 2) {
+			if (y > maxy / 2) {
+				pagepos += Anzahl;
+				y--;
+			} else {
+				if (pagepos == mem)
+					break;
+				pagepos -= Anzahl;
+				y++;
+			}
+		}
+		break;
+	case '-':
+		while (y < maxy - 1) {
+			if (pagepos == mem)
 				break;
-	case '-':	while (y < maxy - 1) {
-					if (pagepos == mem) break;
-					pagepos -= Anzahl;
-					y++;
-				}
-				break;
+			pagepos -= Anzahl;
+			y++;
+		}
+		break;
 	case '\0':
 	case '\n':
-	case '\r':	while (y > 0) {
-					y--;
-					pagepos += Anzahl;
-				}
-				break;
-	default :   beep();
-				break;
+	case '\r':
+		while (y > 0) {
+			y--;
+			pagepos += Anzahl;
+		}
+		break;
+	default:
+		beep();
+		break;
 	}
 	repaint();
 }
 
-
-
-void
-scrolldown(lns)
-	int	lns;
+void scrolldown(lns)
+int lns;
 {
 	while (lns--) {
-		if (maxpos >= (pagepos + Anzahl)) pagepos += Anzahl;
-			else { beep(); lns = 0; }
+		if (maxpos >= (pagepos + Anzahl))
+			pagepos += Anzahl;
+		else {
+			beep();
+			lns = 0;
+		}
 		repaint();
 		refresh();
 	}
 }
 
-
-void
-scrollup(lns)
-	int	lns;
+void scrollup(lns)
+int lns;
 {
 	while (lns--) {
-		if (mem <= (PTR)(pagepos - Anzahl)) pagepos -= Anzahl;
-			else { beep(); lns = 0; }
+		if (mem <= (PTR) (pagepos - Anzahl))
+			pagepos -= Anzahl;
+		else {
+			beep();
+			lns = 0;
+		}
 		repaint();
 		refresh();
 	}
 }
 
-
-int
-xpos()
+int xpos()
 {
-	if (loc == HEX) return((x - AnzAdd) / 3);
-		else   return(x - AnzAdd - Anzahl3);
+	if (loc == HEX)
+		return ((x - AnzAdd) / 3);
+	else
+		return (x - AnzAdd - Anzahl3);
 }
 
-
-void
-toggle()
+void toggle()
 {
 	if (loc == HEX) {
 		x = xpos() + AnzAdd + Anzahl3;
 		loc = ASCII;
-	}	else	{
+	} else {
 		x = xpos() * 3 + AnzAdd;
 		loc = HEX;
 	}
 }
 
-
-void
-setcur()
+void setcur()
 {
 	move(y, x);
 	refresh();
 }
 
-
 /************* display current position *************/
-void
-statpos()
+void statpos()
 {
-	unsigned char  Char1;
-	off_t	bytepos;
-	char	string[30], str[6];
+	unsigned char Char1;
+	off_t bytepos;
+	char string[30], str[6];
 
-	if (!P(P_MO)) return;
+	if (!P(P_MO))
+		return;
 	bytepos = current - mem;
 	if (bytepos >= filesize) {
 		mvaddstr(maxy, status, "                           ");
-		return; }
+		return;
+	}
 	Char1 = *(mem + bytepos);
 
 	if (isprint(Char1)) {
 		sprintf(str, "'%c'", Char1);
 	} else if (Char1 < 32) {
-		if (P(P_US))	strcpy(str, contru[Char1]);
-			else        strcpy(str, contrd[Char1]);
+		if (P(P_US))
+			strcpy(str, contru[Char1]);
+		else
+			strcpy(str, contrd[Char1]);
 	} else if (Char1 == 127) {
-		if (P(P_US))    strcpy(str, contru[32]);
-			else        strcpy(str, contrd[32]);
-	} else strcpy(str, "   ");
+		if (P(P_US))
+			strcpy(str, contru[32]);
+		else
+			strcpy(str, contrd[32]);
+	} else
+		strcpy(str, "   ");
 
 	sprintf(string, "%08lX  \\%03o 0x%02X %3d %3s",
-				(long)(bytepos + P(P_OF)), Char1, Char1, Char1, str);
+		(long)(bytepos + P(P_OF)), Char1, Char1, Char1, str);
 	attrset(A_BOLD);
 	mvaddstr(maxy, status, string);
 	attrset(A_NORMAL);
 }
 
-void printcolorline(int y, int x, int palette, char* string)
+void printcolorline(int y, int x, int palette, char *string)
 {
 	palette++;
 	attron(COLOR_PAIR(palette));
@@ -470,8 +509,8 @@ void printcolorline(int y, int x, int palette, char* string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_with_highlight(int y, int x, int palette1, int palette2, 
-	char* string, int hl_start, int hl_end)
+void printcolorline_with_highlight(int y, int x, int palette1, int palette2,
+				   char *string, int hl_start, int hl_end)
 {
 	if (palette1 == palette2) {
 		printcolorline(y, x, palette1, string);
@@ -480,17 +519,17 @@ void printcolorline_with_highlight(int y, int x, int palette1, int palette2,
 		mvaddstr(y, x, string);
 		attroff(COLOR_PAIR(palette1));
 		attron(COLOR_PAIR(palette2));
-		mvaddstr(y, x + hl_start, substr(string, hl_start, hl_end - hl_start));
+		mvaddstr(y, x + hl_start,
+			 substr(string, hl_start, hl_end - hl_start));
 		attroff(COLOR_PAIR(palette2));
 	}
 }
 
-void
-printline(mempos, scpos)
-	PTR	mempos;
-	int	scpos;
+void printline(mempos, scpos)
+PTR mempos;
+int scpos;
 {
-	int	print_pos;
+	int print_pos;
 	int nxtpos = 0;
 	unsigned char Zeichen;
 
@@ -530,58 +569,52 @@ printline(mempos, scpos)
 	printcolorline(scpos, nxtpos, C_DT, string);
 }
 
-
 /* displays a line on screen
  * at pagepos + line y
  */
-int
-lineout()
+int lineout()
 {
-	off_t	Adresse;
+	off_t Adresse;
 
 	Adresse = pagepos - mem + y * Anzahl;
 	printline(mem + Adresse, y);
 	move(y, x);
-	return(0);
+	return (0);
 }
 
-
-void
-new_screen()
+void new_screen()
 {
 	screen = Anzahl * (maxy - 1);
 	clear();
 	repaint();
 }
 
-
-void
-repaint()	/***** redraw screen *********************/
+void repaint()
 {
-	int	save_y;
+/***** redraw screen *********************/
+	int save_y;
 
 	save_y = y;
-	for (y = 0; y < maxy; y++) lineout();
+	for (y = 0; y < maxy; y++)
+		lineout();
 	y = save_y;
 }
 
-
-
 /******* display an arbitrary address on screen *******/
-void
-setpage(addr)
-	PTR		addr;
+void setpage(addr)
+PTR addr;
 {
 	if ((addr >= pagepos) && ((addr - pagepos) < screen)) {
 		y = (addr - pagepos) / Anzahl;
 		if (loc == HEX)
 			x = AnzAdd + ((addr - pagepos) - y * Anzahl) * 3;
 		else
-			x = AnzAdd + Anzahl3  + ((addr - pagepos) - y * Anzahl);
+			x = AnzAdd + Anzahl3 + ((addr - pagepos) - y * Anzahl);
 	} else {
 		pagepos = (((addr - mem) / Anzahl) * Anzahl + mem)
-					- (Anzahl * (maxy / 2));
-		if (pagepos < mem) pagepos = mem;
+		    - (Anzahl * (maxy / 2));
+		if (pagepos < mem)
+			pagepos = mem;
 		y = (addr - pagepos) / Anzahl;
 		if (loc == HEX)
 			x = AnzAdd + ((addr - pagepos) - y * Anzahl) * 3;
@@ -591,10 +624,8 @@ setpage(addr)
 	}
 }
 
-
-int
-cur_forw(check)
-	int		check;
+int cur_forw(check)
+int check;
 {
 	if (check) {
 		if (current - mem >= filesize) {
@@ -604,14 +635,16 @@ cur_forw(check)
 	}
 	if (loc == ASCII) {
 		if (x < AnzAdd - 1 + Anzahl3 + Anzahl) {
-			x++ ;
+			x++;
 			return 0;
-		} else x = AnzAdd + Anzahl3;
+		} else
+			x = AnzAdd + Anzahl3;
 	} else {
 		if (x < 5 + Anzahl3) {
 			x += 3;
 			return 0;
-		} else x = AnzAdd;
+		} else
+			x = AnzAdd;
 	}
 	statpos();
 	lineout();
@@ -619,10 +652,10 @@ cur_forw(check)
 		y++;
 		return 0;
 	} else {
-		if (pagepos < (PTR)(mem + filesize)) {
-				pagepos += Anzahl;
-				repaint();
-				return 0;
+		if (pagepos < (PTR) (mem + filesize)) {
+			pagepos += Anzahl;
+			repaint();
+			return 0;
 		} else {
 			beep();
 			return 1;
@@ -630,13 +663,11 @@ cur_forw(check)
 	}
 }
 
-
-int
-cur_back()
+int cur_back()
 {
 	if (loc == ASCII) {
 		if (x > AnzAdd + Anzahl3) {
-			x-- ;
+			x--;
 			return 0;
 		} else {
 			x = AnzAdd - 1 + Anzahl3 + Anzahl;
@@ -646,7 +677,8 @@ cur_back()
 			x -= 3;
 			return 0;
 		} else {
-			if (current == mem) return 0;
+			if (current == mem)
+				return 0;
 			x = AnzAdd + Anzahl3 - 3;
 		}
 	}
@@ -667,13 +699,11 @@ cur_back()
 	}
 }
 
-
-void
-fileinfo(fname)
-	char	*fname;
+void fileinfo(fname)
+char *fname;
 {
-	off_t	bytepos;
-	char	fstatus[64];
+	off_t bytepos;
+	char fstatus[64];
 
 	if (fname) {
 		sprintf(string, "\"%s\" ", fname);
@@ -682,11 +712,13 @@ fileinfo(fname)
 	}
 	if (filemode != NEW && filemode != REGULAR)
 		strcat(string, "[Not edited] ");
-	if (P(P_RO)) strcat(string, "[Read only] ");
-	if (edits) strcat(string, "[Modified] ");
+	if (P(P_RO))
+		strcat(string, "[Read only] ");
+	if (edits)
+		strcat(string, "[Modified] ");
 	if (filesize) {
 		bytepos = (pagepos + y * Anzahl + xpos()) - mem + 1L;
-		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos, 
+		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);
 	} else {
@@ -695,10 +727,8 @@ fileinfo(fname)
 	msg(string);
 }
 
-
 /********** END ************/
-void
-quit()
+void quit()
 {
 	move(maxy, 0);
 	endwin();
@@ -706,44 +736,38 @@ quit()
 	exit(0);
 }
 
-
-int
-vgetc()
+int vgetc()
 {
-    int nextc;
+	int nextc;
 
-    if (getcnext != NULL) {
-        nextc = *getcnext++;
-        if (*getcnext == '\0') {
-            *getcbuff = '\0';
-            getcnext = NULL;
-        }
-        return(nextc);
-    }
-    return getch();
+	if (getcnext != NULL) {
+		nextc = *getcnext++;
+		if (*getcnext == '\0') {
+			*getcbuff = '\0';
+			getcnext = NULL;
+		}
+		return (nextc);
+	}
+	return getch();
 }
 
-
-void
-stuffin(s)
-char    *s;
+void stuffin(s)
+char *s;
 {
-    if (s == NULL) {        /* clear the stuff buffer */
-        getcnext = NULL;
-        return;
-    }
-    if (getcnext == NULL) {
-       strcpy(getcbuff, s);
-       getcnext = getcbuff;
-    } else
-       strcat(getcbuff, s);
+	if (s == NULL) {	/* clear the stuff buffer */
+		getcnext = NULL;
+		return;
+	}
+	if (getcnext == NULL) {
+		strcpy(getcbuff, s);
+		getcnext = getcbuff;
+	} else
+		strcat(getcbuff, s);
 }
 
-
-void
-do_back(n, start)
-	off_t	n;
-	PTR		start;
+void do_back(n, start)
+off_t n;
+PTR start;
 {
 	if (start - n < mem) {
 		beep();
@@ -751,7 +775,7 @@ do_back(n, start)
 	}
 	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
 		return;
-    yanked = alloc_buf(n, &yank_buf);
+	yanked = alloc_buf(n, &yank_buf);
 	edits = U_BACK;
 	undo_start = start - n;
 	memcpy(undo_buf, start - undo_count, undo_count);
@@ -763,11 +787,9 @@ do_back(n, start)
 	repaint();
 }
 
-
-int
-do_delete(n, start)
-	off_t	n;
-	PTR		start;
+int do_delete(n, start)
+off_t n;
+PTR start;
 {
 	if (n + start > maxpos) {
 		beep();
@@ -792,23 +814,21 @@ do_delete(n, start)
 	return 0;
 }
 
-
 /*
  * The :insert, :append and :change command
  */
-void
-do_ins_chg(start, arg, mode)
-	PTR		start;
-	char	*arg;
-	int		mode;
+void do_ins_chg(start, arg, mode)
+PTR start;
+char *arg;
+int mode;
 {
-	int		base;
-	off_t	buffer = BUFFER;
-	off_t	count = 0L;
-	size_t	len;
-	long	val;
-	char	*tempbuf = NULL;
-	char	*poi, *epoi;
+	int base;
+	off_t buffer = BUFFER;
+	off_t count = 0L;
+	size_t len;
+	long val;
+	char *tempbuf = NULL;
+	char *poi, *epoi;
 
 	if ((mode == U_EDIT) && (current - mem >= filesize)) {
 		beep();
@@ -834,28 +854,41 @@ do_ins_chg(start, arg, mode)
 		repaint();
 		return;
 	}
-	if (alloc_buf(buffer, &tempbuf) == 0L) return;
-	while(strcmp(cmdstr, ".")) {
+	if (alloc_buf(buffer, &tempbuf) == 0L)
+		return;
+	while (strcmp(cmdstr, ".")) {
 		poi = cmdstr;
-		if (base == 1) {			/* ASCII */
+		if (base == 1) {	/* ASCII */
 			while (*poi != '\0') {
 				if (*poi == '\\') {
-					 switch (*(++poi)) {
-		                 case 'n': val = '\n'; break;
-		                 case 'r': val = '\r'; break;
-		                 case 't': val = '\t'; break;
-		                 case '0': val = '\0'; break;
-		                 case '\\': val = '\\'; break;
-		                 default : val = '\\'; poi--;
-	                 }
-					 poi++;
+					switch (*(++poi)) {
+					case 'n':
+						val = '\n';
+						break;
+					case 'r':
+						val = '\r';
+						break;
+					case 't':
+						val = '\t';
+						break;
+					case '0':
+						val = '\0';
+						break;
+					case '\\':
+						val = '\\';
+						break;
+					default:
+						val = '\\';
+						poi--;
+					}
+					poi++;
 				} else {
 					val = *poi++;
 				}
 				*(tempbuf + count++) = val;
 			}
 		} else {
-			while (isspace(cmdstr[strlen(cmdstr) - 1])) 
+			while (isspace(cmdstr[strlen(cmdstr) - 1]))
 				cmdstr[strlen(cmdstr) - 1] = '\0';
 			while (*poi != '\0') {
 				val = strtol(poi, &epoi, base);
@@ -888,14 +921,14 @@ do_ins_chg(start, arg, mode)
 	case U_APPEND:
 		if ((undo_count = alloc_buf(count, &undo_buf)) == 0L) {
 			repaint();
-		    goto mfree;
+			goto mfree;
 		}
 		do_append(count, tempbuf);
 		memcpy(undo_buf, tempbuf, count);
 		repaint();
 		break;
 	}
-mfree:
+      mfree:
 #if defined(__MSDOS__) && !defined(DJGPP)
 	farfree(tempbuf);
 #else
@@ -903,31 +936,25 @@ mfree:
 #endif
 }
 
-
-void
-clear_marks()
+void clear_marks()
 {
 	int n;
 
-	for (n = 0; n < 26; markbuf[n++] = NULL);
+	for (n = 0; n < 26; markbuf[n++] = NULL) ;
 	undo_count = 0;
 	last_motion = mem;
 }
 
-
-void
-do_mark(mark, addr)
-	int		mark;
-	PTR		addr;
+void do_mark(mark, addr)
+int mark;
+PTR addr;
 {
-	if (mark < 'a' || mark > 'z' || current >= maxpos) 
+	if (mark < 'a' || mark > 'z' || current >= maxpos)
 		return;
 	markbuf[mark - 'a'] = addr;
 }
 
-
-void
-movebyte()
+void movebyte()
 {
 	emsg("Command disabled@- use ':set memmove' to enable ");
 }

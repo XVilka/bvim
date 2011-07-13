@@ -43,24 +43,22 @@
 #	include <fcntl.h>
 #endif
 
-int		filemode;
-static	struct	stat	buf;
-static	off_t	block_read;
-char	*terminal;
-
+int filemode;
+static struct stat buf;
+static off_t block_read;
+char *terminal;
 
 /*********** Save the patched file ********************/
-int
-save(fname, start, end, flags)
-	char	*fname;
-	char	*start;
-	char	*end;
-	int		flags;
+int save(fname, start, end, flags)
+char *fname;
+char *start;
+char *end;
+int flags;
 {
-	int		fd;
-	char	string[255];
-	char	*newstr;
-	off_t	filesize;
+	int fd;
+	char string[255];
+	char *newstr;
+	off_t filesize;
 
 	if (!fname) {
 		emsg("No file|No current filename");
@@ -79,17 +77,18 @@ save(fname, start, end, flags)
 			return 0;
 		} else if (S_ISBLK(buf.st_mode)) {
 			/*
-			sprintf(string, "\"%s\" Block special file", fname);
-			msg(string);
-			return 0;
-			*/
+			   sprintf(string, "\"%s\" Block special file", fname);
+			   msg(string);
+			   return 0;
+			 */
 		}
 		newstr = "";
 	}
 
-	if (filemode == PARTIAL) flags = O_RDWR;
+	if (filemode == PARTIAL)
+		flags = O_RDWR;
 	if ((fd = open(fname, flags, 0666)) < 0) {
-        sysemsg(fname);
+		sysemsg(fname);
 		return 0;
 	}
 	if (filemode == PARTIAL) {
@@ -105,7 +104,7 @@ save(fname, start, end, flags)
 		} else {
 			msg("Null range");
 			return 0;
-        }
+		}
 	} else {
 		filesize = end - start + 1L;
 		sprintf(string, "\"%s\" %s%lu bytes", fname, newstr,
@@ -123,14 +122,12 @@ save(fname, start, end, flags)
 	return 1;
 }
 
-
 /* loads a file, returns the filesize */
-off_t
-load(fname)
-	char	*fname;
+off_t load(fname)
+char *fname;
 {
-	int		fd = -1;
-	char	string[MAXCMD];
+	int fd = -1;
+	char string[MAXCMD];
 
 	buf.st_size = 0L;
 	if (fname != NULL) {
@@ -159,7 +156,8 @@ load(fname)
 				filemode = ERROR;
 			}
 		} else if (S_ISREG(buf.st_mode)) {
-			if ((unsigned long)buf.st_size > (unsigned long)SIZE_T_MAX) {
+			if ((unsigned long)buf.st_size >
+			    (unsigned long)SIZE_T_MAX) {
 				move(maxy, 0);
 				endwin();
 				printf("File too large\n");
@@ -172,14 +170,15 @@ load(fname)
 					params[P_RO].flags |= P_CHANGED;
 				}
 			} else {
-	            sysemsg(fname);
+				sysemsg(fname);
 				filemode = ERROR;
 			}
 		}
 	} else {
 		filemode = NEW;
 	}
-	if (mem != NULL) free(mem);
+	if (mem != NULL)
+		free(mem);
 	memsize = 1024;
 	if (block_flag) {
 		memsize += block_size;
@@ -194,8 +193,8 @@ load(fname)
 	}
 	clear_marks();
 
-
-	if (block_flag && ((filemode == REGULAR) || (filemode == BLOCK_SPECIAL))) {
+	if (block_flag
+	    && ((filemode == REGULAR) || (filemode == BLOCK_SPECIAL))) {
 		if (lseek(fd, block_begin, SEEK_SET) < 0) {
 			sysemsg(fname);
 			filemode = ERROR;
@@ -206,7 +205,8 @@ load(fname)
 			} else {
 				sprintf(string, "\"%s\" range %lu-%lu", fname,
 					(unsigned long)block_begin,
-					(unsigned long)(block_begin + filesize - 1));
+					(unsigned long)(block_begin + filesize -
+							1));
 				filemode = PARTIAL;
 				block_read = filesize;
 				P(P_OF) = block_begin;
@@ -218,13 +218,14 @@ load(fname)
 	} else if (filemode == REGULAR) {
 		filesize = buf.st_size;
 		if (read(fd, mem, filesize) != filesize) {
-            sysemsg(fname);
+			sysemsg(fname);
 			filemode = ERROR;
 		}
 	} else {
 		filesize = 0L;
 	}
-	if (fd > 0) close(fd);
+	if (fd > 0)
+		close(fd);
 	if (fname != NULL) {
 		switch (filemode) {
 		case NEW:
@@ -245,26 +246,26 @@ load(fname)
 			sprintf(string, "\"%s\" Block special file", fname);
 			break;
 		}
-		if (filemode != ERROR) msg(string);
+		if (filemode != ERROR)
+			msg(string);
 	}
 	pagepos = mem;
 	maxpos = mem + filesize;
 	loc = HEX;
-	x = AnzAdd; y = 0;
+	x = AnzAdd;
+	y = 0;
 	repaint();
-	return(filesize);
+	return (filesize);
 }
-
 
 /* argument "dir" not used! 
  * Needed for DOS version only
  */
-void
-bvi_init(dir)
-	char *dir;
+void bvi_init(dir)
+char *dir;
 {
-	char    *initstr;
-	char    rcpath[MAXCMD];
+	char *initstr;
+	char rcpath[MAXCMD];
 
 	terminal = getenv("TERM");
 	shell = getenv("SHELL");
@@ -275,7 +276,6 @@ bvi_init(dir)
 		docmdline(initstr);
 		return;
 	}
-	
 #ifdef DJGPP
 	strcpy(rcpath, "c:");
 	strcpy(rcpath, dir);
@@ -289,23 +289,23 @@ bvi_init(dir)
 	rcpath[MAXCMD - 8] = '\0';
 	strcat(rcpath, "/.bvirc");
 	if (stat(rcpath, &buf) == 0) {
-		if (buf.st_uid == getuid()) read_rc(rcpath);
+		if (buf.st_uid == getuid())
+			read_rc(rcpath);
 	}
 
 	strcpy(rcpath, ".bvirc");
 	if (stat(rcpath, &buf) == 0) {
-		if (buf.st_uid == getuid())	read_rc(rcpath);
+		if (buf.st_uid == getuid())
+			read_rc(rcpath);
 	}
 #endif
 }
 
-
-int
-enlarge(add)
-	off_t	add;
+int enlarge(add)
+off_t add;
 {
-	char	*newmem;
-	off_t	savecur, savepag, savemax, saveundo;
+	char *newmem;
+	off_t savecur, savepag, savemax, saveundo;
 
 	savecur = curpos - mem;
 	savepag = pagepos - mem;
@@ -332,30 +332,26 @@ enlarge(add)
 	return 0;
 }
 
-
-void
-do_shell()
+void do_shell()
 {
 	addch('\n');
 	savetty();
 #ifdef DJGPP
 	int shresult = system("");
 	emsg("DOS have no support for shell commands!");
-else
+#else
 	int shresult = system(shell);
 	msg("shell executed successfully!");
 #endif
 	resetty();
 }
 
-
 #ifndef HAVE_STRDUP
-char *
-strdup(s)
-	char	*s;
+char *strdup(s)
+char *s;
 {
-	char    *p;
-	size_t	 n;
+	char *p;
+	size_t n;
 
 	n = strlen(s) + 1;
 	if ((p = (char *)malloc(n)) != NULL)
@@ -364,27 +360,23 @@ strdup(s)
 }
 #endif
 
-
 #ifndef HAVE_MEMMOVE
 /*
  * Copy contents of memory (with possible overlapping).
  */
-char *
-memmove(s1, s2, n)
-	char	*s1;
-	char	*s2;
-	size_t	n;
+char *memmove(s1, s2, n)
+char *s1;
+char *s2;
+size_t n;
 {
 	bcopy(s2, s1, n);
-	return(s1);
+	return (s1);
 }
 #endif
 
-
-off_t
-alloc_buf(n, buffer)
-	off_t	n;
-	char	**buffer;
+off_t alloc_buf(n, buffer)
+off_t n;
+char **buffer;
 {
 	if (*buffer == NULL) {
 		*buffer = (char *)malloc(n);
@@ -398,13 +390,11 @@ alloc_buf(n, buffer)
 	return n;
 }
 
-
-int
-addfile(fname)
-	char	*fname;
+int addfile(fname)
+char *fname;
 {
-	int		fd;
-	off_t	oldsize;
+	int fd;
+	off_t oldsize;
 
 	if (stat(fname, &buf)) {
 		sysemsg(fname);
@@ -415,7 +405,8 @@ addfile(fname)
 		return 1;
 	}
 	oldsize = filesize;
-	if (enlarge(buf.st_size)) return 1;
+	if (enlarge(buf.st_size))
+		return 1;
 	if (read(fd, mem + filesize, buf.st_size) == -1) {
 		sysemsg(fname);
 		return 1;

@@ -19,15 +19,15 @@
  * General Public License for more details.
  *
  * See file COPYING for information on distribution conditions.
- */
-
+ */  
+    
 #include <stdio.h>
 #include <conio.h>
 #include <dos.h>
-
+    
 #define TRUE            1
 #define FALSE           0
-
+    
 #define ESC           27
 #define KEY_F0        0x3A00
 #define KEY_F(n)      (KEY_F0+(n<<8))
@@ -44,9 +44,7 @@
 #define KEY_LL        0x4f00                    /* HOME DOWN, End */
 #define KEY_DC        0x5300
 #define KEY_IC        0x5200
-
-
-
+      
 #define A_NORMAL        3
 #define A_STANDOUT      8
 #define A_BOLD          8
@@ -54,22 +52,18 @@
 #define A_BLINK         128
 #define A_CHARTEXT      0x00ff
 #define A_ATTRIBUTES    0xff00
-
+    
 #define chtype  unsigned int
-
+    
 #define WINDOW  text_info
-
-extern  struct WINDOW scr;
-
-extern  int     stdscr;
-
-extern  int     COLS;
-extern  int     LINES;
-extern  int     ECHO;
-extern  int     NODEL;
-
-void	attrset(int);
-
+extern struct WINDOW scr;
+ extern int stdscr;
+ extern int COLS;
+extern int LINES;
+extern int ECHO;
+extern int NODEL;
+ void attrset(int);
+ 
 #define initscr()               clrscr();window(1,1,COLS,LINES);gettextinfo(&scr)
 #define newwin(h,b,y,x) window(x+1,y+1,x+b+1,y+h+1);gettextinfo(&scr)
 #define erasechar()             KEY_ERASE
@@ -84,7 +78,7 @@ void	attrset(int);
 /*
 #define wattrset(w,a)   textattr(a)
 #define attrset(a)              textattr(a)
-*/
+*/ 
 #define standout()              highvideo()
 #define standend()              normvideo()
 #define wmove(w,y,x)    gotoxy(x+1,y+1)
@@ -116,18 +110,18 @@ void	attrset(int);
 #define wgetstr(w,s)            gets(s)
 /*
 #define getstr(s)               gets(s)
-*/
+*/ 
 #define flushinp()              fflush(stdin)
 #define mvwscanw(w,y,x,s)       gotoxy(x+1,y+1);cscanf(s)
 #define mvscanw(y,x,s)  gotoxy(x+1,y+1);cscanf(s)
 #define wscanw(w,s)             wscanw(s)
 #define scanw                   cscanf
 #define mvinsch(y,x,c)  gotoxy(x+1,y+1);insch(c)
-
+    
 #define nodelay(w,b)    NODEL=b
 #define echo()                  ECHO=TRUE
 #define noecho()                ECHO=FALSE
-
+    
 #define nl()
 #define nonl()
 #define keypad(a,b)
@@ -143,6 +137,6 @@ void	attrset(int);
 #define doupdate()
 #define savetty()
 #define resetty()
-
+    
 #define ERR     (-1)
-
+    

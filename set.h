@@ -25,26 +25,25 @@
  * See file COPYING for information on distribution conditions.
  */
 
-
-struct	param {
-	char	*fullname;	/* full parameter name */
-	char	*shortname;	/* permissible abbreviation */
-	long	nvalue;
-	char	*svalue;
-	int		flags;
+struct param {
+	char *fullname;		/* full parameter name */
+	char *shortname;	/* permissible abbreviation */
+	long nvalue;
+	char *svalue;
+	int flags;
 };
 
 struct color {
-	char	*fullname; /* full name of color attribute */
-	char	*shortname;	/* permissible abbreviation */
-	unsigned int		r;
-	unsigned int		g;
-	unsigned int		b;
-	unsigned int		short_value;
+	char *fullname;		/* full name of color attribute */
+	char *shortname;	/* permissible abbreviation */
+	unsigned int r;
+	unsigned int g;
+	unsigned int b;
+	unsigned int short_value;
 };
 
-extern	struct	param	params[];
-extern	struct	color	colors[];
+extern struct param params[];
+extern struct color colors[];
 
 #define	P_BOOL		0x01	/* the parameter is boolean */
 #define	P_NUM		0x02	/* the parameter is numeric */
@@ -94,6 +93,5 @@ extern	struct	color	colors[];
 #define C_g(n)	(colors[n].g)
 #define	C_b(n)	(colors[n].b)
 #define C_s(n)	(colors[n].short_value)
-
 
 void set_palette(void);

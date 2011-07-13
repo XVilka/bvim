@@ -25,7 +25,6 @@
  * See file COPYING for information on distribution conditions.
  */
 
-
 #include <sys/types.h>
 
 #ifdef HAVE_LOCALE_H
@@ -37,59 +36,58 @@
 #else
 #	define PRINTF	printf
 #ifndef HELPFILE
-#  ifdef DJGPP
+#ifdef DJGPP
 #	define HELPFILE "/dev/env/DJDIR/lib/bmore.help"
-#  else
+#else
 #	define HELPFILE "/usr/local/lib/bmore.help"
-#  endif
+#endif
 #endif
 #endif
 
 #include "bmore.h"
 
-char	*copyright  = "Copyright (C) 1990-2004 by Gerhard Buergmann";
+char *copyright = "Copyright (C) 1990-2004 by Gerhard Buergmann";
 
-int		maxx, maxy;
-int		mymaxx = 0, mymaxy = 0;
-char	*name = NULL;
-char	sstring[MAXCMD] = "";	/* string for search */
-char	estring[MAXCMD] = "";	/* string for shell escape */
-char	string[MAXCMD];
-FILE	*curr_file = NULL, *help_file;
-int		AnzAdd;
-long	precount = -1;	/* number preceding command */
+int maxx, maxy;
+int mymaxx = 0, mymaxy = 0;
+char *name = NULL;
+char sstring[MAXCMD] = "";	/* string for search */
+char estring[MAXCMD] = "";	/* string for shell escape */
+char string[MAXCMD];
+FILE *curr_file = NULL, *help_file;
+int AnzAdd;
+long precount = -1;		/* number preceding command */
 
-char	**files;		/* list of input files */
-int		numfiles;		/* number of input files */
-int		file_nr = 0;	/* number of current input file */
+char **files;			/* list of input files */
+int numfiles;			/* number of input files */
+int file_nr = 0;		/* number of current input file */
 
-int		arrnum = 0;
-char	numarr[64];		/* string for collecting number */
-char	addr_form[15];
+int arrnum = 0;
+char numarr[64];		/* string for collecting number */
+char addr_form[15];
 
-int		ascii_flag = 0;
-int		c_flag = 0, d_flag = 0;
-int		exval = 0;
-int		init_search = 0;
-char	buffer1[MAXCMD], buffer2[MAXCMD];
-int		out_len;
-int		corr = 0, do_header = 0, to_print;
-off_t	init_byte = 0;
-off_t	last_search = 0;
-off_t	screen_home, filesize;
-off_t	bytepos, oldpos;
-int		prompt = 1;
-char	helppath[MAXCMD];
+int ascii_flag = 0;
+int c_flag = 0, d_flag = 0;
+int exval = 0;
+int init_search = 0;
+char buffer1[MAXCMD], buffer2[MAXCMD];
+int out_len;
+int corr = 0, do_header = 0, to_print;
+off_t init_byte = 0;
+off_t last_search = 0;
+off_t screen_home, filesize;
+off_t bytepos, oldpos;
+int prompt = 1;
+char helppath[MAXCMD];
 
-static	char	progname[10];
-static	char	cmdbuf[MAXCMD];
-static	int		cnt = 0;
-static	int		icnt = 0;
-static	int		smode;
+static char progname[10];
+static char cmdbuf[MAXCMD];
+static int cnt = 0;
+static int icnt = 0;
+static int smode;
 
-char	search_pat[BUFFER];	/* / or ? command */
-char	*emptyclass = "Empty byte class '[]' or '[^]'";
-
+char search_pat[BUFFER];	/* / or ? command */
+char *emptyclass = "Empty byte class '[]' or '[^]'";
 
 /* -a   ASCII mode
  * -d   beginners mode
@@ -98,28 +96,26 @@ char	*emptyclass = "Empty byte class '[]' or '[^]'";
  * -n	number of lines/screen
  * -w   width of screen
  */
-void
-usage()
+void usage()
 {
-	fprintf(stderr, "Usage: %s [-acdi] [-lines] [+linenum | +/pattern] name1 name2 ...\n", progname);
+	fprintf(stderr,
+		"Usage: %s [-acdi] [-lines] [+linenum | +/pattern] name1 name2 ...\n",
+		progname);
 	exit(1);
 }
 
-
-int
-main(argc, argv)
-	int argc;
-	char *argv[];
+int main(argc, argv)
+int argc;
+char *argv[];
 {
-	int		ch, ch1;
-	int		colon = 0, last_ch = 0;
-	long	last_pre = 0;
-	int		lflag, repeat;
-	long	count;
-	int		i, n = 1;
-	int		d_line, r_line, z_line;
-	char	*poi;
-
+	int ch, ch1;
+	int colon = 0, last_ch = 0;
+	long last_pre = 0;
+	int lflag, repeat;
+	long count;
+	int i, n = 1;
+	int d_line, r_line, z_line;
+	char *poi;
 
 #if defined(__MSDOS__) && !defined(DJGPP)
 	strcpy(helppath, argv[0]);
@@ -135,9 +131,11 @@ main(argc, argv)
 #endif
 
 	poi = strrchr(argv[0], DELIM);
- 
-	if (poi) strncpy(progname, ++poi, 9);
-	else strncpy(progname, argv[0], 9);
+
+	if (poi)
+		strncpy(progname, ++poi, 9);
+	else
+		strncpy(progname, argv[0], 9);
 	strtok(progname, ".");
 
 	while (n < argc) {
@@ -146,13 +144,15 @@ main(argc, argv)
 			if (argv[n][1] >= '0' && argv[n][1] <= '9') {
 				sscanf(&argv[n][1], "%dx%d", &mymaxy, &mymaxx);
 			} else if (argv[n][1] == 'n') {
-				if (argv[n+1] == NULL || argv[n+1][0] == '-') {
+				if (argv[n + 1] == NULL
+				    || argv[n + 1][0] == '-') {
 					usage();
 				} else {
 					sscanf(&argv[++n][0], "%d", &mymaxy);
 				}
 			} else if (argv[n][1] == 'w') {
-				if (argv[n+1] == NULL || argv[n+1][0] == '-') {
+				if (argv[n + 1] == NULL
+				    || argv[n + 1][0] == '-') {
 					usage();
 				} else {
 					sscanf(&argv[++n][0], "%d", &mymaxx);
@@ -161,36 +161,44 @@ main(argc, argv)
 				i = 1;
 				while (argv[n][i] != '\0') {
 					switch (argv[n][i]) {
-					case 'a':	ascii_flag++;
-								break;
-					case 'c':	c_flag++;
-								break;
-					case 'd':	d_flag++;
-								break;
-					case 'i':	ignore_case++;
-								break;
-					default:		
-								usage();
+					case 'a':
+						ascii_flag++;
+						break;
+					case 'c':
+						c_flag++;
+						break;
+					case 'd':
+						d_flag++;
+						break;
+					case 'i':
+						ignore_case++;
+						break;
+					default:
+						usage();
 					}
 					i++;
 				}
 			}
 			n++;
 			break;
-		case '+':			/* +cmd */
+		case '+':	/* +cmd */
 			if (argv[n][1] == '/' || argv[n][1] == '\\') {
 				init_search = argv[n][1];
 				strcpy(sstring, &argv[n][2]);
 			} else {
 				if (argv[n][1] == '0') {
-					init_byte = (off_t)strtol(argv[n] + 1, NULL, 16);
+					init_byte =
+					    (off_t) strtol(argv[n] + 1, NULL,
+							   16);
 				} else {
-					init_byte = (off_t)strtol(argv[n] + 1, NULL, 10);
+					init_byte =
+					    (off_t) strtol(argv[n] + 1, NULL,
+							   10);
 				}
 			}
 			n++;
 			break;
-		default:			/* must be a file name */
+		default:	/* must be a file name */
 			name = strdup(argv[n]);
 			files = &(argv[n]);
 			numfiles = argc - n;
@@ -228,7 +236,7 @@ main(argc, argv)
 	screen_home = bytepos;
 
 	AnzAdd = 10;
-	strcpy(addr_form,  "%08lX  ");
+	strcpy(addr_form, "%08lX  ");
 
 	if (ascii_flag)
 		out_len = ((maxx - AnzAdd - 1) / 4) * 4;
@@ -242,10 +250,10 @@ main(argc, argv)
 		bmsearch(init_search);
 
 	if (no_tty) {
-		int	fileloop;
+		int fileloop;
 
 		for (fileloop = 0; fileloop < numfiles; fileloop++) {
-			while(!printout(1));
+			while (!printout(1)) ;
 			do_next(1);
 			open_file(name);
 		}
@@ -274,19 +282,22 @@ main(argc, argv)
 			if (prompt == 2) {
 				PRINTF("(Next file: %s)", name);
 			} else if (!no_intty && filesize) {
-				PRINTF("(%d%%)", (int)((bytepos * 100) / filesize));
+				PRINTF("(%d%%)",
+				       (int)((bytepos * 100) / filesize));
 			}
 
-			if (d_flag) PRINTF("[Press space to continue, 'q' to quit]");
+			if (d_flag)
+				PRINTF
+				    ("[Press space to continue, 'q' to quit]");
 			normal();
 			fflush(stdout);
 		}
 		ch = vgetc();
 		/*
-		if (prompt == 2) {
-			open_file(name);
-		}
-		*/
+		   if (prompt == 2) {
+		   open_file(name);
+		   }
+		 */
 		prompt = 1;
 		PRINTF("\r");
 		while (ch >= '0' && ch <= '9') {
@@ -294,8 +305,10 @@ main(argc, argv)
 			ch = vgetc();
 		}
 		numarr[arrnum] = '\0';
-		if (arrnum != 0) precount = strtol(numarr, (char **)NULL, 10);
-			else precount = -1;
+		if (arrnum != 0)
+			precount = strtol(numarr, (char **)NULL, 10);
+		else
+			precount = -1;
 		lflag = arrnum = 0;
 
 		if (ch == '.') {
@@ -305,212 +318,234 @@ main(argc, argv)
 		} else {
 			last_pre = precount;
 			last_ch = ch;
-			if (ch == ':') colon = vgetc();
+			if (ch == ':')
+				colon = vgetc();
 			repeat = 0;
 		}
 
 		switch (ch) {
 		case ' ':	/*  Display next k lines of text [current screen size] */
-					if (precount > 0) to_print = precount;
-						else to_print = maxy;
-					break;
+			if (precount > 0)
+				to_print = precount;
+			else
+				to_print = maxy;
+			break;
 		case 'z':	/* Display next k lines of bytes [current screen size]* */
-					if (precount > 0) z_line = precount;
-					to_print = z_line;
-					break;
+			if (precount > 0)
+				z_line = precount;
+			to_print = z_line;
+			break;
 		case '\r':
 		case '\n':	/* Display next k lines of text [current screen size]* */
-					if (precount > 0) r_line = precount;
-					to_print = r_line;
-					break;
+			if (precount > 0)
+				r_line = precount;
+			to_print = r_line;
+			break;
 		case 'q':
 		case 'Q':
+			cleartoeol();
+			fclose(curr_file);
+			reset_tty();
+			exit(exval);
+		case ':':
+			switch (colon) {
+			case 'f':
+				prompt = 0;
+				if (!no_intty)
+					PRINTF("\"%s\" line %lu", name,
+					       (unsigned long)(bytepos -
+							       out_len));
+				else
+					PRINTF("[Not a file] line %lu",
+					       (unsigned long)(bytepos -
+							       out_len));
+				fflush(stdout);
+				break;
+			case 'n':
+				if (precount < 1)
+					precount = 1;
+				do_next(precount);
+				PRINTF("\r");
+				cleartoeol();
+				PRINTF("\n...Skipping to file %s\r\n\r\n",
+				       name);
+				prompt = 2;
+				break;
+			case 'p':
+				if (precount < 1)
+					precount = 1;
+				do_next(-precount);
+				PRINTF("\r");
+				cleartoeol();
+				PRINTF("\n...Skipping back to file %s\r\n\r\n",
+				       name);
+				prompt = 2;
+				break;
+			case 'q':
+				cleartoeol();
+				fclose(curr_file);
+				reset_tty();
+				exit(exval);
+				break;
+			case '!':
+				if (!no_intty) {
 					cleartoeol();
-					fclose(curr_file);
-					reset_tty();
-					exit(exval);
-		case ':' :	
-					switch (colon) {
-					case 'f':
-						prompt = 0;
-						if (!no_intty)
-							PRINTF("\"%s\" line %lu", name,
-								(unsigned long)(bytepos - out_len));
-						else
-							PRINTF("[Not a file] line %lu",
-								(unsigned long)(bytepos - out_len));
-						fflush(stdout);
+					if (rdline(colon, estring))
 						break;
-					case 'n':
-						if (precount < 1) precount = 1;
-						do_next(precount);
-						PRINTF("\r");
-						cleartoeol();
-						PRINTF("\n...Skipping to file %s\r\n\r\n", name);
-						prompt = 2;
-						break;
-					case 'p':
-						if (precount < 1) precount = 1;
-						do_next(-precount);
-						PRINTF("\r");
-						cleartoeol();
-						PRINTF("\n...Skipping back to file %s\r\n\r\n", name);
-						prompt = 2;
-						break;
-					case 'q':
-						cleartoeol();
-						fclose(curr_file);
-						reset_tty();
-						exit(exval);
-						break;
-					case '!':
-						if (!no_intty) {
-							cleartoeol();
-							if (rdline(colon, estring)) break;
-							doshell(estring);
-							PRINTF("------------------------\r\n");
-							break;
-						}
-					default:
-						bmbeep();
-					}
+					doshell(estring);
+					PRINTF("------------------------\r\n");
 					break;
+				}
+			default:
+				bmbeep();
+			}
+			break;
 		case '!':
 			if (!no_intty) {
 				cleartoeol();
-				if (rdline(ch, estring)) break;
+				if (rdline(ch, estring))
+					break;
 				doshell(estring);
 				PRINTF("------------------------\r\n");
 				break;
 			}
 		case 'd':	/* Scroll k lines [current scroll size, initially 11]* */
 		case BVICTRL('D'):
-					if (precount > 0) d_line = precount;
-					to_print = d_line;
-					break;
-		case BVICTRL('L'):   	/*** REDRAW SCREEN ***/
-					if (no_intty) {
-						bmbeep();
-					} else {
-						clearscreen();
-						to_print = maxy + 1;
-						fseek(curr_file, screen_home, SEEK_SET);
-						bytepos = screen_home;
-					}
-					break;
-		case 'b':		/* Skip backwards k screenfuls of text [1] */
+			if (precount > 0)
+				d_line = precount;
+			to_print = d_line;
+			break;
+		case BVICTRL('L'):	/*** REDRAW SCREEN ***/
+			if (no_intty) {
+				bmbeep();
+			} else {
+				clearscreen();
+				to_print = maxy + 1;
+				fseek(curr_file, screen_home, SEEK_SET);
+				bytepos = screen_home;
+			}
+			break;
+		case 'b':	/* Skip backwards k screenfuls of text [1] */
 		case BVICTRL('B'):
-					if (no_intty) {
-						bmbeep();
-					} else {
-						if (precount < 1) precount = 1;
-						PRINTF("...back %ld page", precount);
-						if (precount > 1) {
-							PRINTF("s\r\n");
-						} else {
-							PRINTF("\r\n");
-						}
-						screen_home -= (maxy + 1) * out_len;
-						if (screen_home < 0) screen_home = 0;
-						fseek(curr_file, screen_home, SEEK_SET);
-						bytepos = screen_home;
-						to_print = maxy + 1;
-					}
-					break;
-		case 'f':		/* Skip forward k screenfuls of bytes [1] */
-		case 's':		/* Skip forward k lines of bytes [1] */
-					if (precount < 1) precount = 1;
-					if (ch == 'f') {
-						count = maxy * precount;
-					} else {
-						count = precount;
-					}
-					putchar('\r');
-					cleartoeol();
-					PRINTF("\n...skipping %ld line", count);
-					if (count > 1) {
-						PRINTF("s\r\n\r\n");
-					} else {
-						PRINTF("\r\n\r\n");
-					}
-					screen_home += (count + maxy) * out_len;
-					fseek(curr_file, screen_home, SEEK_SET);
-					bytepos = screen_home;
-					to_print = maxy;
-					break;
-		case '\\':  
-					if (ascii_flag) {
-						bmbeep();
-						break;
-					}
+			if (no_intty) {
+				bmbeep();
+			} else {
+				if (precount < 1)
+					precount = 1;
+				PRINTF("...back %ld page", precount);
+				if (precount > 1) {
+					PRINTF("s\r\n");
+				} else {
+					PRINTF("\r\n");
+				}
+				screen_home -= (maxy + 1) * out_len;
+				if (screen_home < 0)
+					screen_home = 0;
+				fseek(curr_file, screen_home, SEEK_SET);
+				bytepos = screen_home;
+				to_print = maxy + 1;
+			}
+			break;
+		case 'f':	/* Skip forward k screenfuls of bytes [1] */
+		case 's':	/* Skip forward k lines of bytes [1] */
+			if (precount < 1)
+				precount = 1;
+			if (ch == 'f') {
+				count = maxy * precount;
+			} else {
+				count = precount;
+			}
+			putchar('\r');
+			cleartoeol();
+			PRINTF("\n...skipping %ld line", count);
+			if (count > 1) {
+				PRINTF("s\r\n\r\n");
+			} else {
+				PRINTF("\r\n\r\n");
+			}
+			screen_home += (count + maxy) * out_len;
+			fseek(curr_file, screen_home, SEEK_SET);
+			bytepos = screen_home;
+			to_print = maxy;
+			break;
+		case '\\':
+			if (ascii_flag) {
+				bmbeep();
+				break;
+			}
 		case '/':	/**** Search String ****/
-					if (!repeat) {
-						cleartoeol();
-						if (rdline(ch, sstring)) break;
-					}
-		case 'n': 		/**** Search Next ****/
-		case 'N':   
-					bmsearch(ch);
-					/*
-					to_print--;
-					*/
+			if (!repeat) {
+				cleartoeol();
+				if (rdline(ch, sstring))
 					break;
-		case '\'':   
-					if (no_intty) {
-						bmbeep();
-					} else {
-						bytepos = last_search;
-						fseek(curr_file, bytepos, SEEK_SET);
-						screen_home = bytepos;
-						to_print = maxy;
-						PRINTF("\r");
-						cleartoeol();
-						PRINTF("\n\r\n***Back***\r\n\r\n");
-					}
-					break;
+			}
+		case 'n':		/**** Search Next ****/
+		case 'N':
+			bmsearch(ch);
+			/*
+			   to_print--;
+			 */
+			break;
+		case '\'':
+			if (no_intty) {
+				bmbeep();
+			} else {
+				bytepos = last_search;
+				fseek(curr_file, bytepos, SEEK_SET);
+				screen_home = bytepos;
+				to_print = maxy;
+				PRINTF("\r");
+				cleartoeol();
+				PRINTF("\n\r\n***Back***\r\n\r\n");
+			}
+			break;
 		case '=':
-					prompt = 0;
-					cleartoeol();
-					PRINTF("%lX hex  %lu dec", (unsigned long)bytepos,
-						(unsigned long)bytepos);
-					fflush(stdout);
-					break;
+			prompt = 0;
+			cleartoeol();
+			PRINTF("%lX hex  %lu dec", (unsigned long)bytepos,
+			       (unsigned long)bytepos);
+			fflush(stdout);
+			break;
 		case '?':
 		case 'h':
-					if ((help_file = fopen(helppath, "r")) == NULL) {
-						emsg("Can't open help file");
-						break;
-					}
-					while ((ch1 = getc(help_file)) != EOF)
-					    putchar(ch1);
-					fclose(help_file);
-					to_print = 0;
-					break;
+			if ((help_file = fopen(helppath, "r")) == NULL) {
+				emsg("Can't open help file");
+				break;
+			}
+			while ((ch1 = getc(help_file)) != EOF)
+				putchar(ch1);
+			fclose(help_file);
+			to_print = 0;
+			break;
 		case 'w':
 		case 'v':
-					if (!no_intty) {
-						cleartoeol();
-						if (ch == 'v') {
-							sprintf(string, "bvi +%lu %s", 
-								(unsigned long)(screen_home + 
-								(maxy + 1) / 2 * out_len), name);
-						} else {
-							if (precount < 1) precount = bytepos - screen_home;
-							sprintf(string, "bvi -b %lu -s %lu %s",
-								(unsigned long)screen_home, 
-								(unsigned long)precount, name);
-						}
-						doshell(string);
-						to_print = maxy + 1;
-						break;
-					}
-		default :
-					if (d_flag) {
-						emsg("[Press 'h' for instructions.]");
-					} else {
-						bmbeep();
-					}
-					break;
+			if (!no_intty) {
+				cleartoeol();
+				if (ch == 'v') {
+					sprintf(string, "bvi +%lu %s",
+						(unsigned long)(screen_home +
+								(maxy +
+								 1) / 2 *
+								out_len), name);
+				} else {
+					if (precount < 1)
+						precount =
+						    bytepos - screen_home;
+					sprintf(string, "bvi -b %lu -s %lu %s",
+						(unsigned long)screen_home,
+						(unsigned long)precount, name);
+				}
+				doshell(string);
+				to_print = maxy + 1;
+				break;
+			}
+		default:
+			if (d_flag) {
+				emsg("[Press 'h' for instructions.]");
+			} else {
+				bmbeep();
+			}
+			break;
 		}
 		if (to_print) {
 			if (printout(to_print)) {
@@ -520,15 +555,13 @@ main(argc, argv)
 	} while (1);
 }
 
-
-int
-rdline(ch, sstring)
-	int		ch;
-	char	*sstring;
+int rdline(ch, sstring)
+int ch;
+char *sstring;
 {
-	int		i = 0;
-	int		ch1 = 0;
-	char	bstring[MAXCMD];
+	int i = 0;
+	int ch1 = 0;
+	char bstring[MAXCMD];
 
 	if (ch == '!') {
 		strcpy(bstring, sstring);
@@ -570,14 +603,13 @@ rdline(ch, sstring)
 		cleartoeol();
 		return 1;
 	}
-	if (i) sstring[i] = '\0';
+	if (i)
+		sstring[i] = '\0';
 	return 0;
 }
 
-
-void
-do_next(n)
-	int	n;
+void do_next(n)
+int n;
 {
 	if (numfiles) {
 		if (n == 1 && file_nr == numfiles) {
@@ -601,18 +633,18 @@ do_next(n)
 	}
 }
 
-
-int
-open_file(name)
-	char *name;
+int open_file(name)
+char *name;
 {
-	struct	stat	buf;
+	struct stat buf;
 
 	if (stat(name, &buf) > -1) {
 		filesize = buf.st_size;
 	}
-	if (curr_file != NULL) fclose(curr_file);
-	if (numfiles > 1) do_header = 1;
+	if (curr_file != NULL)
+		fclose(curr_file);
+	if (numfiles > 1)
+		do_header = 1;
 	if ((curr_file = fopen(name, "rb")) == NULL) {
 		perror(name);
 		exval = 1;
@@ -622,20 +654,18 @@ open_file(name)
 	return 0;
 }
 
-
-void
-putline(buf, num)
-	char	*buf;
-	int		num;
+void putline(buf, num)
+char *buf;
+int num;
 {
-	int			print_pos;
-	unsigned	char	ch;
+	int print_pos;
+	unsigned char ch;
 
 	PRINTF(addr_form, (unsigned long)bytepos);
 	for (print_pos = 0; print_pos < num; print_pos++) {
 		ch = buf[print_pos];
 		if (!ascii_flag) {
-		    PRINTF("%02X ", ch);
+			PRINTF("%02X ", ch);
 		}
 		++bytepos;
 		if ((ch > 31) && (ch < 127))
@@ -645,25 +675,25 @@ putline(buf, num)
 	}
 	for (; print_pos < out_len; print_pos++) {
 		if (!ascii_flag) {
-		    PRINTF("   ");
+			PRINTF("   ");
 		}
 		++bytepos;
 		*(string + print_pos) = ' ';
 	}
 	*(string + num) = '\0';
-	if (no_tty) PRINTF("%s\n", string);
-	else PRINTF("%s\r\n", string);
+	if (no_tty)
+		PRINTF("%s\n", string);
+	else
+		PRINTF("%s\r\n", string);
 }
 
-
-int
-printout(lns)
-	int lns;
+int printout(lns)
+int lns;
 {
-	int			c, num;
-	int			doub = 0;
-	static		int		flag;
-	
+	int c, num;
+	int doub = 0;
+	static int flag;
+
 	if (c_flag) {
 		clearscreen();
 	}
@@ -673,23 +703,28 @@ printout(lns)
 		} else {
 			PRINTF("\r");
 			cleartoeol();
-			PRINTF("::::::::::::::\r\n%s\r\n::::::::::::::\r\n", name);
+			PRINTF("::::::::::::::\r\n%s\r\n::::::::::::::\r\n",
+			       name);
 		}
 		do_header = 0;
 		corr = 2;
 	}
-	if (corr && (lns > maxy - 2)) lns -= corr;
+	if (corr && (lns > maxy - 2))
+		lns -= corr;
 	corr = 0;
 	do {
 		for (num = 0; num < out_len; num++) {
-			if ((c = nextchar()) == -1) break;
+			if ((c = nextchar()) == -1)
+				break;
 			buffer1[num] = c;
 		}
-		if (!num) return 1;
-		if (memcmp(buffer1, buffer2, num) || !bytepos ) {
+		if (!num)
+			return 1;
+		if (memcmp(buffer1, buffer2, num) || !bytepos) {
 			memcpy(buffer2, buffer1, num);
 			putline(buffer2, num);
-			if (!no_tty) flag = TRUE;
+			if (!no_tty)
+				flag = TRUE;
 			lns--;
 		} else {
 			if (flag) {
@@ -704,201 +739,214 @@ printout(lns)
 		}
 		if (lns == 0) {
 			screen_home = bytepos - ((maxy + 1 + doub) * out_len);
-			if (screen_home < 0) screen_home = 0;
+			if (screen_home < 0)
+				screen_home = 0;
 			return 0;
 		}
-	} while(num);
+	} while (num);
 	return 1;
 }
 
-
-int
-nextchar()
+int nextchar()
 {
-	if (cnt == 0) return fgetc(curr_file);
+	if (cnt == 0)
+		return fgetc(curr_file);
 	cnt--;
 	return cmdbuf[icnt++] & 0xff;
 }
 
-
-void
-pushback(n, where)
-	int	n;
-	char	*where;
+void pushback(n, where)
+int n;
+char *where;
 {
-	if (cnt) memmove(cmdbuf + n, cmdbuf, n);
+	if (cnt)
+		memmove(cmdbuf + n, cmdbuf, n);
 	memcpy(cmdbuf, where, n);
 	icnt = 0;
 	cnt += n;
 }
-
-
-
 
 /* Return:
  * -1	EOF
  *  0	not found at current position
  *  1   found
  */
-int
-bmregexec(scan)
-	char	*scan;
+int bmregexec(scan)
+char *scan;
 {
-	char	*act;
-	int		count, test;
-	int		l;
-	char	act_pat[MAXCMD];  /* found pattern */
+	char *act;
+	int count, test;
+	int l;
+	char act_pat[MAXCMD];	/* found pattern */
 
 	act = act_pat;
 	l = 0;
 	while (*scan != 0) {
-		if ((test = nextchar()) == -1) return -1;
+		if ((test = nextchar()) == -1)
+			return -1;
 		*act++ = test;
 		if (++l == MAXCMD) {
 			pushback(l, act_pat);
 			return 0;
 		}
-		if (ignore_case && smode == ASCII)	test = toupper(test);
+		if (ignore_case && smode == ASCII)
+			test = toupper(test);
 		switch (*scan++) {
 		case ONE:	/* exactly one character */
-				count = *scan++;
-				if (count == 1) {
-					if (test != *scan) {
-						bytepos++;
-						if (l > 1) pushback(--l, act_pat + 1);
-						return 0;
-					}
-					scan++;
-				} else if (count > 1) {
-					if (sbracket(test, scan, count)) {
-						bytepos++;
-						if (l > 1) pushback(--l, act_pat + 1);
-						return 0;
-					}
-					scan += count;
+			count = *scan++;
+			if (count == 1) {
+				if (test != *scan) {
+					bytepos++;
+					if (l > 1)
+						pushback(--l, act_pat + 1);
+					return 0;
 				}
-				break;
-		case STAR:  /* zero or more characters */
-				count = *scan++;
-				if (count == 1) {	/* only one character, 0 - n times */
-					while (test == *scan) {
-						if ((test = nextchar()) == -1) return -2;
-						*act++ = test;
-						if (++l == MAXCMD) {
-							pushback(l, act_pat);
-							return 0;
-						}
-						if (ignore_case && smode == ASCII)
-								test = toupper(test);
+				scan++;
+			} else if (count > 1) {
+				if (sbracket(test, scan, count)) {
+					bytepos++;
+					if (l > 1)
+						pushback(--l, act_pat + 1);
+					return 0;
+				}
+				scan += count;
+			}
+			break;
+		case STAR:	/* zero or more characters */
+			count = *scan++;
+			if (count == 1) {	/* only one character, 0 - n times */
+				while (test == *scan) {
+					if ((test = nextchar()) == -1)
+						return -2;
+					*act++ = test;
+					if (++l == MAXCMD) {
+						pushback(l, act_pat);
+						return 0;
 					}
-					pushback(1, --act);
-					l--;
-					scan++;
-				} else if (count > 1) {	/* characters in bracket */
-					if (*scan == '^') {
-						do {
+					if (ignore_case && smode == ASCII)
+						test = toupper(test);
+				}
+				pushback(1, --act);
+				l--;
+				scan++;
+			} else if (count > 1) {	/* characters in bracket */
+				if (*scan == '^') {
+					do {
 /* If we found something matching the next part of the expression, we
  * abandon the search for not-matching characters. */
-							if (bmregexec(scan + count)) {
-								*act++ = test;	/* May be wrong case !! */
-								l++;
-								scan += count;
-								bytepos--;
-								break;
-							}
-							if (sbracket(test, scan, count)) {
-								bytepos++;
-								if (l > 1) pushback(--l, act_pat + 1);
-								return 0;
-							} else {
-								if ((test = nextchar()) == -1) return -3;
-								*act++ = test;
-								if (++l == MAXCMD) {
-									pushback(l, act_pat);
-									return 0;
-								}
-								if (ignore_case && smode == ASCII)
-										test = toupper(test);
-							}
-						} while(1);
-					} else {
-						while(!sbracket(test, scan, count)) {
-							if ((test = nextchar()) == -1) return -4;
+						if (bmregexec(scan + count)) {
+							*act++ = test;	/* May be wrong case !! */
+							l++;
+							scan += count;
+							bytepos--;
+							break;
+						}
+						if (sbracket(test, scan, count)) {
+							bytepos++;
+							if (l > 1)
+								pushback(--l,
+									 act_pat
+									 + 1);
+							return 0;
+						} else {
+							if ((test =
+							     nextchar()) == -1)
+								return -3;
 							*act++ = test;
 							if (++l == MAXCMD) {
-								pushback(l, act_pat);
+								pushback(l,
+									 act_pat);
 								return 0;
 							}
-							if (ignore_case && smode == ASCII)
-									test = toupper(test);
+							if (ignore_case
+							    && smode == ASCII)
+								test =
+								    toupper
+								    (test);
 						}
-						scan += count;
-						pushback(1, --act);
-						l--;
-					}
-				} else {	 /* ".*"  */
-					do {
-						if ((test = nextchar()) == -1) return -5;
+					} while (1);
+				} else {
+					while (!sbracket(test, scan, count)) {
+						if ((test = nextchar()) == -1)
+							return -4;
 						*act++ = test;
 						if (++l == MAXCMD) {
 							pushback(l, act_pat);
 							return 0;
 						}
-						pushback(1, act - 1);
-						bytepos--;
-					} while (bmregexec(scan) == 0);
-					bytepos++;
-					act--;
+						if (ignore_case
+						    && smode == ASCII)
+							test = toupper(test);
+					}
+					scan += count;
+					pushback(1, --act);
 					l--;
 				}
-				break;
+			} else {	/* ".*"  */
+				do {
+					if ((test = nextchar()) == -1)
+						return -5;
+					*act++ = test;
+					if (++l == MAXCMD) {
+						pushback(l, act_pat);
+						return 0;
+					}
+					pushback(1, act - 1);
+					bytepos--;
+				} while (bmregexec(scan) == 0);
+				bytepos++;
+				act--;
+				l--;
+			}
+			break;
 		}
 	}
 	pushback(l, act_pat);
-	return 1;	/* found */
+	return 1;		/* found */
 }
 
-
-int
-sbracket(start, scan, count)
-	int		start;
-	char	*scan;
-	int		count;
+int sbracket(start, scan, count)
+int start;
+char *scan;
+int count;
 {
 	if (*scan++ == '^') {
-		if (!memchr(scan, start, --count)) return 0;
+		if (!memchr(scan, start, --count))
+			return 0;
 	} else {
-		if (memchr(scan, start, --count)) return 0;
+		if (memchr(scan, start, --count))
+			return 0;
 	}
 	return 1;
 }
 
-
-void
-bmsearch(ch)
-	int	ch;
+void bmsearch(ch)
+int ch;
 {
-	int	i;
+	int i;
 
 	if (sstring[0] == '\0') {
 		emsg("No previous regular expression");
 		return;
 	}
 	if (ch == '/') {
-		if (ascii_comp(search_pat, sstring)) return;
+		if (ascii_comp(search_pat, sstring))
+			return;
 	}
 	if (ch == '\\') {
-		if (hex_comp(search_pat, sstring)) return;
+		if (hex_comp(search_pat, sstring))
+			return;
 	}
 	oldpos = bytepos;
 	last_search = screen_home;
-	if (precount < 1) precount = 1;
+	if (precount < 1)
+		precount = 1;
 	while (precount--) {
-		while ((i = bmregexec(search_pat)) == 0);
+		while ((i = bmregexec(search_pat)) == 0) ;
 		if (i == 1) {
 			screen_home = bytepos;
 			to_print = maxy;
-		} else {		/* i == -1 -> EOF */
+		} else {	/* i == -1 -> EOF */
 			if (no_intty) {
 				PRINTF("\r\nPattern not found\r\n");
 				do_next(1);
@@ -923,10 +971,8 @@ emsg(string);
 	}
 }
 
-
-void
-emsg(s)
-	char	*s;
+void emsg(s)
+char *s;
 {
 	putchar('\r');
 	cleartoeol();
@@ -937,8 +983,7 @@ emsg(s)
 	prompt = 0;
 }
 
-
-void
-bmbeep() {
+void bmbeep()
+{
 	putchar(7);
 }
