@@ -78,12 +78,13 @@ extern struct color colors[];
  * colors
  */
 
-#define C_AD		0	/* Addresses color */
-#define C_HX		1	/* Hexadecimal data window color */
-#define C_DT		2	/* Source data window color */
-#define	C_ER		3	/* Error message color */
-#define C_ST		4	/* Status line color */
-#define C_WN		5	/* Window color */
+#define C_BG		0	/* Background color */
+#define C_AD		1	/* Addresses color */
+#define C_HX		2	/* Hexadecimal data window color */
+#define C_DT		3	/* Source data window color */
+#define	C_ER		4	/* Error message color */
+#define C_ST		5	/* Status line color */
+#define C_WN		6	/* Window color */
 
 /*
  * Macro to get the value of a parameter
