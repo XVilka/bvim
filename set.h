@@ -82,7 +82,7 @@ extern struct color colors[];
 #define C_AD		1	/* Addresses color */
 #define C_HX		2	/* Hexadecimal data window color */
 #define C_DT		3	/* Source data window color */
-#define	C_ER		4	/* Error message color */
+#define C_ER		4	/* Error message color */
 #define C_ST		5	/* Status line color */
 #define C_WN		6	/* Window color */
 
