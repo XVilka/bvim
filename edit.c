@@ -50,13 +50,12 @@ struct BLOCK_ data_block[BLK_COUNT];
 char tmpbuf[10];
 char linbuf[256];
 
-static int hl_flg = 0;
-
 struct highlight_ {
 	int hl_start;
 	int hl_end;
 	int palette;
 	int toggle;
+	int hl_flg;
 };
 
 typedef struct highlight_ highlight_table;
@@ -522,15 +521,15 @@ void printcolorline(int y, int x, int palette, char *string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_hl(int y, int x, int base_palette, char *string, highlight_table *hl, int hl_tbl_size)
+void printcolorline_hl(int y, int x, int base_palette, char *string, highlight_table *hl, unsigned int hl_tbl_size)
 {
 	unsigned int i;
 	printcolorline(y, x, base_palette, string);
 	for (i = 0; i < hl_tbl_size; i++) {
 		if ((hl[i].hl_start < hl[i].hl_end) & (hl[i].toggle == 1)) {
-			attron(COLOR_PAIR(hl[i].palette) | A_REVERSE);
+			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT);
 			mvaddstr(y, x + hl[i].hl_start, substr(string, hl[i].hl_start, hl[i].hl_end - hl[i].hl_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_REVERSE);
+			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT);
 		}
 	}
 }
@@ -565,25 +564,25 @@ int scpos;
 	for (i = 0; i < BLK_COUNT; i++) {
 		if (data_block[i].hl_toggle == 1) {
 			hl[n].toggle = 1;
-			hl[n].palette = COLOR_RED;
-			n++;
-			if (hl_flg == 1) {
-				hl[n].hl_start  = 0;
+			hl[n].hl_start = 0;
+			hl[n].palette = C_ER;
+			if (hl[n].hl_flg == 1) {
 				hl[n].hl_end = Anzahl * 3;
 			} else {
-				hl[n].hl_start = 0;
 				hl[n].hl_end = 0;
 			}
 			for (print_pos = 0; print_pos < Anzahl * 3; print_pos += 3) {
-				if ((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) {
+				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) & (hl[n].hl_flg != 1)) {
 					hl[n].hl_start = print_pos;
-					hl_flg = 1;
+					hl[n].hl_end = Anzahl * 3;
+					hl[n].hl_flg = 1;
 				}
-				if ((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) {
+				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].hl_flg == 1)) {
 					hl[n].hl_end = print_pos;
-					hl_flg = 0;
+					hl[n].hl_flg = 0;
 				}
 			}
+			n++;
 		}
 	}
 	
@@ -604,7 +603,7 @@ int scpos;
 	*(string + Anzahl) = '\0';
 
 	/* load color from C(C_HX) */
-	printcolorline_hl(scpos, nxtpos, C_HX, linbuf, hl, n);
+	printcolorline_hl(scpos, nxtpos, C_HX, linbuf, hl, n + 1);
 	
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);
