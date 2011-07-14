@@ -565,7 +565,7 @@ int scpos;
 		if (data_block[i].hl_toggle == 1) {
 			hl[n].toggle = 1;
 			hl[n].hl_start = 0;
-			hl[n].palette = C_ER;
+			hl[n].palette = data_block[i].palette;
 			if (hl[n].hl_flg == 1) {
 				hl[n].hl_end = Anzahl * 3;
 			} else {

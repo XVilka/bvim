@@ -451,7 +451,7 @@ char *cmdline;
 	} else if (!strncmp("block", cmdname, len) && CMDLNG(5, 2)) {
 		if (c_argc == 0) {
 			return;
-		} else if (c_argc == 3) {
+		} else if (c_argc == 4) {
 			n = atoi(c_argv[0]);
 			if (n >= BLK_COUNT) {
 				emsg("Too big block number!");
@@ -460,6 +460,10 @@ char *cmdline;
 			if (atoi(c_argv[1]) < atoi(c_argv[2])) {
 				data_block[n].pos_start = atoi(c_argv[1]);
 				data_block[n].pos_end = atoi(c_argv[2]);
+				if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) > 6))
+					data_block[n].palette = C_HX;
+				else
+					data_block[n].palette = atoi(c_argv[3]);
 				data_block[n].hl_toggle = 1;
 				repaint();
 			} else {
