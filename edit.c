@@ -50,8 +50,16 @@ struct BLOCK_ data_block[BLK_COUNT];
 char tmpbuf[10];
 char linbuf[256];
 
-static unsigned int hl_stat = 0;
-static unsigned int hl_flg = 0;
+static int hl_flg = 0;
+
+struct highlight_ {
+	int hl_start;
+	int hl_end;
+	int palette;
+	int toggle;
+};
+
+typedef struct highlight_ highlight_table;
 
 static char getcbuff[BUFFER];
 static char *getcnext = NULL;
@@ -514,20 +522,16 @@ void printcolorline(int y, int x, int palette, char *string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_hl(int y, int x, int palette, char *string, unsigned int hl_start, unsigned int hl_end)
+void printcolorline_hl(int y, int x, int base_palette, char *string, highlight_table *hl, int hl_tbl_size)
 {
-	if (hl_start == hl_end) {
-		printcolorline(y, x, palette, string);
-	} else {
-		palette++;
-		attron(COLOR_PAIR(palette));
-		mvaddstr(y, x, string);
-		attroff(COLOR_PAIR(palette));
-		attron(A_STANDOUT);
-		mvaddstr(y, x + hl_start,
-			 substr(string, hl_start, hl_end - hl_start));
-		attroff(A_STANDOUT);
-		attroff(COLOR_PAIR(palette));
+	unsigned int i;
+	printcolorline(y, x, base_palette, string);
+	for (i = 0; i < hl_tbl_size; i++) {
+		if ((hl[i].hl_start < hl[i].hl_end) & (hl[i].toggle == 1)) {
+			attron(COLOR_PAIR(hl[i].palette) | A_REVERSE);
+			mvaddstr(y, x + hl[i].hl_start, substr(string, hl[i].hl_start, hl[i].hl_end - hl[i].hl_start));
+			attroff(COLOR_PAIR(hl[i].palette) | A_REVERSE);
+		}
 	}
 }
 
@@ -536,10 +540,10 @@ PTR mempos;
 int scpos;
 {
 	char hl_msg[256];
+	highlight_table hl[BLK_COUNT];
 	unsigned int i = 0;
+	unsigned int n = 0;
 	unsigned int print_pos;
-	unsigned int hl_start = 0;
-	unsigned int hl_end = 0;
 	int nxtpos = 0;
 	unsigned char Zeichen;
 
@@ -560,20 +564,29 @@ int scpos;
 	/* handle highlighted blocks */
 	for (i = 0; i < BLK_COUNT; i++) {
 		if (data_block[i].hl_toggle == 1) {
-			hl_stat = 1;
-			for (print_pos = 0; print_pos < Anzahl; print_pos++) {
-				if ((long)(mempos - mem + print_pos) == data_block[i].pos_start) {
-					hl_start = print_pos;
+			hl[n].toggle = 1;
+			hl[n].palette = COLOR_RED;
+			n++;
+			if (hl_flg == 1) {
+				hl[n].hl_start  = 0;
+				hl[n].hl_end = Anzahl * 3;
+			} else {
+				hl[n].hl_start = 0;
+				hl[n].hl_end = 0;
+			}
+			for (print_pos = 0; print_pos < Anzahl * 3; print_pos += 3) {
+				if ((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) {
+					hl[n].hl_start = print_pos;
 					hl_flg = 1;
 				}
-				if ((long)(mempos - mem + print_pos) == data_block[i].pos_end) {
-					hl_end = print_pos;
+				if ((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) {
+					hl[n].hl_end = print_pos;
 					hl_flg = 0;
 				}
 			}
 		}
 	}
-	/* draw in "normal" mode, without highlighting blocks */
+	
 	for (print_pos = 0; print_pos < Anzahl; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
 			sprintf(tmpbuf, "   ");
@@ -589,16 +602,10 @@ int scpos;
 			*(string + print_pos) = '.';
 	}
 	*(string + Anzahl) = '\0';
-	/* load color from C(C_HX) */
-	if (hl_stat != 1)
-		printcolorline(scpos, nxtpos, C_HX, linbuf);
-	else {
-		if ((hl_flg == 1) & (hl_start == 0)) {
-			hl_end = strlen(linbuf);
-		}
-		printcolorline_hl(scpos, nxtpos, C_HX, linbuf, hl_start, hl_end);
-	}
 
+	/* load color from C(C_HX) */
+	printcolorline_hl(scpos, nxtpos, C_HX, linbuf, hl, n);
+	
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);
 	/* load color from C(C_DT) */

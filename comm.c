@@ -457,10 +457,15 @@ char *cmdline;
 				emsg("Too big block number!");
 				return;
 			}
-			data_block[n].pos_start = atoi(c_argv[1]);
-			data_block[n].pos_end = atoi(c_argv[2]);
-			data_block[n].hl_toggle = 1;
-			repaint();
+			if (atoi(c_argv[1]) < atoi(c_argv[2])) {
+				data_block[n].pos_start = atoi(c_argv[1]);
+				data_block[n].pos_end = atoi(c_argv[2]);
+				data_block[n].hl_toggle = 1;
+				repaint();
+			} else {
+				emsg("Wrong block start and end values!");
+				return;
+			}
 		} else {
 			emsg("Wrong :block command format!");
 			return;

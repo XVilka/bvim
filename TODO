@@ -1,8 +1,7 @@
-- Add block/string highlighting
+- Add saving terminal state/colors when starting and restoring it when exiting
 - Add C-syntax structures parsing and searching
 - Add GZIP, ZIP, TAR, etc signatures to search and highlight
 - Add ::unmap feature
-- Add :block selection (can consist from more than one pieces)
 - Add :vsplit and :split feature
 - Add binary diff mode
 - Add checksums calculating
