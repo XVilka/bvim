@@ -45,8 +45,13 @@ char contru[][4] = { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
 	"DEL"
 };
 
+struct BLOCK_ data_block[BLK_COUNT];
+
 char tmpbuf[10];
 char linbuf[256];
+
+static unsigned int hl_stat = 0;
+static unsigned int hl_flg = 0;
 
 static char getcbuff[BUFFER];
 static char *getcnext = NULL;
@@ -509,19 +514,20 @@ void printcolorline(int y, int x, int palette, char *string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_with_highlight(int y, int x, int palette1, int palette2,
-				   char *string, int hl_start, int hl_end)
+void printcolorline_hl(int y, int x, int palette, char *string, unsigned int hl_start, unsigned int hl_end)
 {
-	if (palette1 == palette2) {
-		printcolorline(y, x, palette1, string);
+	if (hl_start == hl_end) {
+		printcolorline(y, x, palette, string);
 	} else {
-		attron(COLOR_PAIR(palette1));
+		palette++;
+		attron(COLOR_PAIR(palette));
 		mvaddstr(y, x, string);
-		attroff(COLOR_PAIR(palette1));
-		attron(COLOR_PAIR(palette2));
+		attroff(COLOR_PAIR(palette));
+		attron(A_STANDOUT);
 		mvaddstr(y, x + hl_start,
 			 substr(string, hl_start, hl_end - hl_start));
-		attroff(COLOR_PAIR(palette2));
+		attroff(A_STANDOUT);
+		attroff(COLOR_PAIR(palette));
 	}
 }
 
@@ -529,9 +535,15 @@ void printline(mempos, scpos)
 PTR mempos;
 int scpos;
 {
-	int print_pos;
+	char hl_msg[256];
+	unsigned int i = 0;
+	unsigned int print_pos;
+	unsigned int hl_start = 0;
+	unsigned int hl_end = 0;
 	int nxtpos = 0;
 	unsigned char Zeichen;
+
+	hl_msg[0] = '\0';
 
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
@@ -545,6 +557,23 @@ int scpos;
 	nxtpos = 10;
 	*linbuf = '\0';
 
+	/* handle highlighted blocks */
+	for (i = 0; i < BLK_COUNT; i++) {
+		if (data_block[i].hl_toggle == 1) {
+			hl_stat = 1;
+			for (print_pos = 0; print_pos < Anzahl; print_pos++) {
+				if ((long)(mempos - mem + print_pos) == data_block[i].pos_start) {
+					hl_start = print_pos;
+					hl_flg = 1;
+				}
+				if ((long)(mempos - mem + print_pos) == data_block[i].pos_end) {
+					hl_end = print_pos;
+					hl_flg = 0;
+				}
+			}
+		}
+	}
+	/* draw in "normal" mode, without highlighting blocks */
 	for (print_pos = 0; print_pos < Anzahl; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
 			sprintf(tmpbuf, "   ");
@@ -561,7 +590,14 @@ int scpos;
 	}
 	*(string + Anzahl) = '\0';
 	/* load color from C(C_HX) */
-	printcolorline(scpos, nxtpos, C_HX, linbuf);
+	if (hl_stat != 1)
+		printcolorline(scpos, nxtpos, C_HX, linbuf);
+	else {
+		if ((hl_flg == 1) & (hl_start == 0)) {
+			hl_end = strlen(linbuf);
+		}
+		printcolorline_hl(scpos, nxtpos, C_HX, linbuf, hl_start, hl_end);
+	}
 
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);

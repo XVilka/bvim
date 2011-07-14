@@ -130,6 +130,8 @@
 #define MAXCMD	255
 #define BUFFER	1024
 
+#define BLK_COUNT 32 /* number of data blocks */
+
 #define SKIP_WHITE  while(*cmd!='\0'&&isspace(*cmd))cmd++;
 
 #ifdef DEBUG
@@ -143,6 +145,14 @@ extern char *sys_errlist[];
 extern struct KEYMAP_ {
 	unsigned int keycode;
 	char cmd[256];
+};
+
+extern struct BLOCK_ {
+	unsigned int pos_start;
+	unsigned int pos_end;
+	char name[64];
+	unsigned int hl_toggle; /* do we need highlight this block? */
+	unsigned int palette; /* pallete, which we are using for highlight this block */
 };
 
 extern char *version;

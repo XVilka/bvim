@@ -90,6 +90,7 @@ extern char **files;		/* used for "next" and "rewind" */
 extern int numfiles, curfile;
 extern int errno;
 extern struct KEYMAP_ KEYMAP[32];
+extern struct BLOCK_ data_block[BLK_COUNT];
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
@@ -446,6 +447,23 @@ char *cmdline;
 				if (doset(c_argv[n]))
 					return;
 			}
+		}
+	} else if (!strncmp("block", cmdname, len) && CMDLNG(5, 2)) {
+		if (c_argc == 0) {
+			return;
+		} else if (c_argc == 3) {
+			n = atoi(c_argv[0]);
+			if (n >= BLK_COUNT) {
+				emsg("Too big block number!");
+				return;
+			}
+			data_block[n].pos_start = atoi(c_argv[1]);
+			data_block[n].pos_end = atoi(c_argv[2]);
+			data_block[n].hl_toggle = 1;
+			repaint();
+		} else {
+			emsg("Wrong :block command format!");
+			return;
 		}
 	} else if (!strncmp("lua", cmdname, len) && CMDLNG(3, 2)) {
 		if (c_argc == 0) {

@@ -9,6 +9,8 @@
 
 lua_State *lstate;
 
+extern struct BLOCK_ data_block[BLK_COUNT];
+
 /* Save current buffer into file */
 /* lua: save(filename, [start, end, flags]) */
 static int bvi_save(lua_State * L)
@@ -45,6 +47,48 @@ static int bvi_file(lua_State * L)
 {
 	char *filename = "dummy";
 	lua_pushstring(L, filename);
+	return 1;
+}
+
+/* Select block in the buffer */
+/* lua: block_select(block_number, start, end) */
+static int bvi_block_select(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 3) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (n < BLK_COUNT) {
+			data_block[n].pos_start = (unsigned long)lua_tonumber(L, 2);
+			data_block[n].pos_end = (unsigned long)lua_tonumber(L, 3);
+			data_block[n].hl_toggle = 1;
+			repaint();
+		} else {
+			emsg("Wrong block number! Too big!");
+		}
+	} else {
+		emsg("Error in lua block_select function! Wrong format!");
+	}
+	return 0;
+}
+
+/* Read block in the buffer */
+/* lua: block_read(block_number) */
+static int bvi_block_read(lua_State *L)
+{
+	unsigned int n = 0;
+	void* block = NULL;
+	if (lua_gettop(L) == 1) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if ((data_block[n].pos_start != data_block[n].pos_end) 
+			& (data_block[n].pos_end > data_block[n].pos_start)) {
+			/* Here we need read this block somehow */
+			block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start);
+		} else {
+			emsg("You need select buffer, before read!");
+		}
+	} else {
+		emsg("Error in lua block_read function! Wrong format!");
+	}
 	return 1;
 }
 
@@ -215,6 +259,8 @@ void bvi_lua_init()
 		{"load", bvi_load},
 		{"file", bvi_file},
 		{"exec", bvi_exec},
+		{"block_select", bvi_block_select},
+		{"block_read", bvi_block_read},
 		{"display_error", bvi_display_error},
 		{"display_status_msg", bvi_status_line_msg},
 		{"msg_window", bvi_msg_window},
