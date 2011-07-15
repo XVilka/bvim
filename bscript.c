@@ -96,6 +96,132 @@ static int bvi_block_read(lua_State *L)
 	return 1;
 }
 
+/* AND bit operation on block */
+/* lua: block_and(block_number, mask) */
+static int bvi_block_and(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(AND, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before and operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* OR bit operation on block */
+/* lua: block_or(block_number, mask) */
+static int bvi_block_or(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(OR, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before or operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* XOR bit operation on block */
+/* lua: block_xor(block_number, mask) */
+static int bvi_block_xor(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(XOR, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before xor operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* LSHIFT bit operation on block */
+/* lua: block_lshift(block_number, count) */
+static int bvi_block_lshift(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(LSHIFT, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before lshift operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* RSHIFT bit operation on block */
+/* lua: block_rshift(block_number, count) */
+static int bvi_block_rshift(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(RSHIFT, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before rshift operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* LROTATE bit operation on block */
+/* lua: block_lrotate(block_number, count) */
+static int bvi_block_lrotate(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(LROTATE, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before lrotate operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
+/* RROTATE bit operation on block */
+/* lua: block_rrotate(block_number, count) */
+static int bvi_block_rrotate(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 2) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			do_logic_block(RROTATE, (char*)lua_tostring(L, 2), n);
+		} else {
+			emsg("You need select valid block before rrotate operation!");
+		}	
+	} else {
+		emsg("Error in lua block_and function! Wrong format!");
+	}
+	return 0;
+}
+
 /* Calculate SHA1 hash of buffer */
 /* lua: sha1_hash(block_number) */
 static int bvi_sha1_hash(lua_State *L)
@@ -322,6 +448,13 @@ void bvi_lua_init()
 		{"exec", bvi_exec},
 		{"block_select", bvi_block_select},
 		{"block_read", bvi_block_read},
+		{"block_and", bvi_block_and},
+		{"block_or", bvi_block_or},
+		{"block_xor", bvi_block_xor},
+		{"block_lshift", bvi_block_lshift},
+		{"block_rshift", bvi_block_rshift},
+		{"block_lrotate", bvi_block_lrotate},
+		{"block_rrotate", bvi_block_rrotate},
 		{"sha1_hash", bvi_sha1_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},

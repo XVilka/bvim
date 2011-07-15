@@ -430,7 +430,7 @@ int block_number;
 	undo_start = start_addr + data_block[block_number].pos_start;
 	edits = U_EDIT;
 	start_addr = start_addr + data_block[block_number].pos_start;
-	end_addr = start_addr + data_block[block_number].pos_end;
+	end_addr = start_addr + data_block[block_number].pos_end - data_block[block_number].pos_start;
 	while (start_addr <= end_addr) {
 		a = *start_addr;
 		a &= 0xff;
