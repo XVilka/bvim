@@ -692,6 +692,8 @@ char *cmdline;
 			do_logic(LSHIFT, c_argv[0]);
 		} else if (c_argc == 0) {
 			do_logic(LSHIFT, "1");
+		} else if (c_argc == 2) {
+			do_logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -701,6 +703,8 @@ char *cmdline;
 			do_logic(RSHIFT, c_argv[0]);
 		} else if (c_argc == 0) {
 			do_logic(RSHIFT, "1");
+		} else if (c_argc == 2) {
+			do_logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -710,6 +714,8 @@ char *cmdline;
 			do_logic(LROTATE, c_argv[0]);
 		} else if (c_argc == 0) {
 			do_logic(LROTATE, "1");
+		} else if (c_argc == 2) {
+			do_logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -719,6 +725,8 @@ char *cmdline;
 			do_logic(RROTATE, c_argv[0]);
 		} else if (c_argc == 0) {
 			do_logic(RROTATE, "1");
+		} else if (c_argc == 2) {
+			do_logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -729,6 +737,8 @@ char *cmdline;
 		} else if (c_argc == 0) {
 			emsg(noval);
 			return;
+		} else if (c_argc == 2) {
+			do_logic_block(AND, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -739,6 +749,8 @@ char *cmdline;
 		} else if (c_argc == 0) {
 			emsg(noval);
 			return;
+		} else if (c_argc == 2) {
+			do_logic_block(OR, c_argv[0], atoi(c_argv[1]));
 		} else {
 			emsg(ambvalue);
 			return;
@@ -749,7 +761,10 @@ char *cmdline;
 		} else if (c_argc == 0) {
 			emsg(noval);
 			return;
-		} else {
+		} else if (c_argc == 2) {
+			do_logic_block(XOR, c_argv[0], atoi(c_argv[1]));
+		}
+		else {
 			emsg(ambvalue);
 			return;
 		}
