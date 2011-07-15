@@ -51,15 +51,16 @@ static int bvi_file(lua_State * L)
 }
 
 /* Select block in the buffer */
-/* lua: block_select(block_number, start, end) */
+/* lua: block_select(block_number, start, end, pattern) */
 static int bvi_block_select(lua_State *L)
 {
 	unsigned int n = 0;
-	if (lua_gettop(L) == 3) {
+	if (lua_gettop(L) == 4) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (n < BLK_COUNT) {
 			data_block[n].pos_start = (unsigned long)lua_tonumber(L, 2);
 			data_block[n].pos_end = (unsigned long)lua_tonumber(L, 3);
+			data_block[n].palette = (unsigned int)lua_tonumber(L, 4);
 			data_block[n].hl_toggle = 1;
 			repaint();
 		} else {
@@ -88,6 +89,45 @@ static int bvi_block_read(lua_State *L)
 		}
 	} else {
 		emsg("Error in lua block_read function! Wrong format!");
+	}
+	return 1;
+}
+
+/* Search byte sequence in the buffer */
+/* Return address found */
+/* lua: search_bytes(bytes) */
+static int bvi_search_bytes(lua_State *L)
+{
+	PTR result;
+	char* bytes;
+	char msgbuf[256];
+	msgbuf[0] = '\0';
+	if (lua_gettop(L) == 1) {
+		bytes = (char *)lua_tostring(L, -1);
+		result = searching('\\', bytes, 0, maxpos - 1, FALSE | S_GLOBAL);
+		sprintf(msgbuf, "Found [%s] at %ld position", bytes, (long)result);
+		wmsg(msgbuf, 3, strlen(msgbuf) + 4);
+		lua_pushstring(L, result);
+	}
+	return 1;
+}
+
+/* Replace byte sequence to another in the buffer */
+/* Return number of sustitutions */
+/* lua: replace_bytes(original, target) */
+static int bvi_replace_bytes(lua_State *L)
+{
+	int result = 0;
+	char* bytes;
+	char* target;
+	char bytesbuf[256];
+	bytesbuf[0] = '\0';
+	if (lua_gettop(L) == 2) {
+		bytes = (char *)lua_tostring(L, 1);
+		target = (char *)lua_tostring(L, 2);
+		sprintf(bytesbuf, "/%s/%s/", bytes, target);
+		result = do_substitution('\\', bytesbuf, 0, maxpos - 1);
+		lua_pushnumber(L, result);
 	}
 	return 1;
 }
@@ -215,12 +255,6 @@ static int bvi_insert(lua_State * L)
 	return 0;
 }
 
-/* Overwrite count of bytes with custom data */
-static int bvi_overwrite(lua_State * L)
-{
-	return 0;
-}
-
 /* Remove count of bytes from position */
 static int bvi_remove(lua_State * L)
 {
@@ -261,6 +295,8 @@ void bvi_lua_init()
 		{"exec", bvi_exec},
 		{"block_select", bvi_block_select},
 		{"block_read", bvi_block_read},
+		{"search_bytes", bvi_search_bytes},
+		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},
 		{"display_status_msg", bvi_status_line_msg},
 		{"msg_window", bvi_msg_window},
@@ -269,7 +305,6 @@ void bvi_lua_init()
 		{"undo", bvi_undo},
 		{"redo", bvi_redo},
 		{"insert", bvi_insert},
-		{"overwrite", bvi_overwrite},
 		{"remove", bvi_remove},
 		{"cursor", bvi_cursor},
 		{"scrolldown", bvi_scrolldown},

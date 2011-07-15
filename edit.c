@@ -578,7 +578,7 @@ int scpos;
 					hl[n].hl_flg = 1;
 				}
 				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].hl_flg == 1)) {
-					hl[n].hl_end = print_pos;
+					hl[n].hl_end = print_pos + 2;
 					hl[n].hl_flg = 0;
 				}
 			}
