@@ -57,13 +57,14 @@ struct param params[] = {
 };
 
 struct color colors[] = {	/* RGB definitions and default value, if have no support of 256 colors */
-	{"background", "bg", 0, 0, 0, COLOR_BLACK},
-	{"addresses", "addr", 135, 206, 500, COLOR_BLUE},
+	{"background", "bg", 50, 50, 50, COLOR_BLACK},
+	{"addresses", "addr", 335, 506, 700, COLOR_BLUE},
 	{"hex", "hex", 600, 600, 600, COLOR_MAGENTA},
 	{"data", "data", 0, 800, 400, COLOR_GREEN},
 	{"error", "err", 999, 350, 0, COLOR_RED},
 	{"status", "stat", 255, 255, 255, COLOR_WHITE},
 	{"window", "win", 0, 800, 400, COLOR_YELLOW},
+	{"addrbg", "addrbg", 0, 0, 0, 16},
 	{"", "", 0, 0, 0, 0}	/* end marker */
 };
 
@@ -247,6 +248,7 @@ void set_palette()
 				init_pair(i + 1, C_s(i), C_s(0));
 			}
 		}
+		init_pair(C_AD + 1, C_s(C_AD), 16);
 	} else {		/* if have no support of changing colors */
 		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
 			if (C_s(i) <= 7) {

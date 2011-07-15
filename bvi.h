@@ -148,8 +148,8 @@ extern struct KEYMAP_ {
 };
 
 extern struct BLOCK_ {
-	unsigned int pos_start;
-	unsigned int pos_end;
+	unsigned long pos_start;
+	unsigned long pos_end;
 	char name[64];
 	unsigned int hl_toggle; /* do we need highlight this block? */
 	unsigned int palette; /* pallete, which we are using for highlight this block */

@@ -5,6 +5,7 @@
 
 #include "bvi.h"
 #include "set.h"
+#include "util.h"
 #include "bscript.h"
 
 lua_State *lstate;
@@ -77,18 +78,44 @@ static int bvi_block_select(lua_State *L)
 static int bvi_block_read(lua_State *L)
 {
 	unsigned int n = 0;
-	void* block = NULL;
+	char* block = NULL;
 	if (lua_gettop(L) == 1) {
 		n = (unsigned int)lua_tonumber(L, 1);
-		if ((data_block[n].pos_start != data_block[n].pos_end) 
-			& (data_block[n].pos_end > data_block[n].pos_start)) {
-			/* Here we need read this block somehow */
-			block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			/*block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start);*/
+			block = (char*)malloc(data_block[n].pos_end - data_block[n].pos_start + 2);
+			strncpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start);
+			strcat(block, '\0');
+			lua_pushstring(L, block);
 		} else {
-			emsg("You need select buffer, before read!");
+			emsg("You need select valid block before read!");
 		}
 	} else {
 		emsg("Error in lua block_read function! Wrong format!");
+	}
+	return 1;
+}
+
+/* Calculate SHA1 hash of buffer */
+/* lua: sha1_hash(block_number) */
+static int bvi_sha1_hash(lua_State *L)
+{
+	unsigned int n = 0;
+	char* block = NULL;
+	char hash[65];
+	hash[0] = '\0';
+	if (lua_gettop(L) == 1) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start);
+			memcpy(block, *(&mem + data_block[n].pos_start), data_block[n].pos_end - data_block[n].pos_start);
+			sha1_hash_string(block, hash);
+			lua_pushstring(L, hash);
+		} else {
+			emsg("You need select valid block before SHA1 hash calculation!");
+		}
+	} else {
+		emsg("Error in lua sha1_hash function! Wrong format!");
 	}
 	return 1;
 }
@@ -295,6 +322,7 @@ void bvi_lua_init()
 		{"exec", bvi_exec},
 		{"block_select", bvi_block_select},
 		{"block_read", bvi_block_read},
+		{"sha1_hash", bvi_sha1_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},

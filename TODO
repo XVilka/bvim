@@ -4,7 +4,6 @@
 - Add :unmap feature
 - Add :vsplit and :split feature
 - Add binary diff mode
-- Add checksums calculating
 - Templates support
 - Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
 - Add support for big-endian and little-endian

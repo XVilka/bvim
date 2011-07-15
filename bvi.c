@@ -269,7 +269,7 @@ char *argv[];
 	   strcpy(addr_form,  "%06lX  ");
 	 */
 	AnzAdd = 10;
-	strcpy(addr_form, "%08lX  ");
+	strcpy(addr_form, "%08lX :");
 
 	Anzahl = ((COLS - AnzAdd - 1) / 16) * 4;
 	P(P_CM) = Anzahl;

@@ -91,6 +91,23 @@ AC_CHECK_HEADER(lua5.1/lua.h,[
 		AC_MSG_ERROR([bvi requires lua])])],[
 	AC_MSG_ERROR([bvi requires lua])])
 
+
+dnl Check if openssl requested
+AC_ARG_WITH(openssl,
+[ --with-openssl[=DIR]   path to openssl],[
+	if test "$withval" != "no"; then
+		CPPFLAGS="${CPPFLAGS} -I$withval/include"
+		LDFLAGS="${LDFLAGS} -L$withval/lib"
+	fi
+])
+
+AC_CHECK_HEADER([openssl/evp.h],[
+	AC_CHECK_LIB([ssl], [SHA256_Init],[
+		AC_DEFINE([HAVE_OPENSSL],[1],[OpenSSL header files]) LIBS="${LIBS} -lssl"],[
+		AC_MSG_ERROR([bvi requires openssl])],[]
+	)],[
+	AC_MSG_ERROR([bvi requires openssl])])
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl AC_TYPE_SIZE_T
 

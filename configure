@@ -665,6 +665,7 @@ ac_user_opts='
 enable_option_checking
 with_ncurses
 with_lua
+with_openssl
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1289,6 +1290,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-ncurses=DIR    path to ncurses
   --with-lua=DIR    path to lua
+ --with-openssl=DIR   path to openssl
 
 Some influential environment variables:
   CC          C compiler command
@@ -4262,6 +4264,76 @@ else
 fi
 
 
+fi
+
+
+
+
+
+# Check whether --with-openssl was given.
+if test "${with_openssl+set}" = set; then :
+  withval=$with_openssl;
+	if test "$withval" != "no"; then
+		CPPFLAGS="${CPPFLAGS} -I$withval/include"
+		LDFLAGS="${LDFLAGS} -L$withval/lib"
+	fi
+
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "openssl/evp.h" "ac_cv_header_openssl_evp_h" "$ac_includes_default"
+if test "x$ac_cv_header_openssl_evp_h" = xyes; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SHA256_Init in -lssl" >&5
+$as_echo_n "checking for SHA256_Init in -lssl... " >&6; }
+if ${ac_cv_lib_ssl_SHA256_Init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lssl
+	 $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SHA256_Init ();
+int
+main ()
+{
+return SHA256_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ssl_SHA256_Init=yes
+else
+  ac_cv_lib_ssl_SHA256_Init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SHA256_Init" >&5
+$as_echo "$ac_cv_lib_ssl_SHA256_Init" >&6; }
+if test "x$ac_cv_lib_ssl_SHA256_Init" = xyes; then :
+
+
+$as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
+ LIBS="${LIBS} -lssl"
+else
+
+		as_fn_error $? "bvi requires openssl" "$LINENO" 5
+fi
+
+else
+
+	as_fn_error $? "bvi requires openssl" "$LINENO" 5
 fi
 
 

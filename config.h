@@ -25,6 +25,9 @@
 /* Define to 1 if you have the <ncurses/term.h> header file. */
 /* #undef HAVE_NCURSES_TERM_H */
 
+/* OpenSSL header files */
+#define HAVE_OPENSSL 1
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
 

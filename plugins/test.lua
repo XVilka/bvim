@@ -6,3 +6,5 @@ bvi.print(8, 15, 4, "here is lua scripting test")
 bvi.exec("block 0 12 233 4");
 bvi.exec("block 1 357 683 2");
 bvi.exec("block 2 749 919 3");
+block = bvi.block_read(0);
+bvi.msg_window(tostring(string.len(block)));
