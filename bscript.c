@@ -83,9 +83,8 @@ static int bvi_block_read(lua_State *L)
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			/*block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start);*/
-			block = (char*)malloc(data_block[n].pos_end - data_block[n].pos_start + 2);
-			strncpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start);
-			strcat(block, '\0');
+			block = (char*)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
+			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
 			lua_pushstring(L, block);
 		} else {
 			emsg("You need select valid block before read!");
@@ -233,8 +232,8 @@ static int bvi_sha1_hash(lua_State *L)
 	if (lua_gettop(L) == 1) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start);
-			memcpy(block, *(&mem + data_block[n].pos_start), data_block[n].pos_end - data_block[n].pos_start);
+			block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
+			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
 			sha1_hash_string(block, hash);
 			lua_pushstring(L, hash);
 		} else {
@@ -245,6 +244,31 @@ static int bvi_sha1_hash(lua_State *L)
 	}
 	return 1;
 }
+
+/* Calculate SHA256 hash of buffer */
+/* lua: sha256_hash(block_number) */
+static int bvi_sha256_hash(lua_State *L)
+{
+	unsigned int n = 0;
+	char* block = NULL;
+	char hash[65];
+	hash[0] = '\0';
+	if (lua_gettop(L) == 1) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
+			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
+			sha256_hash_string(block, hash);
+			lua_pushstring(L, hash);
+		} else {
+			emsg("You need select valid block before SHA256 hash calculation!");
+		}
+	} else {
+		emsg("Error in lua sha256_hash function! Wrong format!");
+	}
+	return 1;
+}
+
 
 /* Search byte sequence in the buffer */
 /* Return address found */
@@ -456,6 +480,7 @@ void bvi_lua_init()
 		{"block_lrotate", bvi_block_lrotate},
 		{"block_rrotate", bvi_block_rrotate},
 		{"sha1_hash", bvi_sha1_hash},
+		{"sha256_hash", bvi_sha256_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},
