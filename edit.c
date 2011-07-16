@@ -599,7 +599,7 @@ int scpos;
 				}
 				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].flg == 1)) {
 					hl[n].hex_end = print_pos + 2;
-					hl[n].dat_end = print_pos / 3;
+					hl[n].dat_end = print_pos / 3 + 1;
 					hl[n].flg = 0;
 				}
 			}

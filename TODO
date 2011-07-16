@@ -1,10 +1,10 @@
 - Add saving terminal state/colors when starting and restoring it when exiting
-- Add C-syntax structures parsing and searching
+- Add C-syntax structures parsing and searching (high priority)
 - Add GZIP, ZIP, TAR, etc signatures to search and highlight
 - Add :unmap feature
-- Add :vsplit and :split feature
+- Add :split feature (low priority)
 - Add binary diff mode
-- Templates support
+- Templates support (high priority)
 - Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
 - Add support for big-endian and little-endian
 
