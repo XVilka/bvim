@@ -596,10 +596,21 @@ int scpos;
 					hl[n].hex_end = Anzahl * 3;
 					hl[n].dat_end = Anzahl;
 					hl[n].flg = 1;
+				} else if (((long)(mempos - mem + (print_pos / 3)) < data_block[i].pos_end) & 
+					((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_start) & (hl[n].flg != 1))
+				{
+					hl[n].hex_start = print_pos;
+					hl[n].dat_start = print_pos / 3;
+					hl[n].hex_end = Anzahl * 3;
+					hl[n].dat_end = Anzahl;
+					hl[n].flg = 1;
 				}
 				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].flg == 1)) {
 					hl[n].hex_end = print_pos + 2;
 					hl[n].dat_end = print_pos / 3 + 1;
+					hl[n].flg = 0;
+				} else if (((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_end)) 
+				{
 					hl[n].flg = 0;
 				}
 			}
