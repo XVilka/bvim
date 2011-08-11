@@ -11,6 +11,7 @@
 lua_State *lstate;
 
 extern struct BLOCK_ data_block[BLK_COUNT];
+extern WINDOW *tools_win;
 
 /* Save current buffer into file */
 /* lua: save(filename, [start, end, flags]) */
@@ -364,6 +365,28 @@ static int bvi_msg_window(lua_State * L)
 	return 0;
 }
 
+/* Display tools window */
+/* lua: tools_window() */
+static int bvi_tools_window(lua_State * L)
+{
+	int n = lua_gettop(L);
+	if (n == 1) {
+		tools_win = show_tools_window((int)lua_tonumber(L, -1));
+	}
+	return 0;
+}
+
+/* Display text in tools window */
+/* lua: print_tools_window() */
+static int bvi_print_tools_window(lua_State * L)
+{
+	int n = lua_gettop(L);
+	if (n == 1) {
+		print_tools_window((char*)lua_tostring(L, -1));
+	}
+	return 0;
+}
+
 /* Print color line in the any place of window */
 /* lua: print(x, y, palette, string) */
 static int bvi_print(lua_State * L)
@@ -486,6 +509,8 @@ void bvi_lua_init()
 		{"display_error", bvi_display_error},
 		{"display_status_msg", bvi_status_line_msg},
 		{"msg_window", bvi_msg_window},
+		{"tools_window", bvi_tools_window},
+		{"print_tools_window", bvi_print_tools_window},
 		{"print", bvi_print},
 		{"set", bvi_set},
 		{"undo", bvi_undo},

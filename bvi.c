@@ -52,6 +52,10 @@ int loc;
 int maxx, maxy, x, xx, y;
 int screen, status;
 off_t size;
+
+/* Tools window */
+WINDOW *tools_win;
+
 PTR mem = NULL;
 PTR curpos;
 PTR maxpos;
@@ -105,6 +109,83 @@ void usage()
 	fprintf(stderr, "Usage: %s [-R] [-c cmd | +cmd] [-f script]\n\
        [-b begin] [-e end] [-s size] file ...\n", progname);
 	exit(1);
+}
+
+void main_window_resize(int lines_count) {
+	maxy = lines_count;
+	if (params[P_LI].flags & P_CHANGED)
+		maxy = P(P_LI);
+	scrolly = maxy / 2;
+	P(P_SS) = scrolly;
+	P(P_LI) = maxy;
+	maxy--;
+	
+	keypad(stdscr, TRUE);
+	scrollok(stdscr, TRUE);
+	nonl();
+	cbreak();
+	noecho();
+
+	/*
+	   AnzAdd = 8;
+	   strcpy(addr_form,  "%06lX  ");
+	 */
+	AnzAdd = 10;
+	strcpy(addr_form, "%08lX :");
+
+	Anzahl = ((COLS - AnzAdd - 1) / 16) * 4;
+	P(P_CM) = Anzahl;
+	maxx = Anzahl * 4 + AnzAdd + 1;
+	Anzahl3 = Anzahl * 3;
+	status = Anzahl3 + Anzahl - 17;
+	screen = Anzahl * (maxy - 1);
+
+	new_screen();
+}
+
+WINDOW* show_tools_window(int lines_count) {
+	WINDOW *tools_win;
+	if (tools_win == NULL) {
+		lines_count = LINES - lines_count;
+		main_window_resize(lines_count);
+		refresh();
+		attron(COLOR_PAIR(C_WN + 1));
+		tools_win = newwin(LINES - lines_count, maxx + 1, lines_count, 0);
+		box(tools_win, 0, 0);
+		wrefresh(tools_win);
+		attroff(COLOR_PAIR(C_WN + 1));
+	} else {
+		emsg("show_tools_window: tools window already exist!\n");
+	}
+	return tools_win;
+}
+
+int print_tools_window(char* str) {
+	if (tools_win != NULL) {
+		attron(COLOR_PAIR(C_WN + 1));
+		mvwaddstr(tools_win, 1, 1, str);
+		wrefresh(tools_win);
+		attroff(COLOR_PAIR(C_WN + 1));
+		return 0;
+	} else {
+		emsg("print_tools_window: tools window not exist!\n");
+		return -1;
+	}
+}
+
+void hide_tools_window(WINDOW *tools_win) {
+	if (tools_win != NULL) {
+		main_window_resize(LINES);
+		attron(COLOR_PAIR(C_WN + 1));
+		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		wrefresh(tools_win);
+		delwin(tools_win);
+		attroff(COLOR_PAIR(C_WN + 1));
+		repaint();
+		tools_win = NULL;
+	} else {
+		emsg("hide_tools_window: tools window not exist!\n");
+	}
 }
 
 int main(argc, argv)
@@ -251,33 +332,7 @@ char *argv[];
 	}
 
 	attrset(A_NORMAL);
-	maxy = LINES;
-	if (params[P_LI].flags & P_CHANGED)
-		maxy = P(P_LI);
-	scrolly = maxy / 2;
-	P(P_SS) = scrolly;
-	P(P_LI) = maxy;
-	maxy--;
-	keypad(stdscr, TRUE);
-	scrollok(stdscr, TRUE);
-	nonl();
-	cbreak();
-	noecho();
-
-	/*
-	   AnzAdd = 8;
-	   strcpy(addr_form,  "%06lX  ");
-	 */
-	AnzAdd = 10;
-	strcpy(addr_form, "%08lX :");
-
-	Anzahl = ((COLS - AnzAdd - 1) / 16) * 4;
-	P(P_CM) = Anzahl;
-	maxx = Anzahl * 4 + AnzAdd + 1;
-	Anzahl3 = Anzahl * 3;
-	status = Anzahl3 + Anzahl - 17;
-	screen = Anzahl * (maxy - 1);
-
+	main_window_resize(LINES);	
 	signal(SIGINT, SIG_IGN);
 	filesize = load(name);
 
@@ -453,6 +508,14 @@ char *argv[];
 			if (x > AnzAdd - 1 + Anzahl3 + Anzahl) {
 				x = AnzAdd - 1 + Anzahl3 + Anzahl;
 				loc = ASCII;
+			}
+			break;
+		case 'S':
+			if (tools_win == NULL) {
+				tools_win = show_tools_window(10);
+				print_tools_window("qwe");
+			} else {
+				hide_tools_window(tools_win);
 			}
 			break;
 		case ':':

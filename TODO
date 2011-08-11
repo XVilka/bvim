@@ -1,5 +1,5 @@
-- Add saving terminal state/colors when starting and restoring it when exiting
-- Add C-syntax structures parsing and searching (high priority)
+# Add saving terminal state/colors when starting and restoring it when exiting
+# Add C-syntax structures parsing and searching (high priority)
 - Add GZIP, ZIP, TAR, etc signatures to search and highlight
 - Add :unmap (:unm) feature
 - Add :split feature (low priority)
