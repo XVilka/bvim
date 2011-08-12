@@ -54,7 +54,7 @@ int screen, status;
 off_t size;
 
 /* Tools window */
-WINDOW *tools_win;
+WINDOW *tools_win = NULL;
 
 PTR mem = NULL;
 PTR curpos;
@@ -143,9 +143,8 @@ void main_window_resize(int lines_count) {
 	new_screen();
 }
 
-WINDOW* show_tools_window(int lines_count) {
-	WINDOW *tools_win;
-	if (tools_win == NULL) {
+int show_tools_window(int lines_count) {
+	if ((tools_win == NULL) || (delwin(tools_win) == ERR)) {
 		lines_count = LINES - lines_count;
 		main_window_resize(lines_count);
 		refresh();
@@ -154,16 +153,17 @@ WINDOW* show_tools_window(int lines_count) {
 		box(tools_win, 0, 0);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
+		return 0;
 	} else {
 		emsg("show_tools_window: tools window already exist!\n");
+		return -1;
 	}
-	return tools_win;
 }
 
-int print_tools_window(char* str) {
+int print_tools_window(char* str, int line) {
 	if (tools_win != NULL) {
 		attron(COLOR_PAIR(C_WN + 1));
-		mvwaddstr(tools_win, 1, 1, str);
+		mvwaddstr(tools_win, line, 1, str);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
@@ -173,7 +173,7 @@ int print_tools_window(char* str) {
 	}
 }
 
-void hide_tools_window(WINDOW *tools_win) {
+int hide_tools_window(WINDOW *tools_win) {
 	if (tools_win != NULL) {
 		main_window_resize(LINES);
 		attron(COLOR_PAIR(C_WN + 1));
@@ -182,9 +182,10 @@ void hide_tools_window(WINDOW *tools_win) {
 		delwin(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
 		repaint();
-		tools_win = NULL;
+		return 0;
 	} else {
 		emsg("hide_tools_window: tools window not exist!\n");
+		return -1;
 	}
 }
 
@@ -511,9 +512,8 @@ char *argv[];
 			}
 			break;
 		case 'S':
-			if (tools_win == NULL) {
-				tools_win = show_tools_window(10);
-				print_tools_window("qwe");
+			if ((tools_win == NULL) || (delwin(tools_win) == ERR)) {
+				show_tools_window(10);
 			} else {
 				hide_tools_window(tools_win);
 			}

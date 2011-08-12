@@ -371,7 +371,7 @@ static int bvi_tools_window(lua_State * L)
 {
 	int n = lua_gettop(L);
 	if (n == 1) {
-		tools_win = show_tools_window((int)lua_tonumber(L, -1));
+		show_tools_window((int)lua_tonumber(L, -1));
 	}
 	return 0;
 }
@@ -382,7 +382,9 @@ static int bvi_print_tools_window(lua_State * L)
 {
 	int n = lua_gettop(L);
 	if (n == 1) {
-		print_tools_window((char*)lua_tostring(L, -1));
+		print_tools_window((char*)lua_tostring(L, -1), 1);
+	} else if (n == 2) {
+		print_tools_window((char*)lua_tostring(L, 1), (int)lua_tonumber(L, 2));
 	}
 	return 0;
 }

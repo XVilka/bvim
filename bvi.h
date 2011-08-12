@@ -142,12 +142,12 @@ extern FILE *debug_fp;
 extern char *sys_errlist[];
 #endif
 
-extern struct KEYMAP_ {
+struct KEYMAP_ {
 	unsigned int keycode;
 	char cmd[256];
 };
 
-extern struct BLOCK_ {
+struct BLOCK_ {
 	unsigned long pos_start;
 	unsigned long pos_end;
 	char name[64];
