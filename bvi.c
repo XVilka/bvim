@@ -145,11 +145,11 @@ void main_window_resize(int lines_count) {
 
 int show_tools_window(int lines_count) {
 	if ((tools_win == NULL) || (delwin(tools_win) == ERR)) {
-		lines_count = LINES - lines_count;
+		lines_count = LINES - lines_count - 2;
 		main_window_resize(lines_count);
 		refresh();
 		attron(COLOR_PAIR(C_WN + 1));
-		tools_win = newwin(LINES - lines_count, maxx + 1, lines_count, 0);
+		tools_win = newwin(LINES - lines_count + 2, maxx + 1, lines_count, 0);
 		box(tools_win, 0, 0);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
