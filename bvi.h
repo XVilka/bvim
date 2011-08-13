@@ -131,6 +131,7 @@
 #define BUFFER	1024
 
 #define BLK_COUNT 32 /* number of data blocks */
+#define MARK_COUNT 64 /* number of markers */
 
 #define SKIP_WHITE  while(*cmd!='\0'&&isspace(*cmd))cmd++;
 
@@ -153,6 +154,11 @@ struct BLOCK_ {
 	char name[64];
 	unsigned int hl_toggle; /* do we need highlight this block? */
 	unsigned int palette; /* pallete, which we are using for highlight this block */
+};
+
+struct MARKERS_ {
+	long address;
+	char marker; /* Usually we use '+' character, but can be another */
 };
 
 extern char *version;

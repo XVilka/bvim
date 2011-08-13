@@ -11,7 +11,9 @@
 lua_State *lstate;
 
 extern struct BLOCK_ data_block[BLK_COUNT];
+extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
+extern PTR mem;
 
 /* Save current buffer into file */
 /* lua: save(filename, [start, end, flags]) */
@@ -222,6 +224,11 @@ static int bvi_block_rrotate(lua_State *L)
 	return 0;
 }
 
+// TODO: add "raw" calculations,
+// a) sha_hash(block_number)
+// b) sha_hash(start, end)
+// c) sha_hash(data)
+
 /* Calculate SHA1 hash of buffer */
 /* lua: sha1_hash(block_number) */
 static int bvi_sha1_hash(lua_State *L)
@@ -270,24 +277,66 @@ static int bvi_sha256_hash(lua_State *L)
 	return 1;
 }
 
+/* Calculate SHA512 hash of buffer */
+/* lua: sha512_hash(block_number) */
+static int bvi_sha512_hash(lua_State *L)
+{
+	unsigned int n = 0;
+	char* block = NULL;
+	char hash[129];
+	hash[0] = '\0';
+	if (lua_gettop(L) == 1) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if (data_block[n].pos_end > data_block[n].pos_start) {
+			block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
+			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
+			sha512_hash_string(block, hash);
+			lua_pushstring(L, hash);
+		} else {
+			emsg("You need select valid block before SHA512 hash calculation!");
+		}
+	} else {
+		emsg("Error in lua sha512_hash function! Wrong format!");
+	}
+	return 1;
+}
+
 
 /* Search byte sequence in the buffer */
 /* Return address found */
 /* lua: search_bytes(bytes) */
+/* or search_bytes(bytes, return_all) where return_all = [0|1] */
 static int bvi_search_bytes(lua_State *L)
 {
 	PTR result;
+	PTR start_addr = NULL;
 	char* bytes;
 	char msgbuf[256];
 	msgbuf[0] = '\0';
+	start_addr = mem;
+	int i = 0;
 	if (lua_gettop(L) == 1) {
 		bytes = (char *)lua_tostring(L, -1);
-		result = searching('\\', bytes, 0, maxpos - 1, FALSE | S_GLOBAL);
-		sprintf(msgbuf, "Found [%s] at %ld position", bytes, (long)result);
+		result = searching('\\', bytes, start_addr, maxpos - 1, FALSE | S_GLOBAL);
+		/*
+		sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - mem));
 		wmsg(msgbuf, 3, strlen(msgbuf) + 4);
-		lua_pushstring(L, result);
+		*/
+		lua_pushnumber(L, (long)(result - mem));
+		return 1;
+	} else if (lua_gettop(L) == 2) {
+		bytes = (char *)lua_tostring(L, 1);
+		result = start_addr;
+		if ((int)lua_tonumber(L, 2)) {
+			while (result < maxpos) {
+				result = searching('\\', bytes, start_addr, maxpos - 1, FALSE | S_GLOBAL);
+				lua_pushnumber(L, (long)(result - mem));
+				i++;
+			}
+		}
+		return i;
 	}
-	return 1;
+	return 0;
 }
 
 /* Replace byte sequence to another in the buffer */
@@ -296,15 +345,17 @@ static int bvi_search_bytes(lua_State *L)
 static int bvi_replace_bytes(lua_State *L)
 {
 	int result = 0;
+	PTR start_addr =  NULL;
 	char* bytes;
 	char* target;
 	char bytesbuf[256];
 	bytesbuf[0] = '\0';
+	start_addr = mem;
 	if (lua_gettop(L) == 2) {
 		bytes = (char *)lua_tostring(L, 1);
 		target = (char *)lua_tostring(L, 2);
 		sprintf(bytesbuf, "/%s/%s/", bytes, target);
-		result = do_substitution('\\', bytesbuf, 0, maxpos - 1);
+		result = do_substitution('\\', bytesbuf, start_addr, maxpos - 1);
 		lua_pushnumber(L, result);
 	}
 	return 1;
@@ -469,6 +520,42 @@ static int bvi_cursor(lua_State * L)
 	return 0;
 }
 
+/* Adds marker to show in address */
+static int bvi_set_marker(lua_State * L)
+{
+	long address;
+	int i = 0;
+	if (lua_gettop(L) > 0) {
+		address = (long)lua_tonumber(L, 1);
+		while ((markers[i].address != 0) & (i < MARK_COUNT))
+			i++;
+		markers[i].address = address;
+		markers[i].marker = '+';
+		repaint();
+	}
+	return 0;
+}
+
+/* Remove marker */
+static int bvi_unset_marker(lua_State * L)
+{ 
+	long address;
+	int i = 0;
+	if (lua_gettop(L) > 0) {
+		address = (long)lua_tonumber(L, 1);
+		while (i < MARK_COUNT) {
+			if (markers[i].address == address) break;
+		}
+		if (markers[i].address == address) {
+			markers[i].address = 0;
+			markers[i].marker = ' ';
+			repaint();
+		} else
+			emsg("Cant found mark on this address!");
+	}
+	return 0;
+}
+
 /* Display arbitrary address on the screen */
 static int bvi_setpage(lua_State * L)
 {
@@ -506,6 +593,7 @@ void bvi_lua_init()
 		{"block_rrotate", bvi_block_rrotate},
 		{"sha1_hash", bvi_sha1_hash},
 		{"sha256_hash", bvi_sha256_hash},
+		{"sha512_hash", bvi_sha512_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},
@@ -522,6 +610,8 @@ void bvi_lua_init()
 		{"cursor", bvi_cursor},
 		{"scrolldown", bvi_scrolldown},
 		{"scrollup", bvi_scrollup},
+		{"set_marker", bvi_set_marker},
+		{"unset_marker", bvi_unset_marker},
 		{"setpage", bvi_setpage},
 		{NULL, NULL}
 	};

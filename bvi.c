@@ -103,6 +103,7 @@ static int scrolly;
 static int wrstat = 1;
 
 struct KEYMAP_ KEYMAP[32];
+extern struct MARKERS_ markers[MARK_COUNT];
 
 void usage()
 {
@@ -131,7 +132,7 @@ void main_window_resize(int lines_count) {
 	   strcpy(addr_form,  "%06lX  ");
 	 */
 	AnzAdd = 10;
-	strcpy(addr_form, "%08lX :");
+	strcpy(addr_form, "%08lX%c:");
 
 	Anzahl = ((COLS - AnzAdd - 1) / 16) * 4;
 	P(P_CM) = Anzahl;
@@ -209,7 +210,9 @@ char *argv[];
 	bvi_lua_init();
 #endif
 	for (i = 0; i < 32; i++)
-		KEYMAP[n].keycode = 0;
+		KEYMAP[i].keycode = 0;
+	for (i = 0; i < MARK_COUNT; i++)
+		markers[i].address = 0;
 	poi = strrchr(argv[0], DELIM);
 
 	if (poi)

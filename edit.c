@@ -46,6 +46,7 @@ char contru[][4] = { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
 };
 
 struct BLOCK_ data_block[BLK_COUNT];
+struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
 char linbuf[256];
@@ -557,16 +558,28 @@ int scpos;
 	highlight_table hl[BLK_COUNT];
 	unsigned int i = 0;
 	unsigned int n = 0;
+	unsigned int k = 0;
 	unsigned int print_pos;
 	int nxtpos = 0;
 	unsigned char Zeichen;
+	long address;
+	char marker = ' ';
 
 	hl_msg[0] = '\0';
-
+	
+	// TODO: add line markers, will be stored in marks[]
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
-		sprintf(linbuf, addr_form, (long)(mempos - mem + P(P_OF)));
+		address = (long)(mempos - mem + P(P_OF));
+		while (markers[k].address != 0) {
+			if (markers[k].address == address) {
+				marker = markers[k].marker;
+				break;
+			}
+			k++;
+		}
+		sprintf(linbuf, addr_form, address, marker);
 		*string = '\0';
 	}
 	strcat(linbuf, " ");
