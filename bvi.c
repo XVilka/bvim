@@ -145,7 +145,7 @@ void main_window_resize(int lines_count) {
 }
 
 int show_tools_window(int lines_count) {
-	if ((tools_win == NULL) || (delwin(tools_win) == ERR)) {
+	if (tools_win == NULL) {
 		lines_count = LINES - lines_count - 2;
 		main_window_resize(lines_count);
 		refresh();
