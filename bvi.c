@@ -174,15 +174,18 @@ int print_tools_window(char* str, int line) {
 	}
 }
 
-int hide_tools_window(WINDOW *tools_win) {
+int hide_tools_window() {
 	if (tools_win != NULL) {
 		main_window_resize(LINES);
 		attron(COLOR_PAIR(C_WN + 1));
+		fprintf(stderr, "before wborder\n");
 		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		fprintf(stderr, "after wborder\n");
 		wrefresh(tools_win);
 		delwin(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
 		repaint();
+		tools_win = NULL;
 		return 0;
 	} else {
 		emsg("hide_tools_window: tools window not exist!\n");
@@ -332,6 +335,7 @@ char *argv[];
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
+		save_orig_palette();
 		set_palette();
 	}
 
@@ -515,10 +519,10 @@ char *argv[];
 			}
 			break;
 		case 'S':
-			if ((tools_win == NULL) || (delwin(tools_win) == ERR)) {
+			if (tools_win == NULL) {
 				show_tools_window(10);
 			} else {
-				hide_tools_window(tools_win);
+				hide_tools_window();
 			}
 			break;
 		case ':':

@@ -38,6 +38,17 @@ static FILE *ffp;
 static char fbuf[256];
 static char buf[64];
 
+struct {
+	short r;
+	short g;
+	short b;
+} original_colors[8];
+
+struct {
+	short f;
+	short b;
+} original_colorpairs[8];
+
 struct param params[] = {
 	{"autowrite", "aw", FALSE, "", P_BOOL},
 	{"columns", "cm", 16, "", P_NUM},
@@ -231,6 +242,28 @@ int all;
 		}
 	}
 	wait_return(TRUE);
+}
+
+void save_orig_palette()
+{
+	int i;
+	for (i = 0; i < 8; i++) {
+		color_content(i, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		pair_content(i, &original_colorpairs[i].f, &original_colorpairs[i].b);
+	}
+}
+
+void load_orig_palette()
+{
+	int i;
+	for (i = 0; i < 8; i++) {
+		init_color(i, original_colors[i].r, original_colors[i].g, original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		init_pair(i, original_colorpairs[i].f, original_colorpairs[i].b);
+	}
 }
 
 void set_palette()

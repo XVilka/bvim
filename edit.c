@@ -567,7 +567,6 @@ int scpos;
 
 	hl_msg[0] = '\0';
 	
-	// TODO: add line markers, will be stored in marks[]
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
@@ -815,6 +814,7 @@ char *fname;
 /********** END ************/
 void quit()
 {
+	load_orig_palette();
 	move(maxy, 0);
 	endwin();
 	printf("\nbvi version %s %s\n", VERSION, copyright);

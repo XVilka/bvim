@@ -334,13 +334,14 @@ off_t add;
 
 void do_shell()
 {
+	int shresult = 0;
 	addch('\n');
 	savetty();
 #ifdef DJGPP
-	int shresult = system("");
+	shresult = system("");
 	emsg("DOS have no support for shell commands!");
 #else
-	int shresult = system(shell);
+	shresult = system(shell);
 	msg("shell executed successfully!");
 #endif
 	resetty();

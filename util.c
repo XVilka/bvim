@@ -1,18 +1,117 @@
 #include "bvi.h"
 #include "set.h"
 
+/*
+ * 9 bits (CRC-8)
+ * 17 bits (CRC-16)
+ * 33 bits (CRC-32)
+ * 65 bits (CRC-64)
+ */
+
+#define crc16_poly 0x1021
+
+/* On entry, addr=>start of data
+ *              num = length of data
+ *                           crc = incoming CRC     */
+unsigned int crc16(char *addr, int num, unsigned int crc)
+{
+	int i;
+	for (; num>0; num--)            /* Step through bytes in memory */
+	{
+		crc = crc ^ (*addr++ << 8);     /* Fetch byte from memory, XOR into CRC top byte*/
+		for (i=0; i<8; i++)             /* Prepare to rotate 8 bits */
+		{
+			if (crc & 0x10000)            /* b15 is set... */
+				crc = (crc << 1) ^ crc16_poly;    /* rotate and XOR with XMODEM polynomic */
+			else                          /* b15 is clear... */
+				crc <<= 1;                  /* just rotate */
+		}                             /* Loop for 8 bits */
+		crc &= 0xFFFF;                  /* Ensure CRC remains 16-bit value */
+	}                               /* Loop until num=0 */
+	return(crc);                    /* Return updated CRC */
+}
+
+#define crc32_poly 0xEDB88320
+
+/* On entry, addr=>start of data
+ *              num = length of data
+ *                           crc = incoming CRC     */
+unsigned int crc32(char *addr, int num, unsigned int crc)
+{
+	int i;
+	for (; num>0; num--)              /* Step through bytes in memory */
+	{
+		crc = crc ^ *addr++;            /* Fetch byte from memory, XOR into CRC */
+		for (i=0; i<8; i++)             /* Prepare to rotate 8 bits */
+		{
+			if (crc & 1)                  /* b0 is set... */
+				crc = (crc >> 1) ^ crc32_poly;    /* rotate and XOR with ZIP polynomic */
+			else                          /* b0 is clear... */
+				crc >>= 1;                  /* just rotate */
+		/* Some compilers need:
+		 * crc &= 0xFFFFFFFF;
+		 */
+		}
+		/* Loop for 8 bits */
+	}
+	/* Loop until num=0 */
+	return(crc);                    /* Return updated CRC */
+}
+
 #ifdef HAVE_OPENSSL
 
+#include <openssl/md4.h>
+#include <openssl/md5.h>
 #include <openssl/sha.h>
+
+/* MD4
+ * MD5
+ */
+
+void md4_hash_string(unsigned char *string, char outputBuffer[65])
+{
+	int i = 0;
+	unsigned char hash[MD4_DIGEST_LENGTH];
+	MD4_CTX md4;
+	MD4_Init(&md4);
+	MD4_Update(&md4, string, strlen((char *)string));
+	MD4_Final(hash, &md4);
+	for(i = 0; i < MD4_DIGEST_LENGTH; i++) {
+		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
+	}
+	outputBuffer[64] = 0;
+}
+
+void md5_hash_string(unsigned char *string, char outputBuffer[65])
+{
+	int i = 0;
+	unsigned char hash[MD5_DIGEST_LENGTH];
+	MD5_CTX md5;
+	MD5_Init(&md5);
+	MD5_Update(&md5, string, strlen((char *)string));
+	MD5_Final(hash, &md5);
+	for(i = 0; i < MD5_DIGEST_LENGTH; i++) {
+		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
+	}
+	outputBuffer[64] = 0;
+}
+
+
+/* SHA1
+ * SHA-224
+ * SHA-256
+ * SHA-384
+ * SHA-512
+ */
 
 void sha1_hash_string(unsigned char *string, char outputBuffer[65])
 {
+	int i = 0;
 	unsigned char hash[SHA_DIGEST_LENGTH];
 	SHA_CTX sha1;
 	SHA1_Init(&sha1);
-	SHA1_Update(&sha1, string, strlen(string));
+	SHA1_Update(&sha1, string, strlen((char *)string));
 	SHA1_Final(hash, &sha1);
-	int i = 0;
 	for(i = 0; i < SHA_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
@@ -21,14 +120,18 @@ void sha1_hash_string(unsigned char *string, char outputBuffer[65])
 
 int sha1_file(char *path, char outputBuffer[65])
 {
-	FILE *file = fopen(path, "rb");
-	if(!file) return -534;
 	unsigned char hash[SHA_DIGEST_LENGTH];
-	SHA_CTX sha1;
-	SHA1_Init(&sha1);
 	const int bufSize = 32768;
-	char *buffer = malloc(bufSize);
 	int bytesRead = 0;
+	char *buffer = NULL;
+	SHA_CTX sha1;
+	
+	FILE *file = fopen(path, "rb");
+	if(!file) 
+		return -534;;
+	
+	SHA1_Init(&sha1);
+	buffer = (char *)malloc(bufSize);
 	if(!buffer) return ENOMEM;
 
 	while((bytesRead = fread(buffer, 1, bufSize, file))) {
@@ -44,12 +147,13 @@ int sha1_file(char *path, char outputBuffer[65])
 
 void sha256_hash_string(unsigned char *string, char outputBuffer[65])
 {
+	int i = 0;
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	SHA256_CTX sha256;
+	
 	SHA256_Init(&sha256);
-	SHA256_Update(&sha256, string, strlen(string));
+	SHA256_Update(&sha256, string, strlen((char *)string));
 	SHA256_Final(hash, &sha256);
-	int i = 0;
 	for(i = 0; i < SHA256_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
@@ -58,14 +162,18 @@ void sha256_hash_string(unsigned char *string, char outputBuffer[65])
 
 int sha256_file(char *path, char outputBuffer[65])
 {
-	FILE *file = fopen(path, "rb");
-	if(!file) return -534;
 	unsigned char hash[SHA256_DIGEST_LENGTH];
-	SHA256_CTX sha256;
-	SHA256_Init(&sha256);
 	const int bufSize = 32768;
-	char *buffer = malloc(bufSize);
 	int bytesRead = 0;
+	char* buffer = NULL;
+	SHA256_CTX sha256;
+	
+	FILE *file = fopen(path, "rb");
+	if(!file) 
+		return -534;
+	
+	SHA256_Init(&sha256);
+	buffer = (char *)malloc(bufSize);
 	if(!buffer) return ENOMEM;
 
 	while((bytesRead = fread(buffer, 1, bufSize, file))) {
@@ -81,12 +189,13 @@ int sha256_file(char *path, char outputBuffer[65])
 
 void sha512_hash_string(unsigned char *string, char outputBuffer[129])
 {
+	int i = 0;
 	unsigned char hash[SHA512_DIGEST_LENGTH];
 	SHA512_CTX sha512;
+
 	SHA512_Init(&sha512);
-	SHA512_Update(&sha512, string, strlen(string));
+	SHA512_Update(&sha512, string, strlen((char *)string));
 	SHA512_Final(hash, &sha512);
-	int i = 0;
 	for(i = 0; i < SHA512_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
@@ -95,14 +204,18 @@ void sha512_hash_string(unsigned char *string, char outputBuffer[129])
 
 int sha512_file(char *path, char outputBuffer[129])
 {
-	FILE *file = fopen(path, "rb");
-	if(!file) return -534;
 	unsigned char hash[SHA512_DIGEST_LENGTH];
-	SHA512_CTX sha512;
-	SHA512_Init(&sha512);
 	const int bufSize = 32768;
-	char *buffer = malloc(bufSize);
 	int bytesRead = 0;
+	char *buffer = NULL;
+	SHA512_CTX sha512;
+	
+	FILE *file = fopen(path, "rb");
+	if(!file) 
+		return -534;
+
+	SHA512_Init(&sha512);
+	buffer = (char *)malloc(bufSize);
 	if(!buffer) return ENOMEM;
 
 	while((bytesRead = fread(buffer, 1, bufSize, file))) {
@@ -115,6 +228,8 @@ int sha512_file(char *path, char outputBuffer[129])
 	free(buffer);
 	return 0;
 }
+
+/* ripemd */
 
 #endif
 
