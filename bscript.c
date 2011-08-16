@@ -458,6 +458,39 @@ static int bvi_sha512_hash(lua_State *L)
 	return 0;
 }
 
+/* Calculate RIPEMD160 hash of buffer */
+/* lua: ripemd160_hash(block_number) */
+/* lua: ripemd160_hash("string") */
+static int bvi_ripemd160_hash(lua_State *L)
+{
+	unsigned int n = 0;
+	char* block = NULL;
+	char hash[65];
+	hash[0] = '\0';
+	if (lua_gettop(L) == 1) {
+		if (lua_type(L, 1) == LUA_TNUMBER) {
+			n = (unsigned int)lua_tonumber(L, 1);
+			if (data_block[n].pos_end > data_block[n].pos_start) {
+				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
+				ripemd160_hash_string((unsigned char*)block, hash);
+				lua_pushstring(L, hash);
+				return 1;
+			} else {
+				emsg("You need select valid block before RIPEMD160 hash calculation!");
+			}
+		} else if (lua_type(L, 1) == LUA_TSTRING) {
+			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char*)lua_tostring(L, 1);
+			ripemd160_hash_string((unsigned char*)block, hash);
+			lua_pushstring(L, hash);
+			return 1;
+		}
+	} else {
+		emsg("Error in lua ripemd160_hash function! Wrong format!");
+	}
+	return 0;
+}
 
 /* Search byte sequence in the buffer */
 /* Return address found */
@@ -756,6 +789,7 @@ void bvi_lua_init()
 		{"sha1_hash", bvi_sha1_hash},
 		{"sha256_hash", bvi_sha256_hash},
 		{"sha512_hash", bvi_sha512_hash},
+		{"ripemd160_hash", bvi_ripemd160_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},

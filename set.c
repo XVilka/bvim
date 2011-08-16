@@ -247,8 +247,8 @@ int all;
 void save_orig_palette()
 {
 	int i;
-	for (i = 0; i < 8; i++) {
-		color_content(i, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		color_content(colors[i].short_value, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
 	}
 	for (i = 1; i < 8; i++) {
 		pair_content(i, &original_colorpairs[i].f, &original_colorpairs[i].b);
@@ -258,8 +258,8 @@ void save_orig_palette()
 void load_orig_palette()
 {
 	int i;
-	for (i = 0; i < 8; i++) {
-		init_color(i, original_colors[i].r, original_colors[i].g, original_colors[i].b);
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		init_color(colors[i].short_value, original_colors[i].r, original_colors[i].g, original_colors[i].b);
 	}
 	for (i = 1; i < 8; i++) {
 		init_pair(i, original_colorpairs[i].f, original_colorpairs[i].b);

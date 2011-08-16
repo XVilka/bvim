@@ -156,8 +156,9 @@ int show_tools_window(int lines_count) {
 		attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
-		emsg("show_tools_window: tools window already exist!\n");
-		return -1;
+		hide_tools_window();
+		show_tools_window(lines_count);
+		return 0;
 	}
 }
 
@@ -178,9 +179,7 @@ int hide_tools_window() {
 	if (tools_win != NULL) {
 		main_window_resize(LINES);
 		attron(COLOR_PAIR(C_WN + 1));
-		fprintf(stderr, "before wborder\n");
 		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-		fprintf(stderr, "after wborder\n");
 		wrefresh(tools_win);
 		delwin(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));

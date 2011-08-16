@@ -63,6 +63,7 @@ unsigned int crc32(char *addr, int num, unsigned int crc)
 #include <openssl/md4.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <openssl/ripemd.h>
 
 /* MD4
  * MD5
@@ -229,7 +230,50 @@ int sha512_file(char *path, char outputBuffer[129])
 	return 0;
 }
 
-/* ripemd */
+/* RIPEMD-160 */
+
+void ripemd160_hash_string(unsigned char *string, char outputBuffer[65])
+{
+	int i = 0;
+	unsigned char hash[RIPEMD160_DIGEST_LENGTH];
+	RIPEMD160_CTX ripemd160;
+	
+	RIPEMD160_Init(&ripemd160);
+	RIPEMD160_Update(&ripemd160, string, strlen((char *)string));
+	RIPEMD160_Final(hash, &ripemd160);
+	for(i = 0; i < RIPEMD160_DIGEST_LENGTH; i++) {
+		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
+	}
+	outputBuffer[64] = 0;
+}
+
+int ripemd160_file(char *path, char outputBuffer[65])
+{
+	unsigned char hash[RIPEMD160_DIGEST_LENGTH];
+	const int bufSize = 32768;
+	int bytesRead = 0;
+	char* buffer = NULL;
+	RIPEMD160_CTX ripemd160;
+	
+	FILE *file = fopen(path, "rb");
+	if(!file) 
+		return -534;
+	
+	RIPEMD160_Init(&ripemd160);
+	buffer = (char *)malloc(bufSize);
+	if(!buffer) return ENOMEM;
+
+	while((bytesRead = fread(buffer, 1, bufSize, file))) {
+		RIPEMD160_Update(&ripemd160, buffer, bytesRead);
+	}
+
+	RIPEMD160_Final(hash, &ripemd160);
+	ripemd160_hash_string(hash, outputBuffer);
+	fclose(file);
+	free(buffer);
+	return 0;
+}
+
 
 #endif
 
