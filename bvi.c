@@ -48,41 +48,21 @@ char *copyright = "Copyright (C) 1996-2004 by Gerhard Buergmann";
 
 jmp_buf env;			/* context for `longjmp' function   */
 
-int loc;
+core_t core;
+state_t state;
+
 int maxx, maxy, x, xx, y;
-int screen, status;
+int status;
 off_t size;
 
 /* Tools window */
-WINDOW *tools_win = NULL;
+/* WINDOW *tools_win = NULL; */
 
-/* CORE structure */
-/*
-struct core {
-	struct params {
-		int COLUMNS_DATA;
-		int COLUMNS_HEX;
-		struct colors {}
-	}
-	struct editor {
-		PTR mem;
-		struct current {
-			PTR curpos;
-			PTR pagepos;
-			PTR spos;
-		}
-		PTR maxpos;
-	}
-	struct KEYMAP;
-	struct BLOCKS;
-	struct MARKERS;
-}
-*/
 
 PTR mem = NULL;
 PTR curpos;
 PTR maxpos;
-PTR pagepos;
+/* PTR pagepos; */
 PTR spos;
 char *name = NULL;
 char *shell;
@@ -90,7 +70,7 @@ char string[MAXCMD];
 char cmdstr[MAXCMD + 1] = "";
 FILE *Ausgabe_Datei;
 int edits = 0;
-int AnzAdd, COLUMNS_DATA, COLUMNS_HEX;
+
 off_t filesize, memsize, undosize;
 long precount = -1;		/* number preceding command */
 
@@ -151,69 +131,22 @@ void main_window_resize(int lines_count) {
 	noecho();
 
 	/*
-	   AnzAdd = 8;
+	   COLUMNS_ADDRESS = 8;
 	   strcpy(addr_form,  "%06lX  ");
 	 */
-	AnzAdd = 10;
+	core.params.COLUMNS_ADDRESS = 10;
 	strcpy(addr_form, "%08lX%c:");
 
-	COLUMNS_DATA = ((COLS - AnzAdd - 1) / 16) * 4;
-	P(P_CM) = COLUMNS_DATA;
-	maxx = COLUMNS_DATA * 4 + AnzAdd + 1;
-	COLUMNS_HEX = COLUMNS_DATA * 3;
-	status = COLUMNS_HEX + COLUMNS_DATA - 17;
-	screen = COLUMNS_DATA * (maxy - 1);
+	core.params.COLUMNS_DATA = ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
+	P(P_CM) = core.params.COLUMNS_DATA;
+	maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
+	core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
+	status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
+	state.screen = core.params.COLUMNS_DATA * (maxy - 1);
 
-	new_screen();
+	ui__Screen_New();
 }
 
-int show_tools_window(int lines_count) {
-	if (tools_win == NULL) {
-		lines_count = LINES - lines_count - 2;
-		main_window_resize(lines_count);
-		refresh();
-		attron(COLOR_PAIR(C_WN + 1));
-		tools_win = newwin(LINES - lines_count + 2, maxx + 1, lines_count, 0);
-		box(tools_win, 0, 0);
-		wrefresh(tools_win);
-		attroff(COLOR_PAIR(C_WN + 1));
-		return 0;
-	} else {
-		hide_tools_window();
-		show_tools_window(lines_count);
-		return 0;
-	}
-}
-
-int print_tools_window(char* str, int line) {
-	if (tools_win != NULL) {
-		attron(COLOR_PAIR(C_WN + 1));
-		mvwaddstr(tools_win, line, 1, str);
-		wrefresh(tools_win);
-		attroff(COLOR_PAIR(C_WN + 1));
-		return 0;
-	} else {
-		emsg("print_tools_window: tools window not exist!\n");
-		return -1;
-	}
-}
-
-int hide_tools_window() {
-	if (tools_win != NULL) {
-		main_window_resize(LINES);
-		attron(COLOR_PAIR(C_WN + 1));
-		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-		wrefresh(tools_win);
-		delwin(tools_win);
-		attroff(COLOR_PAIR(C_WN + 1));
-		repaint();
-		tools_win = NULL;
-		return 0;
-	} else {
-		emsg("hide_tools_window: tools window not exist!\n");
-		return -1;
-	}
-}
 
 int main(argc, argv)
 int argc;
@@ -352,17 +285,10 @@ char *argv[];
 	if (numfiles > 1)
 		fprintf(stderr, "%d files to edit\n", numfiles);
 	curfile = 0;
+	
+	/* ====== UI initialization ====== */
+	ui__Init();
 
-	/****** Initialisation of curses ******/
-	initscr();
-	if (has_colors() != FALSE) {
-		start_color();
-		save_orig_palette();
-		set_palette();
-	}
-
-	attrset(A_NORMAL);
-	main_window_resize(LINES);	
 	signal(SIGINT, SIG_IGN);
 	filesize = load(name);
 
@@ -380,7 +306,7 @@ char *argv[];
 	/* main loop */
 	do {
 		setjmp(env);
-		current = (PTR) (pagepos + y * COLUMNS_DATA + xpos());
+		current = (PTR) (state.pagepos + y * core.params.COLUMNS_DATA + xpos());
 		if (wrstat)
 			statpos();
 		wrstat = 1;
@@ -404,17 +330,17 @@ char *argv[];
 		}
 		switch (ch) {
 		case '^':
-			x = AnzAdd;
-			loc = HEX;
+			x = core.params.COLUMNS_ADDRESS;
+			state.loc = HEX;
 			break;
 			/*
-			   case '0':    x = AnzAdd + COLUMNS_HEX;
-			   loc = ASCII;
+			   case '0':    x = COLUMNS_ADDRESS + COLUMNS_HEX;
+			   state.loc = ASCII;
 			   break;
 			 */
 		case '$':
-			x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
-			loc = ASCII;
+			x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+			state.loc = ASCII;
 			break;
 		case '\t':
 			toggle();
@@ -426,7 +352,7 @@ char *argv[];
 			do_tilde(precount);
 			lflag++;
 			break;
-		case KEY_HOME:
+		case KEY_HOME: /* go to the HOME */
 		case 'H':
 			if (precount > 0) {
 				y = --precount;
@@ -436,49 +362,49 @@ char *argv[];
 				}
 			} else
 				y = 0;
-			if (loc == HEX)
-				x = AnzAdd;
+			if (state.loc == HEX)
+				x = core.params.COLUMNS_ADDRESS;
 			else
-				x = AnzAdd + COLUMNS_HEX;
+				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 			break;
 		case 'M':
 			y = maxy / 2;
-			if ((PTR) (pagepos + screen) > maxpos)
-				y = (int)(maxpos - pagepos) / COLUMNS_DATA / 2;
-			if (loc == HEX)
-				x = AnzAdd;
+			if ((PTR) (state.pagepos + state.screen) > maxpos)
+				y = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA / 2;
+			if (state.loc == HEX)
+				x = core.params.COLUMNS_ADDRESS;
 			else
-				x = AnzAdd + COLUMNS_HEX;
+				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 			break;
 		case KEY_LL:
 		case 'L':
 			if (precount < 1)
 				precount = 1;
 			n = maxy - 1;
-			if ((PTR) ((pagepos + screen)) > maxpos)
-				n = (int)(maxpos - pagepos) / COLUMNS_DATA;
+			if ((PTR) ((state.pagepos + state.screen)) > maxpos)
+				n = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA;
 			if (precount < n)
 				y = n + 1 - precount;
-			if (loc == HEX)
-				x = AnzAdd;
+			if (state.loc == HEX)
+				x = core.params.COLUMNS_ADDRESS;
 			else
-				x = AnzAdd + COLUMNS_HEX;
+				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 			break;
 		case BVICTRL('H'):
 		case KEY_BACKSPACE:
 		case KEY_LEFT:
 		case 'h':
 			do {
-				if (x > (AnzAdd + 2)
-				    && x < (COLUMNS_HEX + AnzAdd + 1))
+				if (x > (core.params.COLUMNS_ADDRESS + 2)
+				    && x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
 					x -= 3;
-				else if (x > (COLUMNS_HEX + AnzAdd - 2))
+				else if (x > (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
 					x--;
 			} while (--precount > 0);
-			if (x < AnzAdd + COLUMNS_HEX)
-				loc = HEX;
+			if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
+				state.loc = HEX;
 			else
-				loc = ASCII;
+				state.loc = ASCII;
 			break;
 		case ' ':
 		case KEY_RIGHT:
@@ -487,16 +413,16 @@ char *argv[];
 				/*
 				   if (x < (COLUMNS_HEX + 6))  x += 3;
 				 */
-				if (x < (COLUMNS_HEX + AnzAdd - 2))
+				if (x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
 					x += 3;
-				else if (x > (COLUMNS_HEX + 3)
-					 && x < (COLUMNS_HEX + AnzAdd - 1 + COLUMNS_DATA))
+				else if (x > (core.params.COLUMNS_HEX + 3)
+					 && x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_DATA))
 					x++;
 			} while (--precount > 0);
-			if (x < AnzAdd + COLUMNS_HEX)
-				loc = HEX;
+			if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
+				state.loc = HEX;
 			else
-				loc = ASCII;
+				state.loc = ASCII;
 			break;
 		case '-':
 		case KEY_UP:
@@ -510,16 +436,16 @@ char *argv[];
 			break;
 		case '+':
 		case CR:
-			if (loc == HEX)
-				x = AnzAdd;
+			if (state.loc == HEX)
+				x = core.params.COLUMNS_ADDRESS;
 			else
-				x = AnzAdd + COLUMNS_HEX;
+				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 		case 'j':
 		case BVICTRL('J'):
 		case BVICTRL('N'):
 		case KEY_DOWN:
 			do {
-				if ((PTR) ((pagepos + (y + 1) * COLUMNS_DATA)) >
+				if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA)) >
 				    maxpos)
 					break;
 				if (y < (maxy - 1))
@@ -531,20 +457,20 @@ char *argv[];
 		case '|':
 			if (precount < 1)
 				break;
-			if (loc == ASCII)
-				x = AnzAdd - 1 + COLUMNS_HEX + precount;
+			if (state.loc == ASCII)
+				x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + precount;
 			else
 				x = 5 + 3 * precount;
-			if (x > AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA) {
-				x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
-				loc = ASCII;
+			if (x > core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
+				x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+				state.loc = ASCII;
 			}
 			break;
 		case 'S':
-			if (tools_win == NULL) {
-				show_tools_window(10);
+			if (!ui__ToolWin_Exist()) {
+				ui__ToolWin_Show(10);
 			} else {
-				hide_tools_window();
+				ui__ToolWin_Hide();
 			}
 			break;
 		case ':':
@@ -558,11 +484,11 @@ char *argv[];
 		case BVICTRL('B'):
 		case KEY_PPAGE:
 			       /**** Previous Page ****/
-			if (mem <= (PTR) (pagepos - screen))
-				pagepos -= screen;
+			if (mem <= (PTR) (state.pagepos - state.screen))
+				state.pagepos -= state.screen;
 			else
-				pagepos = mem;
-			repaint();
+				state.pagepos = mem;
+			ui__Screen_Repaint();
 			break;
 		case BVICTRL('D'):
 			if (precount > 1)
@@ -582,14 +508,14 @@ char *argv[];
 		case BVICTRL('F'):
 		case KEY_NPAGE:
 			       /**** Next Page *****/
-			if (maxpos >= (PTR) (pagepos + screen)) {
-				pagepos += screen;
-				current += screen;
+			if (maxpos >= (PTR) (state.pagepos + state.screen)) {
+				state.pagepos += state.screen;
+				current += state.screen;
 				if (current - mem >= filesize) {
 					current = mem + filesize;
 					setpage((PTR) (mem + filesize - 1L));
 				}
-				repaint();
+				ui__Screen_Repaint();
 			}
 			break;
 		case BVICTRL('G'):
@@ -597,7 +523,7 @@ char *argv[];
 			wrstat = 0;
 			break;
 		case BVICTRL('L'):	/*** REDRAW SCREEN ***/
-			new_screen();
+			ui__Screen_New();
 			break;
 		case BVICTRL('Y'):
 			if (y < maxy)
@@ -696,8 +622,8 @@ char *argv[];
 			break;
 		case '\'':
 		case '`':
-			if ((ch == '`' && loc == ASCII) ||
-			    (ch == '\'' && loc == HEX))
+			if ((ch == '`' && state.loc == ASCII) ||
+			    (ch == '\'' && state.loc == HEX))
 				toggle();
 			mark = vgetc();
 			if (mark == '`' || mark == '\'') {
@@ -737,7 +663,7 @@ char *argv[];
 			/* we save it not for undo but for the dot command
 			   memcpy(undo_buf, yank_buf, yanked);
 			 */
-			repaint();
+			ui__Screen_Repaint();
 			break;
 		case 'r':
 		case 'R':
@@ -754,7 +680,7 @@ char *argv[];
 			break;
 		case 'W':
 		case 'w':
-			loc = ASCII;
+			state.loc = ASCII;
 			setpage(wordsearch(current, ch));
 			break;
 		case 'y':
@@ -805,7 +731,7 @@ char *argv[];
 					sprintf(rep_buf, "%ldI", precount);
 					current = mem;
 					setpage(mem);
-					repaint();
+					ui__Screen_Repaint();
 					undo_count = edit('i');
 					lflag++;
 					break;
@@ -894,7 +820,7 @@ char *argv[];
 			}
 		}
 		if (lflag)
-			lineout();
+			ui__lineout();
 	} while (1);
 }
 
@@ -931,14 +857,14 @@ void trunc_cur()
 	undosize = filesize;
 	undo_count = (off_t) (maxpos - current);
 	undo_start = current;
-	filesize = pagepos - mem + y * COLUMNS_DATA + xpos();
+	filesize = state.pagepos - mem + y * core.params.COLUMNS_DATA + xpos();
 	maxpos = (PTR) (mem + filesize);
 	if (filesize == 0L) {
 		emsg(nobytes);
 	} else
 		cur_back();
 	edits = U_TRUNC;
-	repaint();
+	ui__Screen_Repaint();
 }
 
 int do_append(count, buf)
@@ -1043,7 +969,7 @@ void do_undo()
 	setpage(set_cursor);
 	if (edits == U_TRUNC && undosize > filesize)
 		cur_back();
-	repaint();
+	ui__Screen_Repaint();
 }
 
 void do_over(loc, n, buf)
@@ -1066,7 +992,7 @@ PTR buf;
 	memcpy(loc, buf, n);
 	edits = U_EDIT;
 	setpage(loc + n - 1);
-	repaint();
+	ui__Screen_Repaint();
 }
 
 void do_put(loc, n, buf)
@@ -1095,7 +1021,7 @@ PTR buf;
 	memmove(undo_start + n, undo_start, maxpos - loc);
 	memcpy(undo_start, buf, n);
 	setpage(loc + n);
-	repaint();
+	ui__Screen_Repaint();
 }
 
 /* argument sig not used, because only SIGINT will be catched */
@@ -1104,7 +1030,7 @@ int sig;
 {
 	if (P(P_EB))
 		beep();
-	repaint();
+	ui__Screen_Repaint();
 	clearstr();
 	signal(SIGINT, SIG_IGN);
 	longjmp(env, 0);

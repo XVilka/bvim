@@ -209,7 +209,7 @@ char *cmdline;
 		fprintf(stderr, "[Hit return to continue]");
 		getchar();
 		doupdate();
-		repaint();
+		ui__Screen_Repaint();
 		clearstr();
 		return;
 	}
@@ -237,7 +237,7 @@ char *cmdline;
 			emsg("No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
 		}
-		repaint();
+		ui__Screen_Repaint();
 		if (!repl_count) {
 			emsg("Fail|Substitute pattern matching failed");
 		} else if (repl_count > 1) {
@@ -265,7 +265,7 @@ char *cmdline;
 		if (repl_count) {
 			wait_return(TRUE);
 		} else {
-			repaint();
+			ui__Screen_Repaint();
 			emsg(notfound);
 		}
 		return;
@@ -465,7 +465,7 @@ char *cmdline;
 				else
 					data_block[n].palette = atoi(c_argv[3]);
 				data_block[n].hl_toggle = 1;
-				repaint();
+				ui__Screen_Repaint();
 			} else {
 				emsg("Wrong block start and end values!");
 				return;
@@ -563,7 +563,7 @@ char *cmdline;
 		if (!addfile(c_argv[0])) {
 			edits = U_TRUNC;
 			undosize = filesize;
-			repaint();
+			ui__Screen_Repaint();
 		}
 	} else if (!strncmp("xit", cmdname, len) && CMDLNG(3, 1)) {
 		if (chk_comm(NO_ADDR | NO_ARG))
@@ -667,7 +667,7 @@ char *cmdline;
 			return;
 		do_shell();
 		clear();
-		repaint();
+		ui__Screen_Repaint();
 		clearstr();
 	} else if (!strncmp("quit", cmdname, len) && CMDLNG(4, 1)) {
 		if (chk_comm(NO_ADDR | NO_ARG))
@@ -940,121 +940,7 @@ void clearstr()
 	move(maxy, 0);
 }
 
-/**** displays an error message *****/
-void emsg(s)
-char *s;
-{
-	int cnt;
-
-	if (P(P_EB))
-		beep();
-	clearstr();
-	attron(COLOR_PAIR(C_ER + 1));
-	/* attrset(A_REVERSE); */
-	cnt = outmsg(s);
-	/* attrset(A_NORMAL); */
-	attroff(COLOR_PAIR(C_ER + 1));
-	if (cnt >= (maxx - 25)) {	/* 25 = status */
-		addch('\n');
-		wait_return(TRUE);
-	}
-}
-
-/*** System error message *****/
-void sysemsg(s)
-char *s;
-{
-	char string[256];
-
-#ifdef HAVE_STRERROR
-	sprintf(string, "%s: %s", s, strerror(errno));
-#else
-	sprintf(string, "%s: %s", s, sys_errlist[errno]);
-#endif
-
-	emsg(string);
-}
-
-/*** displays mode if showmode set *****/
-void smsg(s)
-char *s;
-{
-	if (P(P_MO)) {
-		msg(s);
-		setcur();
-	}
-}
-
-/*** display window ***/
-void wmsg(s, height, width)
-char *s;
-int height;
-int width;
-{
-	WINDOW *msg_win;
-	int starty = (LINES - height) / 2;	/* Calculating for a center placement */
-	int startx = (COLS - width) / 2;	/* of the window                */
-	int ch;
-	refresh();
-	attron(COLOR_PAIR(C_WN + 1));
-	msg_win = newwin(height, width, starty, startx);
-	box(msg_win, 0, 0);
-	wrefresh(msg_win);
-	mvwaddstr(msg_win, 1, 2, s);
-	wrefresh(msg_win);
-	while ((ch = getch()) == -1) {
-	}
-	wborder(msg_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-	wrefresh(msg_win);
-	delwin(msg_win);
-	attroff(COLOR_PAIR(C_WN + 1));
-	repaint();
-}
-
-/************* displays s on status line *****************/
-void msg(s)
-char *s;
-{
-	clearstr();
-	if (outmsg(s) >= (maxx - 25)) {	/* 25 = status */
-		addch('\n');
-		wait_return(TRUE);
-	}
-}
-
-int outmsg(s)
-char *s;
-{
-	char *poi;
-	int cnt = 0;
-
-	move(maxy, 0);
-	poi = strchr(s, '|');
-
-	if (P(P_TE)) {
-		poi = s;
-		while (*poi != '\0' && *poi != '@' && *poi != '|') {
-			addch(*poi++);
-			cnt++;
-		}
-	} else {
-		if (poi)
-			poi++;
-		else
-			poi = s;
-		while (*poi) {
-			if (*poi == '@')
-				addch(' ');
-			else
-				addch(*poi);
-			poi++;
-			cnt++;
-		}
-	}
-	return cnt;
-}
-
-/* If flag == TRUE we do a repaint
+/* If flag == TRUE we do a ui__Screen_Repaint
  *
  */
 int wait_return(flag)
@@ -1071,7 +957,7 @@ int flag;
 	c = getch();
 	if (flag) {
 		clear();
-		repaint();
+		ui__Screen_Repaint();
 	}
 	clearstr();
 	signal(SIGINT, SIG_IGN);

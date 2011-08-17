@@ -30,6 +30,8 @@
 #include    "set.h"
 
 extern int precount;
+extern core_t core;
+extern state_t state;
 
 char contrd[][4] = { "NUL", " ^A", " ^B", " ^C", " ^D", " ^E", " ^F", "BEL",
 	" BS", "TAB", " NL", "HOM", "CLR", " CR", " ^N", " ^O",
@@ -50,18 +52,6 @@ struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
 char linbuf[256];
-
-struct highlight_ {
-	int hex_start;
-	int hex_end;
-	int dat_start;
-	int dat_end;
-	int flg;
-	int palette;
-	int toggle;
-};
-
-typedef struct highlight_ highlight_table;
 
 static char getcbuff[BUFFER];
 static char *getcnext = NULL;
@@ -150,7 +140,7 @@ int mode;
 				beep();
 			continue;
 		}
-		if (loc == HEX) {
+		if (state.loc == HEX) {
 			if (isxdigit(ch)) {
 				mvaddch(y, x + 1, ' ');
 				mvaddch(y, x, ch);
@@ -210,9 +200,9 @@ int mode;
 		cur_forw(0);
 		statpos();
 		if (mode == 'i' || mode == 'a') {
-			repaint();
+			ui__Screen_Repaint();
 		} else {
-			lineout();
+			ui__lineout();
 		}
 		setcur();
 
@@ -271,7 +261,7 @@ int mode;
 			undo_count += psize;
 			current = curpos + 1L;
 			setpage(current);
-			repaint();
+			ui__Screen_Repaint();
 			break;
 		case 'R':
 			if (current + count * (precount - 1) > maxpos)
@@ -285,7 +275,7 @@ int mode;
 			}
 			count = psize;
 			setpage(++curpos);
-			repaint();
+			ui__Screen_Repaint();
 			break;
 		case 'r':
 			while (--precount) {
@@ -293,7 +283,7 @@ int mode;
 				*curpos = (char)ch;
 				cur_forw(0);
 				statpos();
-				lineout();
+				ui__lineout();
 			}
 			break;
 		}
@@ -368,7 +358,7 @@ int ch, flag;
 		}
 	} while (--precount > 0);
 	if (*ptr == chi) {
-		if (loc == HEX)
+		if (state.loc == HEX)
 			toggle();
 		if (chp == 't')
 			ptr--;
@@ -390,21 +380,21 @@ int mode;
 	case '.':
 		while (y != maxy / 2) {
 			if (y > maxy / 2) {
-				pagepos += COLUMNS_DATA;
+				state.pagepos += core.params.COLUMNS_DATA;
 				y--;
 			} else {
-				if (pagepos == mem)
+				if (state.pagepos == mem)
 					break;
-				pagepos -= COLUMNS_DATA;
+				state.pagepos -= core.params.COLUMNS_DATA;
 				y++;
 			}
 		}
 		break;
 	case '-':
 		while (y < maxy - 1) {
-			if (pagepos == mem)
+			if (state.pagepos == mem)
 				break;
-			pagepos -= COLUMNS_DATA;
+			state.pagepos -= core.params.COLUMNS_DATA;
 			y++;
 		}
 		break;
@@ -413,62 +403,66 @@ int mode;
 	case '\r':
 		while (y > 0) {
 			y--;
-			pagepos += COLUMNS_DATA;
+			state.pagepos += core.params.COLUMNS_DATA;
 		}
 		break;
 	default:
 		beep();
 		break;
 	}
-	repaint();
+	ui__Screen_Repaint();
 }
 
-void scrolldown(lns)
-int lns;
+/* Scroll down on <count> lines */ 
+void scrolldown(lines)
+int lines;
 {
-	while (lns--) {
-		if (maxpos >= (pagepos + COLUMNS_DATA))
-			pagepos += COLUMNS_DATA;
+	while (lines--) {
+		if (maxpos >= (state.pagepos + core.params.COLUMNS_DATA))
+			state.pagepos += core.params.COLUMNS_DATA;
 		else {
 			beep();
-			lns = 0;
+			lines = 0;
 		}
-		repaint();
+		ui__Screen_Repaint();
 		refresh();
 	}
 }
 
-void scrollup(lns)
-int lns;
+/* Scroll up on <count> lines */
+void scrollup(lines)
+int lines;
 {
-	while (lns--) {
-		if (mem <= (PTR) (pagepos - COLUMNS_DATA))
-			pagepos -= COLUMNS_DATA;
+	while (lines--) {
+		if (mem <= (PTR) (state.pagepos - core.params.COLUMNS_DATA))
+			state.pagepos -= core.params.COLUMNS_DATA;
 		else {
 			beep();
-			lns = 0;
+			lines = 0;
 		}
-		repaint();
+		ui__Screen_Repaint();
 		refresh();
 	}
 }
 
+/* return position from screen to byte offset */
 int xpos()
 {
-	if (loc == HEX)
-		return ((x - AnzAdd) / 3);
+	if (state.loc == HEX)
+		return ((x - core.params.COLUMNS_ADDRESS) / 3);
 	else
-		return (x - AnzAdd - COLUMNS_HEX);
+		return (x - core.params.COLUMNS_ADDRESS - core.params.COLUMNS_HEX);
 }
 
+/* toggle between ASCII and HEX windows positions */
 void toggle()
 {
-	if (loc == HEX) {
-		x = xpos() + AnzAdd + COLUMNS_HEX;
-		loc = ASCII;
+	if (state.loc == HEX) {
+		x = xpos() + core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		state.loc = ASCII;
 	} else {
-		x = xpos() * 3 + AnzAdd;
-		loc = HEX;
+		x = xpos() * 3 + core.params.COLUMNS_ADDRESS;
+		state.loc = HEX;
 	}
 }
 
@@ -516,215 +510,29 @@ void statpos()
 	attrset(A_NORMAL);
 }
 
-void printcolorline(int y, int x, int palette, char *string)
-{
-	palette++;
-	attron(COLOR_PAIR(palette));
-	mvaddstr(y, x, string);
-	attroff(COLOR_PAIR(palette));
-}
 
-void printcolorline_hexhl(int y, int x, int base_palette, char *string, highlight_table *hl, unsigned int hl_tbl_size)
-{
-	unsigned int i;
-	printcolorline(y, x, base_palette, string);
-	for (i = 0; i < hl_tbl_size; i++) {
-		if ((hl[i].hex_start < hl[i].hex_end) & (hl[i].toggle == 1)) {
-			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].hex_start, substr(string, hl[i].hex_start, hl[i].hex_end - hl[i].hex_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-		}
-	}
-}
-
-void printcolorline_dathl(int y, int x, int base_palette, char *string, highlight_table *hl, unsigned int hl_tbl_size)
-{
-	unsigned int i;
-	printcolorline(y, x, base_palette, string);
-	for (i = 0; i < hl_tbl_size; i++) {
-		if ((hl[i].dat_start < hl[i].dat_end) & (hl[i].toggle == 1)) {
-			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].dat_start, substr(string, hl[i].dat_start, hl[i].dat_end - hl[i].dat_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-		}
-	}
-}
-
-void printline(mempos, scpos)
-PTR mempos;
-int scpos;
-{
-	char hl_msg[256];
-	highlight_table hl[BLK_COUNT];
-	unsigned int i = 0;
-	unsigned int n = 0;
-	unsigned int k = 0;
-	unsigned int print_pos;
-	int nxtpos = 0;
-	unsigned char Zeichen;
-	long address;
-	char marker = ' ';
-
-	hl_msg[0] = '\0';
-	
-	if (mempos > maxpos) {
-		strcpy(linbuf, "~         ");
-	} else {
-		address = (long)(mempos - mem + P(P_OF));
-		while (markers[k].address != 0) {
-			if (markers[k].address == address) {
-				marker = markers[k].marker;
-				break;
-			}
-			k++;
-		}
-		sprintf(linbuf, addr_form, address, marker);
-		*string = '\0';
-	}
-	strcat(linbuf, " ");
-	/* load color from C(C_AD) */
-	printcolorline(scpos, 0, C_AD, linbuf);
-	nxtpos = 11;
-	*linbuf = '\0';
-
-	/* handle highlighted blocks */
-	for (i = 0; i < BLK_COUNT; i++) {
-		if (data_block[i].hl_toggle == 1) {
-			hl[n].toggle = 1;
-			hl[n].hex_start = 0;
-			hl[n].dat_start = 0;
-			hl[n].palette = data_block[i].palette;
-			if (hl[n].flg == 1) {
-				hl[n].hex_end = COLUMNS_DATA * 3;
-				hl[n].dat_end = COLUMNS_DATA;
-			} else {
-				hl[n].hex_end = 0;
-				hl[n].dat_end = 0;
-			}
-			for (print_pos = 0; print_pos < COLUMNS_DATA * 3; print_pos += 3) {
-				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) & (hl[n].flg != 1)) {
-					hl[n].hex_start = print_pos;
-					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = COLUMNS_DATA * 3;
-					hl[n].dat_end = COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else if (((long)(mempos - mem + (print_pos / 3)) < data_block[i].pos_end) & 
-					((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_start) & (hl[n].flg != 1)) {
-					hl[n].hex_start = print_pos;
-					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = COLUMNS_DATA * 3;
-					hl[n].dat_end = COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].flg == 1)) {
-					hl[n].hex_end = print_pos + 2;
-					hl[n].dat_end = print_pos / 3 + 1;
-					hl[n].flg = 0;
-				} else if (((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_end)) {
-					hl[n].flg = 0;
-				}
-			}
-			n++;
-		}
-	}
-	
-	for (print_pos = 0; print_pos < COLUMNS_DATA; print_pos++) {
-		if (mempos + print_pos >= maxpos) {
-			sprintf(tmpbuf, "   ");
-			Zeichen = ' ';
-		} else {
-			Zeichen = *(mempos + print_pos);
-			sprintf(tmpbuf, "%02X ", Zeichen);
-		}
-		strcat(linbuf, tmpbuf);
-		if (isprint(Zeichen))
-			*(string + print_pos) = Zeichen;
-		else
-			*(string + print_pos) = '.';
-	}
-	*(string + COLUMNS_DATA) = '\0';
-
-	/* load color from C(C_HX) */
-	strcat(linbuf, "|");
-	printcolorline_hexhl(scpos, nxtpos, C_HX, linbuf, hl, n + 1);
-	
-	/* strcat(linbuf, string); */
-	nxtpos += strlen(linbuf);
-	/* load color from C(C_DT) */
-	printcolorline_dathl(scpos, nxtpos, C_DT, string, hl, n + 1);
-}
-
-/* TODO: add hex-data folding feature */
-
-/* displays a line on screen
- * at pagepos + line y
- */
-int lineout()
-{
-	off_t Adresse;
-	int i = 0;
-	int k = 0;
-
-	Adresse = pagepos - mem + y * COLUMNS_DATA;
-	/*
-	for (i = 0; i < BLK_COUNT; i++) {
-		if ((data_block[i].folding == 1) & (data_block[i].pos_start < Adresse) & (data_block[i].pos_end > Adresse)) {
-			break;	
-		}
-	}
-	if (data_block[i].pos_start != 0) {
-		k = y;
-		while ((data_block[i].pos_start < Adresse) & (data_block[i].pos_end > Adresse)) {
-			k++;
-			Adresse = pagepos - mem + k * COLUMNS_DATA;
-		}
-	}
-	*/
-	printline(mem + Adresse, y);
-	move(y, x);
-	if (k != 0) 
-		y = k;
-	return (0);
-}
-
-void new_screen()
-{
-	screen = COLUMNS_DATA * (maxy - 1);
-	clear();
-	repaint();
-}
-
-void repaint()
-{
-/***** redraw screen *********************/
-	int save_y;
-
-	save_y = y;
-	for (y = 0; y < maxy; y++)
-		lineout();
-	y = save_y;
-}
 
 /******* display an arbitrary address on screen *******/
 void setpage(addr)
 PTR addr;
 {
-	if ((addr >= pagepos) && ((addr - pagepos) < screen)) {
-		y = (addr - pagepos) / COLUMNS_DATA;
-		if (loc == HEX)
-			x = AnzAdd + ((addr - pagepos) - y * COLUMNS_DATA) * 3;
+	if ((addr >= state.pagepos) && ((addr - state.pagepos) < state.screen)) {
+		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
+		if (state.loc == HEX)
+			x = core.params.COLUMNS_ADDRESS + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA) * 3;
 		else
-			x = AnzAdd + COLUMNS_HEX + ((addr - pagepos) - y * COLUMNS_DATA);
+			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA);
 	} else {
-		pagepos = (((addr - mem) / COLUMNS_DATA) * COLUMNS_DATA + mem)
-		    - (COLUMNS_DATA * (maxy / 2));
-		if (pagepos < mem)
-			pagepos = mem;
-		y = (addr - pagepos) / COLUMNS_DATA;
-		if (loc == HEX)
-			x = AnzAdd + ((addr - pagepos) - y * COLUMNS_DATA) * 3;
+		state.pagepos = (((addr - mem) / core.params.COLUMNS_DATA) * core.params.COLUMNS_DATA + mem)
+		    - (core.params.COLUMNS_DATA * (maxy / 2));
+		if (state.pagepos < mem)
+			state.pagepos = mem;
+		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
+		if (state.loc == HEX)
+			x = core.params.COLUMNS_ADDRESS + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA) * 3;
 		else
-			x = AnzAdd + COLUMNS_HEX + ((addr - pagepos) - y * COLUMNS_DATA);
-		repaint();
+			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA);
+		ui__Screen_Repaint();
 	}
 }
 
@@ -737,28 +545,28 @@ int check;
 			return 1;
 		}
 	}
-	if (loc == ASCII) {
-		if (x < AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA) {
+	if (state.loc == ASCII) {
+		if (x < core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
 			x++;
 			return 0;
 		} else
-			x = AnzAdd + COLUMNS_HEX;
+			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 	} else {
-		if (x < 5 + COLUMNS_HEX) {
+		if (x < 5 + core.params.COLUMNS_HEX) {
 			x += 3;
 			return 0;
 		} else
-			x = AnzAdd;
+			x = core.params.COLUMNS_ADDRESS;
 	}
 	statpos();
-	lineout();
+	ui__lineout();
 	if (y < maxy - 1) {
 		y++;
 		return 0;
 	} else {
-		if (pagepos < (PTR) (mem + filesize)) {
-			pagepos += COLUMNS_DATA;
-			repaint();
+		if (state.pagepos < (PTR) (mem + filesize)) {
+			state.pagepos += core.params.COLUMNS_DATA;
+			ui__Screen_Repaint();
 			return 0;
 		} else {
 			beep();
@@ -769,32 +577,32 @@ int check;
 
 int cur_back()
 {
-	if (loc == ASCII) {
-		if (x > AnzAdd + COLUMNS_HEX) {
+	if (state.loc == ASCII) {
+		if (x > core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX) {
 			x--;
 			return 0;
 		} else {
-			x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
+			x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
 		}
 	} else {
-		if (x > AnzAdd + 2) {
+		if (x > core.params.COLUMNS_ADDRESS + 2) {
 			x -= 3;
 			return 0;
 		} else {
 			if (current == mem)
 				return 0;
-			x = AnzAdd + COLUMNS_HEX - 3;
+			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX - 3;
 		}
 	}
 	statpos();
-	lineout();
+	ui__lineout();
 	if (y > 0) {
 		y--;
 		return 0;
 	} else {
-		if (pagepos > mem) {
-			pagepos -= COLUMNS_DATA;
-			repaint();
+		if (state.pagepos > mem) {
+			state.pagepos -= core.params.COLUMNS_DATA;
+			ui__Screen_Repaint();
 			return 0;
 		} else {
 			beep();
@@ -821,7 +629,7 @@ char *fname;
 	if (edits)
 		strcat(string, "[Modified] ");
 	if (filesize) {
-		bytepos = (pagepos + y * COLUMNS_DATA + xpos()) - mem + 1L;
+		bytepos = (state.pagepos + y * core.params.COLUMNS_DATA + xpos()) - mem + 1L;
 		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);
@@ -889,7 +697,7 @@ PTR start;
 	filesize -= undo_count;
 	maxpos -= undo_count;
 	setpage(start - undo_count);
-	repaint();
+	ui__Screen_Repaint();
 }
 
 int do_delete(n, start)
@@ -915,7 +723,7 @@ PTR start;
 		cur_back();
 	}
 	setpage(start);
-	repaint();
+	ui__Screen_Repaint();
 	return 0;
 }
 
@@ -956,7 +764,7 @@ int mode;
 	}
 	addch('\n');
 	if (getcmdstr(cmdstr, 0) == 1) {
-		repaint();
+		ui__Screen_Repaint();
 		return;
 	}
 	if (alloc_buf(buffer, &tempbuf) == 0L)
@@ -998,7 +806,7 @@ int mode;
 			while (*poi != '\0') {
 				val = strtol(poi, &epoi, base);
 				if (val > 255 || val < 0 || poi == epoi) {
-					repaint();
+					ui__Screen_Repaint();
 					emsg("Invalid value");
 					goto mfree;
 				}
@@ -1008,12 +816,12 @@ int mode;
 		}
 		addch('\n');
 		if (getcmdstr(cmdstr, 0) == 1) {
-			repaint();
+			ui__Screen_Repaint();
 			goto mfree;
 		}
 	}
 	if (count == 0) {
-		repaint();
+		ui__Screen_Repaint();
 		goto mfree;
 	}
 	switch (mode) {
@@ -1025,12 +833,12 @@ int mode;
 		break;
 	case U_APPEND:
 		if ((undo_count = alloc_buf(count, &undo_buf)) == 0L) {
-			repaint();
+			ui__Screen_Repaint();
 			goto mfree;
 		}
 		do_append(count, tempbuf);
 		memcpy(undo_buf, tempbuf, count);
-		repaint();
+		ui__Screen_Repaint();
 		break;
 	}
       mfree:

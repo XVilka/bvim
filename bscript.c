@@ -68,7 +68,7 @@ static int bvi_block_select(lua_State *L)
 			data_block[n].pos_end = (unsigned long)lua_tonumber(L, 3);
 			data_block[n].palette = (unsigned int)lua_tonumber(L, 4);
 			data_block[n].hl_toggle = 1;
-			repaint();
+			ui__Screen_Repaint();
 		} else {
 			emsg("Wrong block number! Too big!");
 		}
@@ -87,7 +87,7 @@ static int bvi_block_fold(lua_State *L)
 		n = (unsigned int)lua_tonumber(L, 1);
 		if ((n < BLK_COUNT) & ((data_block[n].pos_end - data_block[n].pos_start) > 0)) {
 			data_block[n].folding = 1;
-			repaint();
+			ui__Screen_Repaint();
 		} else {
 			emsg("Wrong block number!");
 		}
@@ -632,7 +632,7 @@ static int bvi_tools_window(lua_State * L)
 {
 	int n = lua_gettop(L);
 	if (n == 1) {
-		show_tools_window((int)lua_tonumber(L, -1));
+		ui__ToolWin_Show((int)lua_tonumber(L, -1));
 	}
 	return 0;
 }
@@ -643,9 +643,9 @@ static int bvi_print_tools_window(lua_State * L)
 {
 	int n = lua_gettop(L);
 	if (n == 1) {
-		print_tools_window((char*)lua_tostring(L, -1), 1);
+		ui__ToolWin_Print((char*)lua_tostring(L, -1), 1);
 	} else if (n == 2) {
-		print_tools_window((char*)lua_tostring(L, 1), (int)lua_tonumber(L, 2));
+		ui__ToolWin_Print((char*)lua_tostring(L, 1), (int)lua_tonumber(L, 2));
 	}
 	return 0;
 }
@@ -741,7 +741,7 @@ static int bvi_set_marker(lua_State * L)
 			i++;
 		markers[i].address = address;
 		markers[i].marker = '+';
-		repaint();
+		ui__Screen_Repaint();
 	}
 	return 0;
 }
@@ -759,7 +759,7 @@ static int bvi_unset_marker(lua_State * L)
 		if (markers[i].address == address) {
 			markers[i].address = 0;
 			markers[i].marker = ' ';
-			repaint();
+			ui__Screen_Repaint();
 		} else
 			emsg("Cant found mark on this address!");
 	}

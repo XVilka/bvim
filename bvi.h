@@ -162,21 +162,70 @@ struct MARKERS_ {
 	char marker; /* Usually we use '+' character, but can be another */
 };
 
+struct highlight_ {
+	int hex_start;
+	int hex_end;
+	int dat_start;
+	int dat_end;
+	int flg;
+	int palette;
+	int toggle;
+};
+
+typedef struct highlight_ highlight_table;
+
+/* CORE structure */
+
+struct CORE {
+	struct {
+		int COLUMNS_DATA;
+		int COLUMNS_HEX;
+		int COLUMNS_ADDRESS;
+		/*
+		 struct colors {} */
+	} params;
+	struct {
+		PTR mem;
+		PTR maxpos;
+	} editor;
+	/*
+	struct KEYMAP;
+	struct BLOCKS;
+	struct MARKERS;
+	*/
+};
+
+typedef struct CORE core_t;
+
+struct STATE {
+	PTR pagepos;
+	PTR curpos;
+	PTR mempos;
+	int x;
+	int y;
+	int loc;
+	int screen;
+};
+
+typedef struct STATE state_t;
+
 extern char *version;
 extern char addr_form[];
 extern char pattern[];
 extern char rep_buf[];
 extern int maxx, maxy, x, y;
-extern int filemode, loc;
+extern int filemode;
 extern int edits, new;
-extern int AnzAdd;
+/*
+extern int COLUMNS_ADDRESS;
 extern int COLUMNS_DATA, COLUMNS_HEX;
+*/
 extern int addr_flag;
 extern int ignore_case, magic;
 extern int screen, status;
 extern PTR mem;
 extern PTR maxpos;
-extern PTR pagepos;
+/* extern PTR pagepos; */
 extern PTR undo_start;
 extern PTR current_start;
 extern PTR curpos;
@@ -252,7 +301,10 @@ void printcolorline(int, int, int, char *);
 void usage(void), bvi_init(char *), statpos(void), setcur(void);
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
-void clearstr(void), clear_marks(void), repaint(void), new_screen(void);
+void clearstr(void), clear_marks(void);
+
+void ui__Screen_Repaint(void), ui__Screen_New(void);
+
 void quit(void), sysemsg(char *), do_z(int), stuffin(char *);
 off_t edit(int), load(char *);
 off_t calc_size(char *);
@@ -299,7 +351,10 @@ void printcolorline();
 void usage(), bvi_init(), statpos(), setcur();
 void showparms(), toggle(), scrolldown(), scrollup();
 void fileinfo();
-void clearstr(), clear_marks(), new_screen(), repaint();
+void clearstr(), clear_marks();
+
+void ui__Screen_New(), ui__Screen_Repaint();
+
 void quit(), sysemsg(), do_z(), stuffin();
 off_t edit(), load();
 int ascii_comp(), hex_comp();

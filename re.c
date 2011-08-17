@@ -32,6 +32,9 @@
 #include	"bvi.h"
 #include	"set.h"
 
+extern core_t core;
+extern state_t state;
+
 static int sbracket();
 
 char act_pat[MAXCMD];		/* found pattern */
@@ -346,8 +349,8 @@ PTR endpos;
 		if (strchr(cmd, 'c'))
 			conf = 1;
 	}
-	if ((strchr("\\#", ch) && loc == ASCII)
-	    || (strchr("/?", ch) && loc == HEX)) {
+	if ((strchr("\\#", ch) && state.loc == ASCII)
+	    || (strchr("/?", ch) && state.loc == HEX)) {
 		toggle();
 	}
 	startpos--;
@@ -389,14 +392,14 @@ PTR endpos;
 	} else {
 		setpage(found);
 		if (conf) {
-			repaint();
+			ui__Screen_Repaint();
 			msg("Replace?");
 			move(y, x);
 			if (vgetc() != 'y')
 				goto SKIP;
 		}
 		repl_count++;
-		current_start = pagepos + y * COLUMNS_DATA + xpos();
+		current_start = state.pagepos + y * core.params.COLUMNS_DATA + xpos();
 		if (!global) {
 			if ((undo_count = alloc_buf(pat_len, &undo_buf))) {
 				memcpy(undo_buf, current_start, undo_count);
@@ -442,8 +445,8 @@ int flag;
 	ignore_case = (P(P_IC));
 	magic = P(P_MA);
 	start_addr--;
-	if ((strchr("\\#", ch) && loc == ASCII)
-	    || (strchr("/?", ch) && loc == HEX)) {
+	if ((strchr("\\#", ch) && state.loc == ASCII)
+	    || (strchr("/?", ch) && state.loc == HEX)) {
 		toggle();
 	}
 	if (!strchr("Nn", ch)) {
@@ -523,7 +526,7 @@ int flag;
 				break;
 			case 's':
 				do_substitution(ch, cmd + 2, found, endpos);
-				repaint();
+				ui__Screen_Repaint();
 				break;
 			case ';':
 				searching(*(cmd + 1), cmd + 2, found,

@@ -43,6 +43,9 @@
 #	include <fcntl.h>
 #endif
 
+extern core_t core;
+extern state_t state;
+
 int filemode;
 static struct stat buf;
 static off_t block_read;
@@ -249,12 +252,12 @@ char *fname;
 		if (filemode != ERROR)
 			msg(string);
 	}
-	pagepos = mem;
+	state.pagepos = mem;
 	maxpos = mem + filesize;
-	loc = HEX;
-	x = AnzAdd;
+	state.loc = HEX;
+	x = core.params.COLUMNS_ADDRESS;
 	y = 0;
-	repaint();
+	ui__Screen_Repaint();
 	return (filesize);
 }
 
@@ -308,7 +311,7 @@ off_t add;
 	off_t savecur, savepag, savemax, saveundo;
 
 	savecur = curpos - mem;
-	savepag = pagepos - mem;
+	savepag = state.pagepos - mem;
 	savemax = maxpos - mem;
 	saveundo = undo_start - mem;
 
@@ -325,7 +328,7 @@ off_t add;
 	mem = newmem;
 	memsize += add;
 	curpos = mem + savecur;
-	pagepos = mem + savepag;
+	state.pagepos = mem + savepag;
 	maxpos = mem + savemax;
 	undo_start = mem + saveundo;
 	current = curpos + 1L;

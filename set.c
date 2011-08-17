@@ -32,6 +32,7 @@
 #include "set.h"
 
 extern struct BLOCK_ data_block[BLK_COUNT];
+extern core_t core;
 
 static int from_file = 0;
 static FILE *ffp;
@@ -123,7 +124,7 @@ char *arg;			/* parameter string */
 			colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
 			colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
 			set_palette();
-			repaint();
+			ui__Screen_Repaint();
 		}
 		return 0;
 	} else {
@@ -177,17 +178,17 @@ char *arg;			/* parameter string */
 				params[i].flags |= P_CHANGED;
 
 				if (i == P_CM) {
-					if (((COLS - AnzAdd - 1) / 4) >=
+					if (((COLS - core.params.COLUMNS_ADDRESS - 1) / 4) >=
 					    P(P_CM)) {
-						COLUMNS_DATA = P(P_CM);
+						core.params.COLUMNS_DATA = P(P_CM);
 					} else {
-						COLUMNS_DATA = P(P_CM) =
-						    ((COLS - AnzAdd - 1) / 4);
+						core.params.COLUMNS_DATA = P(P_CM) =
+						    ((COLS - core.params.COLUMNS_ADDRESS - 1) / 4);
 					}
-					maxx = COLUMNS_DATA * 4 + AnzAdd + 1;
-					COLUMNS_HEX = COLUMNS_DATA * 3;
-					status = COLUMNS_HEX + COLUMNS_DATA - 17;
-					screen = COLUMNS_DATA * (maxy - 1);
+					maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
+					core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
+					status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
+					screen = core.params.COLUMNS_DATA * (maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}
@@ -208,7 +209,7 @@ char *arg;			/* parameter string */
 
 	if (did_window) {
 		maxy = P(P_LI) - 1;
-		new_screen();
+		ui__Screen_New();
 	}
 
 	return 0;
@@ -312,205 +313,6 @@ char *fn;
 	from_file = 0;
 	return 0;
 }
-
-int do_logic(mode, str)
-int mode;
-char *str;
-{
-	int a, b;
-	int value;
-	size_t n;
-	char *err_str = "Invalid value@for bit manipulation";
-
-	if (mode == LSHIFT || mode == RSHIFT || mode == LROTATE
-	    || mode == RROTATE) {
-		value = atoi(str);
-		if (value < 1 || value > 8) {
-			emsg(err_str);
-			return 1;
-		}
-	} else {
-		if (strlen(str) == 8) {
-			value = strtol(str, NULL, 2);
-			for (n = 0; n < 8; n++) {
-				if (str[n] != '0' && str[n] != '1') {
-					value = -1;
-					break;
-				}
-			}
-		} else if (str[0] == 'b' || str[0] == 'B') {
-			value = strtol(str + 1, NULL, 2);
-		} else if (str[0] == '0') {
-			value = strtol(str, NULL, 16);
-			for (n = 0; n < strlen(str); n++) {
-				if (!isxdigit(str[n])) {
-					value = -1;
-					break;
-				}
-			}
-		} else {
-			value = atoi(str);
-		}
-		if (value < 0 || value > 255) {
-			emsg(err_str);
-			return 1;
-		}
-	}
-	if ((undo_count =
-	     alloc_buf((off_t) (end_addr - start_addr + 1), &undo_buf))) {
-		memcpy(undo_buf, start_addr, undo_count);
-	}
-	undo_start = start_addr;
-	edits = U_EDIT;
-	while (start_addr <= end_addr) {
-		a = *start_addr;
-		a &= 0xff;
-		switch (mode) {
-		case LSHIFT:
-			a <<= value;
-			break;
-		case RSHIFT:
-			a >>= value;
-			break;
-		case LROTATE:
-			a <<= value;
-			b = a >> 8;
-			a |= b;
-			break;
-		case RROTATE:
-			b = a << 8;
-			a |= b;
-			a >>= value;
-			/*
-			   b = a << (8 - value);
-			   a >>= value; 
-			   a |= b;
-			 */
-			break;
-		case AND:
-			a &= value;
-			break;
-		case OR:
-			a |= value;
-			break;
-		case XOR:
-		case NOT:
-			a ^= value;
-			break;
-		case NEG:
-			a ^= value;
-			a++;	/* Is this true */
-			break;
-		}
-		*start_addr++ = (char)(a & 0xff);
-	}
-	repaint();
-	return (0);
-}
-
-int do_logic_block(mode, str, block_number)
-int mode;
-char *str;
-int block_number;
-{
-	int a, b;
-	int value;
-	size_t n;
-	char *err_str = "Invalid value@for bit manipulation";
-
-	if ((block_number >= BLK_COUNT) & (!(data_block[block_number].pos_start < data_block[block_number].pos_end))) {
-		emsg("Invalid block for bit manipulation!");
-		return 1;
-	}
-	if (mode == LSHIFT || mode == RSHIFT || mode == LROTATE
-	    || mode == RROTATE) {
-		value = atoi(str);
-		if (value < 1 || value > 8) {
-			emsg(err_str);
-			return 1;
-		}
-	} else {
-		if (strlen(str) == 8) {
-			value = strtol(str, NULL, 2);
-			for (n = 0; n < 8; n++) {
-				if (str[n] != '0' && str[n] != '1') {
-					value = -1;
-					break;
-				}
-			}
-		} else if (str[0] == 'b' || str[0] == 'B') {
-			value = strtol(str + 1, NULL, 2);
-		} else if (str[0] == '0') {
-			value = strtol(str, NULL, 16);
-			for (n = 0; n < strlen(str); n++) {
-				if (!isxdigit(str[n])) {
-					value = -1;
-					break;
-				}
-			}
-		} else {
-			value = atoi(str);
-		}
-		if (value < 0 || value > 255) {
-			emsg(err_str);
-			return 1;
-		}
-	}
-	if ((undo_count =
-	     alloc_buf((off_t) (data_block[block_number].pos_end - 
-			data_block[block_number].pos_start + 1), &undo_buf))) {
-		memcpy(undo_buf, start_addr +  data_block[block_number].pos_start, undo_count);
-	}
-	undo_start = start_addr + data_block[block_number].pos_start;
-	edits = U_EDIT;
-	start_addr = start_addr + data_block[block_number].pos_start;
-	end_addr = start_addr + data_block[block_number].pos_end - data_block[block_number].pos_start;
-	while (start_addr <= end_addr) {
-		a = *start_addr;
-		a &= 0xff;
-		switch (mode) {
-		case LSHIFT:
-			a <<= value;
-			break;
-		case RSHIFT:
-			a >>= value;
-			break;
-		case LROTATE:
-			a <<= value;
-			b = a >> 8;
-			a |= b;
-			break;
-		case RROTATE:
-			b = a << 8;
-			a |= b;
-			a >>= value;
-			/*
-			   b = a << (8 - value);
-			   a >>= value; 
-			   a |= b;
-			 */
-			break;
-		case AND:
-			a &= value;
-			break;
-		case OR:
-			a |= value;
-			break;
-		case XOR:
-		case NOT:
-			a ^= value;
-			break;
-		case NEG:
-			a ^= value;
-			a++;	/* Is this true */
-			break;
-		}
-		*start_addr++ = (char)(a & 0xff);
-	}
-	repaint();
-	return (0);
-}
-
 
 int getcmdstr(p, x)
 char *p;
