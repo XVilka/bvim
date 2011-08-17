@@ -9,3 +9,13 @@
 - Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
 - Add support for big-endian and little-endian
 
+Refactoring Tasks
+============================
+
+1. Split out math and logic functions in math.c (and/xor/etc)
+2. Implement Core and Editor objects/structures
+3. Convert editor output to editor container (for support splitting/diff features)
+4. Eliminate DOS stuff
+5. Add file stream object for supporting continious and large files
+6. Split all output to another file console.c, add unified API for GUI
+

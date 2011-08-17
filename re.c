@@ -396,7 +396,7 @@ PTR endpos;
 				goto SKIP;
 		}
 		repl_count++;
-		current_start = pagepos + y * Anzahl + xpos();
+		current_start = pagepos + y * COLUMNS_DATA + xpos();
 		if (!global) {
 			if ((undo_count = alloc_buf(pat_len, &undo_buf))) {
 				memcpy(undo_buf, current_start, undo_count);

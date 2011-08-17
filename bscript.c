@@ -78,6 +78,25 @@ static int bvi_block_select(lua_State *L)
 	return 0;
 }
 
+/* Fold block in the buffer */
+/* lua: block_fold(block_number) */
+static int bvi_block_fold(lua_State *L)
+{
+	unsigned int n = 0;
+	if (lua_gettop(L) == 1) {
+		n = (unsigned int)lua_tonumber(L, 1);
+		if ((n < BLK_COUNT) & ((data_block[n].pos_end - data_block[n].pos_start) > 0)) {
+			data_block[n].folding = 1;
+			repaint();
+		} else {
+			emsg("Wrong block number!");
+		}
+	} else {
+		msg("Error in lua block_fold function! Wrong format!");
+	}
+	return 0;
+}
+
 /* Read block in the buffer */
 /* lua: block_read(block_number) */
 static int bvi_block_read(lua_State *L)
@@ -774,6 +793,7 @@ void bvi_lua_init()
 		{"file", bvi_file},
 		{"exec", bvi_exec},
 		{"block_select", bvi_block_select},
+		{"block_fold", bvi_block_fold},
 		{"block_read", bvi_block_read},
 		{"block_and", bvi_block_and},
 		{"block_or", bvi_block_or},

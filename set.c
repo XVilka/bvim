@@ -179,15 +179,15 @@ char *arg;			/* parameter string */
 				if (i == P_CM) {
 					if (((COLS - AnzAdd - 1) / 4) >=
 					    P(P_CM)) {
-						Anzahl = P(P_CM);
+						COLUMNS_DATA = P(P_CM);
 					} else {
-						Anzahl = P(P_CM) =
+						COLUMNS_DATA = P(P_CM) =
 						    ((COLS - AnzAdd - 1) / 4);
 					}
-					maxx = Anzahl * 4 + AnzAdd + 1;
-					Anzahl3 = Anzahl * 3;
-					status = Anzahl3 + Anzahl - 17;
-					screen = Anzahl * (maxy - 1);
+					maxx = COLUMNS_DATA * 4 + AnzAdd + 1;
+					COLUMNS_HEX = COLUMNS_DATA * 3;
+					status = COLUMNS_HEX + COLUMNS_DATA - 17;
+					screen = COLUMNS_DATA * (maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}

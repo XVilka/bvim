@@ -390,12 +390,12 @@ int mode;
 	case '.':
 		while (y != maxy / 2) {
 			if (y > maxy / 2) {
-				pagepos += Anzahl;
+				pagepos += COLUMNS_DATA;
 				y--;
 			} else {
 				if (pagepos == mem)
 					break;
-				pagepos -= Anzahl;
+				pagepos -= COLUMNS_DATA;
 				y++;
 			}
 		}
@@ -404,7 +404,7 @@ int mode;
 		while (y < maxy - 1) {
 			if (pagepos == mem)
 				break;
-			pagepos -= Anzahl;
+			pagepos -= COLUMNS_DATA;
 			y++;
 		}
 		break;
@@ -413,7 +413,7 @@ int mode;
 	case '\r':
 		while (y > 0) {
 			y--;
-			pagepos += Anzahl;
+			pagepos += COLUMNS_DATA;
 		}
 		break;
 	default:
@@ -427,8 +427,8 @@ void scrolldown(lns)
 int lns;
 {
 	while (lns--) {
-		if (maxpos >= (pagepos + Anzahl))
-			pagepos += Anzahl;
+		if (maxpos >= (pagepos + COLUMNS_DATA))
+			pagepos += COLUMNS_DATA;
 		else {
 			beep();
 			lns = 0;
@@ -442,8 +442,8 @@ void scrollup(lns)
 int lns;
 {
 	while (lns--) {
-		if (mem <= (PTR) (pagepos - Anzahl))
-			pagepos -= Anzahl;
+		if (mem <= (PTR) (pagepos - COLUMNS_DATA))
+			pagepos -= COLUMNS_DATA;
 		else {
 			beep();
 			lns = 0;
@@ -458,13 +458,13 @@ int xpos()
 	if (loc == HEX)
 		return ((x - AnzAdd) / 3);
 	else
-		return (x - AnzAdd - Anzahl3);
+		return (x - AnzAdd - COLUMNS_HEX);
 }
 
 void toggle()
 {
 	if (loc == HEX) {
-		x = xpos() + AnzAdd + Anzahl3;
+		x = xpos() + AnzAdd + COLUMNS_HEX;
 		loc = ASCII;
 	} else {
 		x = xpos() * 3 + AnzAdd;
@@ -595,25 +595,25 @@ int scpos;
 			hl[n].dat_start = 0;
 			hl[n].palette = data_block[i].palette;
 			if (hl[n].flg == 1) {
-				hl[n].hex_end = Anzahl * 3;
-				hl[n].dat_end = Anzahl;
+				hl[n].hex_end = COLUMNS_DATA * 3;
+				hl[n].dat_end = COLUMNS_DATA;
 			} else {
 				hl[n].hex_end = 0;
 				hl[n].dat_end = 0;
 			}
-			for (print_pos = 0; print_pos < Anzahl * 3; print_pos += 3) {
+			for (print_pos = 0; print_pos < COLUMNS_DATA * 3; print_pos += 3) {
 				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) & (hl[n].flg != 1)) {
 					hl[n].hex_start = print_pos;
 					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = Anzahl * 3;
-					hl[n].dat_end = Anzahl;
+					hl[n].hex_end = COLUMNS_DATA * 3;
+					hl[n].dat_end = COLUMNS_DATA;
 					hl[n].flg = 1;
 				} else if (((long)(mempos - mem + (print_pos / 3)) < data_block[i].pos_end) & 
 					((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_start) & (hl[n].flg != 1)) {
 					hl[n].hex_start = print_pos;
 					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = Anzahl * 3;
-					hl[n].dat_end = Anzahl;
+					hl[n].hex_end = COLUMNS_DATA * 3;
+					hl[n].dat_end = COLUMNS_DATA;
 					hl[n].flg = 1;
 				} else if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].flg == 1)) {
 					hl[n].hex_end = print_pos + 2;
@@ -627,7 +627,7 @@ int scpos;
 		}
 	}
 	
-	for (print_pos = 0; print_pos < Anzahl; print_pos++) {
+	for (print_pos = 0; print_pos < COLUMNS_DATA; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
 			sprintf(tmpbuf, "   ");
 			Zeichen = ' ';
@@ -641,7 +641,7 @@ int scpos;
 		else
 			*(string + print_pos) = '.';
 	}
-	*(string + Anzahl) = '\0';
+	*(string + COLUMNS_DATA) = '\0';
 
 	/* load color from C(C_HX) */
 	strcat(linbuf, "|");
@@ -653,22 +653,42 @@ int scpos;
 	printcolorline_dathl(scpos, nxtpos, C_DT, string, hl, n + 1);
 }
 
+/* TODO: add hex-data folding feature */
+
 /* displays a line on screen
  * at pagepos + line y
  */
 int lineout()
 {
 	off_t Adresse;
+	int i = 0;
+	int k = 0;
 
-	Adresse = pagepos - mem + y * Anzahl;
+	Adresse = pagepos - mem + y * COLUMNS_DATA;
+	/*
+	for (i = 0; i < BLK_COUNT; i++) {
+		if ((data_block[i].folding == 1) & (data_block[i].pos_start < Adresse) & (data_block[i].pos_end > Adresse)) {
+			break;	
+		}
+	}
+	if (data_block[i].pos_start != 0) {
+		k = y;
+		while ((data_block[i].pos_start < Adresse) & (data_block[i].pos_end > Adresse)) {
+			k++;
+			Adresse = pagepos - mem + k * COLUMNS_DATA;
+		}
+	}
+	*/
 	printline(mem + Adresse, y);
 	move(y, x);
+	if (k != 0) 
+		y = k;
 	return (0);
 }
 
 void new_screen()
 {
-	screen = Anzahl * (maxy - 1);
+	screen = COLUMNS_DATA * (maxy - 1);
 	clear();
 	repaint();
 }
@@ -689,21 +709,21 @@ void setpage(addr)
 PTR addr;
 {
 	if ((addr >= pagepos) && ((addr - pagepos) < screen)) {
-		y = (addr - pagepos) / Anzahl;
+		y = (addr - pagepos) / COLUMNS_DATA;
 		if (loc == HEX)
-			x = AnzAdd + ((addr - pagepos) - y * Anzahl) * 3;
+			x = AnzAdd + ((addr - pagepos) - y * COLUMNS_DATA) * 3;
 		else
-			x = AnzAdd + Anzahl3 + ((addr - pagepos) - y * Anzahl);
+			x = AnzAdd + COLUMNS_HEX + ((addr - pagepos) - y * COLUMNS_DATA);
 	} else {
-		pagepos = (((addr - mem) / Anzahl) * Anzahl + mem)
-		    - (Anzahl * (maxy / 2));
+		pagepos = (((addr - mem) / COLUMNS_DATA) * COLUMNS_DATA + mem)
+		    - (COLUMNS_DATA * (maxy / 2));
 		if (pagepos < mem)
 			pagepos = mem;
-		y = (addr - pagepos) / Anzahl;
+		y = (addr - pagepos) / COLUMNS_DATA;
 		if (loc == HEX)
-			x = AnzAdd + ((addr - pagepos) - y * Anzahl) * 3;
+			x = AnzAdd + ((addr - pagepos) - y * COLUMNS_DATA) * 3;
 		else
-			x = AnzAdd + Anzahl3 + ((addr - pagepos) - y * Anzahl);
+			x = AnzAdd + COLUMNS_HEX + ((addr - pagepos) - y * COLUMNS_DATA);
 		repaint();
 	}
 }
@@ -718,13 +738,13 @@ int check;
 		}
 	}
 	if (loc == ASCII) {
-		if (x < AnzAdd - 1 + Anzahl3 + Anzahl) {
+		if (x < AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA) {
 			x++;
 			return 0;
 		} else
-			x = AnzAdd + Anzahl3;
+			x = AnzAdd + COLUMNS_HEX;
 	} else {
-		if (x < 5 + Anzahl3) {
+		if (x < 5 + COLUMNS_HEX) {
 			x += 3;
 			return 0;
 		} else
@@ -737,7 +757,7 @@ int check;
 		return 0;
 	} else {
 		if (pagepos < (PTR) (mem + filesize)) {
-			pagepos += Anzahl;
+			pagepos += COLUMNS_DATA;
 			repaint();
 			return 0;
 		} else {
@@ -750,11 +770,11 @@ int check;
 int cur_back()
 {
 	if (loc == ASCII) {
-		if (x > AnzAdd + Anzahl3) {
+		if (x > AnzAdd + COLUMNS_HEX) {
 			x--;
 			return 0;
 		} else {
-			x = AnzAdd - 1 + Anzahl3 + Anzahl;
+			x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
 		}
 	} else {
 		if (x > AnzAdd + 2) {
@@ -763,7 +783,7 @@ int cur_back()
 		} else {
 			if (current == mem)
 				return 0;
-			x = AnzAdd + Anzahl3 - 3;
+			x = AnzAdd + COLUMNS_HEX - 3;
 		}
 	}
 	statpos();
@@ -773,7 +793,7 @@ int cur_back()
 		return 0;
 	} else {
 		if (pagepos > mem) {
-			pagepos -= Anzahl;
+			pagepos -= COLUMNS_DATA;
 			repaint();
 			return 0;
 		} else {
@@ -801,7 +821,7 @@ char *fname;
 	if (edits)
 		strcat(string, "[Modified] ");
 	if (filesize) {
-		bytepos = (pagepos + y * Anzahl + xpos()) - mem + 1L;
+		bytepos = (pagepos + y * COLUMNS_DATA + xpos()) - mem + 1L;
 		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);

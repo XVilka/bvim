@@ -56,6 +56,29 @@ off_t size;
 /* Tools window */
 WINDOW *tools_win = NULL;
 
+/* CORE structure */
+/*
+struct core {
+	struct params {
+		int COLUMNS_DATA;
+		int COLUMNS_HEX;
+		struct colors {}
+	}
+	struct editor {
+		PTR mem;
+		struct current {
+			PTR curpos;
+			PTR pagepos;
+			PTR spos;
+		}
+		PTR maxpos;
+	}
+	struct KEYMAP;
+	struct BLOCKS;
+	struct MARKERS;
+}
+*/
+
 PTR mem = NULL;
 PTR curpos;
 PTR maxpos;
@@ -67,7 +90,7 @@ char string[MAXCMD];
 char cmdstr[MAXCMD + 1] = "";
 FILE *Ausgabe_Datei;
 int edits = 0;
-int AnzAdd, Anzahl, Anzahl3;
+int AnzAdd, COLUMNS_DATA, COLUMNS_HEX;
 off_t filesize, memsize, undosize;
 long precount = -1;		/* number preceding command */
 
@@ -134,12 +157,12 @@ void main_window_resize(int lines_count) {
 	AnzAdd = 10;
 	strcpy(addr_form, "%08lX%c:");
 
-	Anzahl = ((COLS - AnzAdd - 1) / 16) * 4;
-	P(P_CM) = Anzahl;
-	maxx = Anzahl * 4 + AnzAdd + 1;
-	Anzahl3 = Anzahl * 3;
-	status = Anzahl3 + Anzahl - 17;
-	screen = Anzahl * (maxy - 1);
+	COLUMNS_DATA = ((COLS - AnzAdd - 1) / 16) * 4;
+	P(P_CM) = COLUMNS_DATA;
+	maxx = COLUMNS_DATA * 4 + AnzAdd + 1;
+	COLUMNS_HEX = COLUMNS_DATA * 3;
+	status = COLUMNS_HEX + COLUMNS_DATA - 17;
+	screen = COLUMNS_DATA * (maxy - 1);
 
 	new_screen();
 }
@@ -357,7 +380,7 @@ char *argv[];
 	/* main loop */
 	do {
 		setjmp(env);
-		current = (PTR) (pagepos + y * Anzahl + xpos());
+		current = (PTR) (pagepos + y * COLUMNS_DATA + xpos());
 		if (wrstat)
 			statpos();
 		wrstat = 1;
@@ -385,12 +408,12 @@ char *argv[];
 			loc = HEX;
 			break;
 			/*
-			   case '0':    x = AnzAdd + Anzahl3;
+			   case '0':    x = AnzAdd + COLUMNS_HEX;
 			   loc = ASCII;
 			   break;
 			 */
 		case '$':
-			x = AnzAdd - 1 + Anzahl3 + Anzahl;
+			x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
 			loc = ASCII;
 			break;
 		case '\t':
@@ -416,16 +439,16 @@ char *argv[];
 			if (loc == HEX)
 				x = AnzAdd;
 			else
-				x = AnzAdd + Anzahl3;
+				x = AnzAdd + COLUMNS_HEX;
 			break;
 		case 'M':
 			y = maxy / 2;
 			if ((PTR) (pagepos + screen) > maxpos)
-				y = (int)(maxpos - pagepos) / Anzahl / 2;
+				y = (int)(maxpos - pagepos) / COLUMNS_DATA / 2;
 			if (loc == HEX)
 				x = AnzAdd;
 			else
-				x = AnzAdd + Anzahl3;
+				x = AnzAdd + COLUMNS_HEX;
 			break;
 		case KEY_LL:
 		case 'L':
@@ -433,13 +456,13 @@ char *argv[];
 				precount = 1;
 			n = maxy - 1;
 			if ((PTR) ((pagepos + screen)) > maxpos)
-				n = (int)(maxpos - pagepos) / Anzahl;
+				n = (int)(maxpos - pagepos) / COLUMNS_DATA;
 			if (precount < n)
 				y = n + 1 - precount;
 			if (loc == HEX)
 				x = AnzAdd;
 			else
-				x = AnzAdd + Anzahl3;
+				x = AnzAdd + COLUMNS_HEX;
 			break;
 		case BVICTRL('H'):
 		case KEY_BACKSPACE:
@@ -447,12 +470,12 @@ char *argv[];
 		case 'h':
 			do {
 				if (x > (AnzAdd + 2)
-				    && x < (Anzahl3 + AnzAdd + 1))
+				    && x < (COLUMNS_HEX + AnzAdd + 1))
 					x -= 3;
-				else if (x > (Anzahl3 + AnzAdd - 2))
+				else if (x > (COLUMNS_HEX + AnzAdd - 2))
 					x--;
 			} while (--precount > 0);
-			if (x < AnzAdd + Anzahl3)
+			if (x < AnzAdd + COLUMNS_HEX)
 				loc = HEX;
 			else
 				loc = ASCII;
@@ -462,15 +485,15 @@ char *argv[];
 		case 'l':
 			do {
 				/*
-				   if (x < (Anzahl3 + 6))  x += 3;
+				   if (x < (COLUMNS_HEX + 6))  x += 3;
 				 */
-				if (x < (Anzahl3 + AnzAdd - 2))
+				if (x < (COLUMNS_HEX + AnzAdd - 2))
 					x += 3;
-				else if (x > (Anzahl3 + 3)
-					 && x < (Anzahl3 + AnzAdd - 1 + Anzahl))
+				else if (x > (COLUMNS_HEX + 3)
+					 && x < (COLUMNS_HEX + AnzAdd - 1 + COLUMNS_DATA))
 					x++;
 			} while (--precount > 0);
-			if (x < AnzAdd + Anzahl3)
+			if (x < AnzAdd + COLUMNS_HEX)
 				loc = HEX;
 			else
 				loc = ASCII;
@@ -490,13 +513,13 @@ char *argv[];
 			if (loc == HEX)
 				x = AnzAdd;
 			else
-				x = AnzAdd + Anzahl3;
+				x = AnzAdd + COLUMNS_HEX;
 		case 'j':
 		case BVICTRL('J'):
 		case BVICTRL('N'):
 		case KEY_DOWN:
 			do {
-				if ((PTR) ((pagepos + (y + 1) * Anzahl)) >
+				if ((PTR) ((pagepos + (y + 1) * COLUMNS_DATA)) >
 				    maxpos)
 					break;
 				if (y < (maxy - 1))
@@ -509,11 +532,11 @@ char *argv[];
 			if (precount < 1)
 				break;
 			if (loc == ASCII)
-				x = AnzAdd - 1 + Anzahl3 + precount;
+				x = AnzAdd - 1 + COLUMNS_HEX + precount;
 			else
 				x = 5 + 3 * precount;
-			if (x > AnzAdd - 1 + Anzahl3 + Anzahl) {
-				x = AnzAdd - 1 + Anzahl3 + Anzahl;
+			if (x > AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA) {
+				x = AnzAdd - 1 + COLUMNS_HEX + COLUMNS_DATA;
 				loc = ASCII;
 			}
 			break;
@@ -908,7 +931,7 @@ void trunc_cur()
 	undosize = filesize;
 	undo_count = (off_t) (maxpos - current);
 	undo_start = current;
-	filesize = pagepos - mem + y * Anzahl + xpos();
+	filesize = pagepos - mem + y * COLUMNS_DATA + xpos();
 	maxpos = (PTR) (mem + filesize);
 	if (filesize == 0L) {
 		emsg(nobytes);

@@ -153,6 +153,7 @@ struct BLOCK_ {
 	unsigned long pos_end;
 	char name[64];
 	unsigned int hl_toggle; /* do we need highlight this block? */
+	unsigned short folding; /* do we need fold this block? */
 	unsigned int palette; /* pallete, which we are using for highlight this block */
 };
 
@@ -169,7 +170,7 @@ extern int maxx, maxy, x, y;
 extern int filemode, loc;
 extern int edits, new;
 extern int AnzAdd;
-extern int Anzahl, Anzahl3;
+extern int COLUMNS_DATA, COLUMNS_HEX;
 extern int addr_flag;
 extern int ignore_case, magic;
 extern int screen, status;
