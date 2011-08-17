@@ -5,8 +5,8 @@ function crcsums(block_start, block_end)
 	bvi.print_tools_window("Block #0 [" .. block_start .. "," .. block_end .. "]", 1)
 	bvi.print_tools_window("------------------------------------------------", 2)
 	bvi.print_tools_window("CRC-8  : [ " .. "<not yet implemented>" .. " ]", 3)
-	bvi.print_tools_window("CRC-16 : [ " .. bvi.crc16(0) .. " ]", 4)
-	bvi.print_tools_window("CRC-32 : [ " .. bvi.crc32(0) .. " ]", 5)
+	bvi.print_tools_window("CRC-16 : [ " .. string.gsub(string.format("%04x", bvi.crc16(0)), "(..)(..)", "%1 %2") .. " ]", 4)
+	bvi.print_tools_window("CRC-32 : [ " .. string.gsub(string.format("%08x", bvi.crc32(0)), "(..)(..)(..)(..)", "%1 %2 %3 %4") .. " ]", 5)
 end
 
 -- Show all MD* sums in tools window
