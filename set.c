@@ -76,6 +76,7 @@ struct color colors[] = {	/* RGB definitions and default value, if have no suppo
 	{"data", "data", 0, 800, 400, COLOR_GREEN},
 	{"error", "err", 999, 350, 0, COLOR_RED},
 	{"status", "stat", 255, 255, 255, COLOR_WHITE},
+	{"command", "comm", 255, 255, 255, COLOR_WHITE},
 	{"window", "win", 0, 800, 900, COLOR_YELLOW},
 	{"addrbg", "addrbg", 0, 0, 0, COLOR_CYAN},
 	{"", "", 0, 0, 0, 0}	/* end marker */
@@ -519,6 +520,8 @@ int x;
 	int n;
 	char *buff, *q;
 
+	attron(COLOR_PAIR(C_CM + 1));
+
 	if (from_file) {
 		if (fgets(p, 255, ffp) != NULL) {
 			strtok(p, "\n\r");
@@ -549,6 +552,7 @@ int x;
 			} else {
 				*buff = '\0';
 				msg("");
+				attroff(COLOR_PAIR(C_CM + 1));
 				signal(SIGINT, SIG_IGN);
 				return 1;
 			}
@@ -556,6 +560,7 @@ int x;
 		case ESC:	/* abandon command */
 			*buff = '\0';
 			msg("");
+			attroff(COLOR_PAIR(C_CM + 1));
 			signal(SIGINT, SIG_IGN);
 			return 1;
 #if NL != KEY_ENTER
@@ -573,6 +578,7 @@ int x;
 		}
 		refresh();
 	} while (c != NL && c != CR && c != KEY_ENTER);
+	attroff(COLOR_PAIR(C_CM + 1));
 
 	*p = '\0';
 	signal(SIGINT, SIG_IGN);
