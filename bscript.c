@@ -303,7 +303,7 @@ static int bvi_md4_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				md4_hash_string((unsigned char*)block, hash);
+				md4_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -312,7 +312,7 @@ static int bvi_md4_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			md4_hash_string((unsigned char*)block, hash);
+			md4_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -337,7 +337,7 @@ static int bvi_md5_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				md5_hash_string((unsigned char*)block, hash);
+				md5_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -346,7 +346,7 @@ static int bvi_md5_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			md5_hash_string((unsigned char*)block, hash);
+			md5_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -371,7 +371,7 @@ static int bvi_sha1_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha1_hash_string((unsigned char*)block, hash);
+				sha1_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -380,7 +380,7 @@ static int bvi_sha1_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			sha1_hash_string((unsigned char*)block, hash);
+			sha1_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -405,7 +405,7 @@ static int bvi_sha256_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha256_hash_string((unsigned char*)block, hash);
+				sha256_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -414,7 +414,7 @@ static int bvi_sha256_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			sha256_hash_string((unsigned char*)block, hash);
+			sha256_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -439,7 +439,7 @@ static int bvi_sha512_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha512_hash_string((unsigned char*)block, hash);
+				sha512_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -448,7 +448,7 @@ static int bvi_sha512_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			sha512_hash_string((unsigned char*)block, hash);
+			sha512_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -473,7 +473,7 @@ static int bvi_ripemd160_hash(lua_State *L)
 			if (data_block[n].pos_end > data_block[n].pos_start) {
 				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
 				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				ripemd160_hash_string((unsigned char*)block, hash);
+				ripemd160_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -482,7 +482,7 @@ static int bvi_ripemd160_hash(lua_State *L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char*)lua_tostring(L, 1);
-			ripemd160_hash_string((unsigned char*)block, hash);
+			ripemd160_hash_string((unsigned char*)block, strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}

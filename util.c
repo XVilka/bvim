@@ -69,13 +69,13 @@ unsigned int crc32(char *addr, int num, unsigned int crc)
  * MD5
  */
 
-void md4_hash_string(unsigned char *string, char outputBuffer[65])
+void md4_hash_string(unsigned char *string, long len, char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[MD4_DIGEST_LENGTH];
 	MD4_CTX md4;
 	MD4_Init(&md4);
-	MD4_Update(&md4, string, strlen((char *)string));
+	MD4_Update(&md4, string, len);
 	MD4_Final(hash, &md4);
 	for(i = 0; i < MD4_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -83,13 +83,13 @@ void md4_hash_string(unsigned char *string, char outputBuffer[65])
 	outputBuffer[64] = 0;
 }
 
-void md5_hash_string(unsigned char *string, char outputBuffer[65])
+void md5_hash_string(unsigned char *string, long len, char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[MD5_DIGEST_LENGTH];
 	MD5_CTX md5;
 	MD5_Init(&md5);
-	MD5_Update(&md5, string, strlen((char *)string));
+	MD5_Update(&md5, string, len);
 	MD5_Final(hash, &md5);
 	for(i = 0; i < MD5_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -105,13 +105,13 @@ void md5_hash_string(unsigned char *string, char outputBuffer[65])
  * SHA-512
  */
 
-void sha1_hash_string(unsigned char *string, char outputBuffer[65])
+void sha1_hash_string(unsigned char *string, long len, char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[SHA_DIGEST_LENGTH];
 	SHA_CTX sha1;
 	SHA1_Init(&sha1);
-	SHA1_Update(&sha1, string, strlen((char *)string));
+	SHA1_Update(&sha1, string, len);
 	SHA1_Final(hash, &sha1);
 	for(i = 0; i < SHA_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -140,20 +140,20 @@ int sha1_file(char *path, char outputBuffer[65])
 	}
 
 	SHA1_Final(hash, &sha1);
-	sha1_hash_string(hash, outputBuffer);
+	sha1_hash_string(hash, strlen(hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
 }
 
-void sha256_hash_string(unsigned char *string, char outputBuffer[65])
+void sha256_hash_string(unsigned char *string, long len, char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	SHA256_CTX sha256;
 	
 	SHA256_Init(&sha256);
-	SHA256_Update(&sha256, string, strlen((char *)string));
+	SHA256_Update(&sha256, string, len);
 	SHA256_Final(hash, &sha256);
 	for(i = 0; i < SHA256_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -182,20 +182,20 @@ int sha256_file(char *path, char outputBuffer[65])
 	}
 
 	SHA256_Final(hash, &sha256);
-	sha256_hash_string(hash, outputBuffer);
+	sha256_hash_string(hash, strlen(hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
 }
 
-void sha512_hash_string(unsigned char *string, char outputBuffer[129])
+void sha512_hash_string(unsigned char *string, long len, char outputBuffer[129])
 {
 	int i = 0;
 	unsigned char hash[SHA512_DIGEST_LENGTH];
 	SHA512_CTX sha512;
 
 	SHA512_Init(&sha512);
-	SHA512_Update(&sha512, string, strlen((char *)string));
+	SHA512_Update(&sha512, string, len);
 	SHA512_Final(hash, &sha512);
 	for(i = 0; i < SHA512_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -224,7 +224,7 @@ int sha512_file(char *path, char outputBuffer[129])
 	}
 
 	SHA512_Final(hash, &sha512);
-	sha512_hash_string(hash, outputBuffer);
+	sha512_hash_string(hash, strlen(hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
@@ -232,14 +232,14 @@ int sha512_file(char *path, char outputBuffer[129])
 
 /* RIPEMD-160 */
 
-void ripemd160_hash_string(unsigned char *string, char outputBuffer[65])
+void ripemd160_hash_string(unsigned char *string, long len, char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[RIPEMD160_DIGEST_LENGTH];
 	RIPEMD160_CTX ripemd160;
 	
 	RIPEMD160_Init(&ripemd160);
-	RIPEMD160_Update(&ripemd160, string, strlen((char *)string));
+	RIPEMD160_Update(&ripemd160, string, len);
 	RIPEMD160_Final(hash, &ripemd160);
 	for(i = 0; i < RIPEMD160_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
@@ -268,7 +268,7 @@ int ripemd160_file(char *path, char outputBuffer[65])
 	}
 
 	RIPEMD160_Final(hash, &ripemd160);
-	ripemd160_hash_string(hash, outputBuffer);
+	ripemd160_hash_string(hash, strlen(hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
