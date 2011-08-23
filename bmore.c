@@ -509,7 +509,7 @@ char *argv[];
 		case '?':
 		case 'h':
 			if ((help_file = fopen(helppath, "r")) == NULL) {
-				emsg("Can't open help file");
+				ui__ErrorMsg("Can't open help file");
 				break;
 			}
 			while ((ch1 = getc(help_file)) != EOF)
@@ -541,7 +541,7 @@ char *argv[];
 			}
 		default:
 			if (d_flag) {
-				emsg("[Press 'h' for instructions.]");
+				ui__ErrorMsg("[Press 'h' for instructions.]");
 			} else {
 				bmbeep();
 			}
@@ -585,7 +585,7 @@ char *sstring;
 			}
 		} else if (ch1 == '!' && i == 0) {
 			if (bstring[0] == '\0') {
-				emsg("No previous command");
+				ui__ErrorMsg("No previous command");
 				return 1;
 			}
 			putchar(ch1);
@@ -926,7 +926,7 @@ int ch;
 	int i;
 
 	if (sstring[0] == '\0') {
-		emsg("No previous regular expression");
+		ui__ErrorMsg("No previous regular expression");
 		return;
 	}
 	if (ch == '/') {
@@ -953,9 +953,9 @@ int ch;
 			} else {
 /*
 sprintf(string, "Pattern not found %d - %ul", i, (unsigned long)bytepos);
-emsg(string);
+ui__ErrorMsg(string);
 */
-				emsg("Pattern not found");
+				ui__ErrorMsg("Pattern not found");
 				bytepos = oldpos;
 				fseek(curr_file, bytepos, SEEK_SET);
 				break;
@@ -971,7 +971,7 @@ emsg(string);
 	}
 }
 
-void emsg(s)
+void ui__ErrorMsg(s)
 char *s;
 {
 	putchar('\r');

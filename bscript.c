@@ -70,10 +70,10 @@ static int bvi_block_select(lua_State *L)
 			data_block[n].hl_toggle = 1;
 			ui__Screen_Repaint();
 		} else {
-			emsg("Wrong block number! Too big!");
+			ui__ErrorMsg("Wrong block number! Too big!");
 		}
 	} else {
-		emsg("Error in lua block_select function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_select function! Wrong format!");
 	}
 	return 0;
 }
@@ -89,10 +89,10 @@ static int bvi_block_fold(lua_State *L)
 			data_block[n].folding = 1;
 			ui__Screen_Repaint();
 		} else {
-			emsg("Wrong block number!");
+			ui__ErrorMsg("Wrong block number!");
 		}
 	} else {
-		msg("Error in lua block_fold function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_fold function! Wrong format!");
 	}
 	return 0;
 }
@@ -111,10 +111,10 @@ static int bvi_block_read(lua_State *L)
 			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
 			lua_pushstring(L, block);
 		} else {
-			emsg("You need select valid block before read!");
+			ui__ErrorMsg("You need select valid block before read!");
 		}
 	} else {
-		emsg("Error in lua block_read function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_read function! Wrong format!");
 	}
 	return 1;
 }
@@ -129,10 +129,10 @@ static int bvi_block_and(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(AND, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before and operation!");
+			ui__ErrorMsg("You need select valid block before and operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -147,10 +147,10 @@ static int bvi_block_or(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(OR, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before or operation!");
+			ui__ErrorMsg("You need select valid block before or operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -165,10 +165,10 @@ static int bvi_block_xor(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(XOR, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before xor operation!");
+			ui__ErrorMsg("You need select valid block before xor operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -183,10 +183,10 @@ static int bvi_block_lshift(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(LSHIFT, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before lshift operation!");
+			ui__ErrorMsg("You need select valid block before lshift operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -201,10 +201,10 @@ static int bvi_block_rshift(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(RSHIFT, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before rshift operation!");
+			ui__ErrorMsg("You need select valid block before rshift operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -219,10 +219,10 @@ static int bvi_block_lrotate(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(LROTATE, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before lrotate operation!");
+			ui__ErrorMsg("You need select valid block before lrotate operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -237,10 +237,10 @@ static int bvi_block_rrotate(lua_State *L)
 		if (data_block[n].pos_end > data_block[n].pos_start) {
 			do_logic_block(RROTATE, (char*)lua_tostring(L, 2), n);
 		} else {
-			emsg("You need select valid block before rrotate operation!");
+			ui__ErrorMsg("You need select valid block before rrotate operation!");
 		}	
 	} else {
-		emsg("Error in lua block_and function! Wrong format!");
+		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
 	return 0;
 }
@@ -271,7 +271,7 @@ static int bvi_crc16(lua_State * L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua crc16 function! Wrong format!");
+		ui__ErrorMsg("Error in lua crc16 function! Wrong format!");
 	}
 	return 0;
 }
@@ -302,7 +302,7 @@ static int bvi_crc32(lua_State * L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua crc32 function! Wrong format!");
+		ui__ErrorMsg("Error in lua crc32 function! Wrong format!");
 	}
 	return 0;
 }
@@ -326,7 +326,7 @@ static int bvi_md4_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before MD4 hash calculation!");
+				ui__ErrorMsg("You need select valid block before MD4 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -336,7 +336,7 @@ static int bvi_md4_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua md4_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua md4_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -360,7 +360,7 @@ static int bvi_md5_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before MD5 hash calculation!");
+				ui__ErrorMsg("You need select valid block before MD5 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -370,7 +370,7 @@ static int bvi_md5_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua md5_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua md5_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -394,7 +394,7 @@ static int bvi_sha1_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before SHA1 hash calculation!");
+				ui__ErrorMsg("You need select valid block before SHA1 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -404,7 +404,7 @@ static int bvi_sha1_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua sha1_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua sha1_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -428,7 +428,7 @@ static int bvi_sha256_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before SHA256 hash calculation!");
+				ui__ErrorMsg("You need select valid block before SHA256 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -438,7 +438,7 @@ static int bvi_sha256_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua sha256_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua sha256_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -462,7 +462,7 @@ static int bvi_sha512_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before SHA512 hash calculation!");
+				ui__ErrorMsg("You need select valid block before SHA512 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -472,7 +472,7 @@ static int bvi_sha512_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua sha512_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua sha512_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -496,7 +496,7 @@ static int bvi_ripemd160_hash(lua_State *L)
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				emsg("You need select valid block before RIPEMD160 hash calculation!");
+				ui__ErrorMsg("You need select valid block before RIPEMD160 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
@@ -506,7 +506,7 @@ static int bvi_ripemd160_hash(lua_State *L)
 			return 1;
 		}
 	} else {
-		emsg("Error in lua ripemd160_hash function! Wrong format!");
+		ui__ErrorMsg("Error in lua ripemd160_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -590,7 +590,7 @@ static int bvi_display_error(lua_State * L)
 	char *message;
 	if (lua_gettop(L) != 0) {
 		message = (char *)lua_tostring(L, -1);
-		emsg(message);
+		ui__ErrorMsg(message);
 	}
 	return 0;
 }
@@ -616,12 +616,12 @@ static int bvi_msg_window(lua_State * L)
 	int n = lua_gettop(L);
 	if (n == 1) {
 		message = (char *)lua_tostring(L, -1);
-		wmsg(message, 3, strlen(message) + 4);
+		ui__MsgWin_Show(message, 3, strlen(message) + 4);
 	} else if (n == 3) {
 		message = (char *)lua_tostring(L, 1);
 		height = (int)lua_tonumber(L, 2);
 		width = (int)lua_tonumber(L, 3);
-		wmsg(message, height, width);
+		ui__MsgWin_Show(message, height, width);
 	}
 	return 0;
 }
@@ -666,7 +666,7 @@ static int bvi_print(lua_State * L)
 			palette = 1;
 		printcolorline(x, y, palette, string);
 	} else {
-		emsg("Wrong format of lua print() function!");
+		ui__ErrorMsg("Wrong format of lua print() function!");
 	}
 	return 0;
 }
@@ -761,7 +761,7 @@ static int bvi_unset_marker(lua_State * L)
 			markers[i].marker = ' ';
 			ui__Screen_Repaint();
 		} else
-			emsg("Cant found mark on this address!");
+			ui__ErrorMsg("Cant found mark on this address!");
 	}
 	return 0;
 }
@@ -846,7 +846,7 @@ int bvi_run_lua_script(char *name)
 	strcat(filename, ".lua");
 	err = luaL_loadfile(lstate, filename);
 	if (err) {
-		emsg("Error: cant open lua script file!");
+		ui__ErrorMsg("Error: cant open lua script file!");
 		lua_pop(lstate, 1);
 	} else {
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);
@@ -858,7 +858,7 @@ int bvi_run_lua_string(char *string)
 {
 	int err = luaL_loadstring(lstate, string);
 	if (err) {
-		emsg("Error in lua script!");
+		ui__ErrorMsg("Error in lua script!");
 		lua_pop(lstate, 1);
 	} else {
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);

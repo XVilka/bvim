@@ -85,6 +85,9 @@ int addr_flag;
 PTR start_addr;
 PTR end_addr;
 
+extern core_t core;
+extern state_t state;
+
 extern char *name;		/* actual filename */
 extern char **files;		/* used for "next" and "rewind" */
 extern int numfiles, curfile;
@@ -122,7 +125,7 @@ char *cmdline;
 	if (*cmdline == '"')
 		return;			/** comment **/
 	if (strlen(cmdline) > CMDSZ - 2) {
-		emsg("Command too long");
+		ui__ErrorMsg("Command too long");
 		return;
 	}
 	strcpy(buff, cmdline);
@@ -157,17 +160,17 @@ char *cmdline;
 		}
 	}
 	SKIP_WHITE if (start_addr > (end_addr + 1)) {
-		emsg("Addr1 > addr2|First address exceeds second");
+		ui__ErrorMsg("Addr1 > addr2|First address exceeds second");
 		return;
 	}
 	if ((end_addr + 1) > maxpos) {
-		emsg("Not that many bytes@in buffer");
+		ui__ErrorMsg("Not that many bytes@in buffer");
 		return;
 	}
 	if (start_addr < mem) {
 		sprintf(string, "Negative address@- first byte is %ld",
 			P(P_OF));
-		emsg(string);
+		ui__ErrorMsg(string);
 		return;
 	}
 
@@ -181,7 +184,7 @@ char *cmdline;
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
-			emsg("Incomplete shell escape command@- use 'shell' to get a shell");
+			ui__ErrorMsg("Incomplete shell escape command@- use 'shell' to get a shell");
 			return;
 		}
 		if (*(cmdbuf + 1) == '!') {
@@ -189,7 +192,7 @@ char *cmdline;
 				strcpy(cmdbuf + 1, oldbuf);
 				msg(oldbuf);
 			} else {
-				emsg("No previous command@to substitute for !");
+				ui__ErrorMsg("No previous command@to substitute for !");
 				return;
 			}
 		} else
@@ -220,7 +223,7 @@ char *cmdline;
 		if (n == MAXNAME) {
 			sprintf(string, "What?|%s: Not an editor command",
 				cmdbuf);
-			emsg(string);
+			ui__ErrorMsg(string);
 			return;
 		}
 	}
@@ -234,12 +237,12 @@ char *cmdline;
 		repl_count =
 		    do_substitution(*cmd, cmd + 1, start_addr, end_addr);
 		if (repl_count == -1) {
-			emsg("No previous substitute re|No previous substitute regular expression");
+			ui__ErrorMsg("No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
 		}
 		ui__Screen_Repaint();
 		if (!repl_count) {
-			emsg("Fail|Substitute pattern matching failed");
+			ui__ErrorMsg("Fail|Substitute pattern matching failed");
 		} else if (repl_count > 1) {
 			sprintf(string, "%d subs|%d substitutions", repl_count,
 				repl_count);
@@ -254,7 +257,7 @@ char *cmdline;
 					    end_addr,
 					    FALSE | S_GLOBAL)) != 0L) {
 			addch('\n');
-			printline(current, maxy - 1);
+			ui__Line_Print(current, core.screen.maxy - 1);
 			repl_count++;
 			if (repl_count == LINES - 2) {
 				if (wait_return(FALSE))
@@ -266,7 +269,7 @@ char *cmdline;
 			wait_return(TRUE);
 		} else {
 			ui__Screen_Repaint();
-			emsg(notfound);
+			ui__ErrorMsg(notfound);
 		}
 		return;
 	} else if (cmdname[0] == 't') {
@@ -284,11 +287,11 @@ char *cmdline;
 				cmd++;
 				saveflag = APPEND;
 			} else {
-				emsg("Write forms are 'w' and 'w>>'");
+				ui__ErrorMsg("Write forms are 'w' and 'w>>'");
 				return;
 			}
 		} else if (*cmd == '!') {
-			emsg("Not yet implemented");
+			ui__ErrorMsg("Not yet implemented");
 			return;
 		} else {
 			saveflag = WRITE;
@@ -300,7 +303,7 @@ char *cmdline;
 			c_argc++;
 
 		if (c_argc > 1) {
-			emsg(ambigous);
+			ui__ErrorMsg(ambigous);
 			return;
 		}
 		if (c_argc == 1) {
@@ -308,7 +311,7 @@ char *cmdline;
 			while ((p = strchr(c_argv[0], '%')) != NULL
 			       && *(p - 1) != '\\') {
 				if (name == NULL) {
-					emsg("No filename@to substitute for %");
+					ui__ErrorMsg("No filename@to substitute for %");
 					return;
 				}
 				*p = '\0';
@@ -332,7 +335,7 @@ char *cmdline;
 					sprintf(string,
 						"\"%s\" File is read only",
 						name);
-					emsg(string);
+					ui__ErrorMsg(string);
 					return;
 				} else
 					ok = save(name, start_addr, end_addr,
@@ -343,7 +346,7 @@ char *cmdline;
 						sprintf(string,
 							"File exists@- use \"%s! %s\" to overwrite",
 							cmdname, c_argv[0]);
-						emsg(string);
+						ui__ErrorMsg(string);
 						return;
 					} else {	/* APPEND */
 /* We can only append to a regular file! */
@@ -352,7 +355,7 @@ char *cmdline;
 								filemode =
 								    REGULAR;
 						} else if (S_ISBLK(buf.st_mode)) {
-							emsg("Cannot append to a block special file");
+							ui__ErrorMsg("Cannot append to a block special file");
 							return;
 						}
 						ok = save(c_argv[0], start_addr,
@@ -360,7 +363,7 @@ char *cmdline;
 					}
 				} else {
 					if (saveflag == APPEND) {
-						emsg("No such file");
+						ui__ErrorMsg("No such file");
 						return;
 					} else {	/* WRITE */
 /* If we write the block of a partial file to a new file, it will
@@ -387,10 +390,10 @@ char *cmdline;
 		c_argc++;
 	if (!strncmp("map", cmdname, len) && CMDLNG(3, 2)) {
 		if (c_argc == 0) {
-			emsg("Error: empty mapping definition!");
+			ui__ErrorMsg("Error: empty mapping definition!");
 		} else if (c_argc == 1) {
 			if (strncmp(c_argv[0], "all", 3)) {
-				emsg("Map what?");
+				ui__ErrorMsg("Map what?");
 			} else {
 				dispbuf[0] = '\0';
 				for (n = 0; n < 32; n++) {
@@ -417,7 +420,7 @@ char *cmdline;
 			for (n = 0; n < 32; n++) {
 				if (KEYMAP[n].keycode == atoi(c_argv[0])) {
 					map_toggle = 1;
-					emsg("Already mapped key. Try tomorrow, please!");
+					ui__ErrorMsg("Already mapped key. Try tomorrow, please!");
 					break;
 				}
 			}
@@ -433,7 +436,7 @@ char *cmdline;
 					}
 				}
 				if (map_toggle == 0)
-					emsg("There is no empty slots for mapping!");
+					ui__ErrorMsg("There is no empty slots for mapping!");
 			}
 			return;
 		}
@@ -454,7 +457,7 @@ char *cmdline;
 		} else if (c_argc == 4) {
 			n = atoi(c_argv[0]);
 			if (n >= BLK_COUNT) {
-				emsg("Too big block number!");
+				ui__ErrorMsg("Too big block number!");
 				return;
 			}
 			if (atoi(c_argv[1]) < atoi(c_argv[2])) {
@@ -467,16 +470,16 @@ char *cmdline;
 				data_block[n].hl_toggle = 1;
 				ui__Screen_Repaint();
 			} else {
-				emsg("Wrong block start and end values!");
+				ui__ErrorMsg("Wrong block start and end values!");
 				return;
 			}
 		} else {
-			emsg("Wrong :block command format!");
+			ui__ErrorMsg("Wrong :block command format!");
 			return;
 		}
 	} else if (!strncmp("lua", cmdname, len) && CMDLNG(3, 2)) {
 		if (c_argc == 0) {
-			emsg("Error: empty lua command!");
+			ui__ErrorMsg("Error: empty lua command!");
 		} else {
 			luacmdbuf[0] = '\0';
 			for (n = 0; n < c_argc; n++) {
@@ -507,7 +510,7 @@ char *cmdline;
 		refresh();
 	} else if (!strncmp("run", cmdname, len) && CMDLNG(3, 2)) {
 		if (c_argc == 0) {
-			emsg("Error: empty plugin name!");
+			ui__ErrorMsg("Error: empty plugin name!");
 		} else {
 			bvi_run_lua_script(c_argv[0]);
 		}
@@ -522,7 +525,7 @@ char *cmdline;
 					edits = 0;
 				} else {
 					sprintf(string, nowrtmsg, "cd");
-					emsg(string);
+					ui__ErrorMsg(string);
 					return;
 				}
 			}
@@ -579,7 +582,7 @@ char *cmdline;
 					edits = 0;
 				} else {
 					sprintf(string, nowrtmsg, "next");
-					emsg(string);
+					ui__ErrorMsg(string);
 					return;
 				}
 			}
@@ -592,7 +595,7 @@ char *cmdline;
 			stuffin(files[++curfile]);
 			stuffin("\n");
 		} else
-			emsg("No more files@to edit!");
+			ui__ErrorMsg("No more files@to edit!");
 	} else if (!strncmp("rewind", cmdname, len) && CMDLNG(6, 3)) {
 		if (chk_comm(NO_ADDR | NO_ARG))
 			return;
@@ -605,7 +608,7 @@ char *cmdline;
 					edits = 0;
 				} else {
 					sprintf(string, nowrtmsg, "rewind");
-					emsg(string);
+					ui__ErrorMsg(string);
 					return;
 				}
 			}
@@ -629,11 +632,11 @@ char *cmdline;
 		do_ins_chg(start_addr, c_argc == 1 ? c_argv[0] : "a", U_EDIT);
 	} else if (!strncmp("mark", cmdname, len) && CMDLNG(4, 2)) {
 		if (c_argc == 0) {
-			emsg("Mark what?");
+			ui__ErrorMsg("Mark what?");
 			return;
 		}
 		if (c_argc > 1 || (strlen(c_argv[0]) > 1)) {
-			emsg(extra);
+			ui__ErrorMsg(extra);
 			return;
 		}
 		if (!addr_flag)
@@ -675,13 +678,13 @@ char *cmdline;
 		if (!force) {
 			if (edits) {
 				sprintf(string, nowrtmsg, "quit");
-				emsg(string);
+				ui__ErrorMsg(string);
 			} else {
 				if ((curfile + 1) < numfiles) {
 					sprintf(string, "%d %s",
 						numfiles - curfile - 1,
 						morefiles);
-					emsg(string);
+					ui__ErrorMsg(string);
 				} else
 					quit();
 			}
@@ -695,7 +698,7 @@ char *cmdline;
 		} else if (c_argc == 2) {
 			do_logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strncmp("sright", cmdname, len) && CMDLNG(6, 2)) {
@@ -706,7 +709,7 @@ char *cmdline;
 		} else if (c_argc == 2) {
 			do_logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strncmp("rleft", cmdname, len) && CMDLNG(5, 2)) {
@@ -717,7 +720,7 @@ char *cmdline;
 		} else if (c_argc == 2) {
 			do_logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strncmp("rright", cmdname, len) && CMDLNG(6, 2)) {
@@ -728,55 +731,55 @@ char *cmdline;
 		} else if (c_argc == 2) {
 			do_logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strcmp("and", cmdname)) {
 		if (c_argc == 1) {
 			do_logic(AND, c_argv[0]);
 		} else if (c_argc == 0) {
-			emsg(noval);
+			ui__ErrorMsg(noval);
 			return;
 		} else if (c_argc == 2) {
 			do_logic_block(AND, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strcmp("or", cmdname)) {
 		if (c_argc == 1) {
 			do_logic(OR, c_argv[0]);
 		} else if (c_argc == 0) {
-			emsg(noval);
+			ui__ErrorMsg(noval);
 			return;
 		} else if (c_argc == 2) {
 			do_logic_block(OR, c_argv[0], atoi(c_argv[1]));
 		} else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strcmp("xor", cmdname)) {
 		if (c_argc == 1) {
 			do_logic(XOR, c_argv[0]);
 		} else if (c_argc == 0) {
-			emsg(noval);
+			ui__ErrorMsg(noval);
 			return;
 		} else if (c_argc == 2) {
 			do_logic_block(XOR, c_argv[0], atoi(c_argv[1]));
 		}
 		else {
-			emsg(ambvalue);
+			ui__ErrorMsg(ambvalue);
 			return;
 		}
 	} else if (!strcmp("neg", cmdname)) {
 		if (c_argc != 0) {
-			emsg(extra);
+			ui__ErrorMsg(extra);
 			return;
 		}
 		do_logic(NEG, "255");
 	} else if (!strcmp("not", cmdname)) {
 		if (c_argc != 0) {
-			emsg(extra);
+			ui__ErrorMsg(extra);
 			return;
 		}
 		do_logic(NOT, "255");
@@ -807,7 +810,7 @@ char *cmdline;
 					start_addr = current;
 				do_put(start_addr, yanked, yank_buf);
 			} else {
-				emsg(string);
+				ui__ErrorMsg(string);
 			}
 		} else {
 			if (!strncmp("delete", cmdname, len) && CMDLNG(6, 1)) {
@@ -819,7 +822,7 @@ char *cmdline;
 				   && CMDLNG(3, 2)) {
 				movebyte();
 			} else {
-				emsg(string);
+				ui__ErrorMsg(string);
 			}
 		}
 	}
@@ -855,7 +858,7 @@ off_t yd_addr()
 			break;
 		}
 	} else {
-		emsg(ambvalue);
+		ui__ErrorMsg(ambvalue);
 		return 0;
 	}
 	return count;
@@ -869,7 +872,7 @@ void do_exit()
 	}
 	if ((curfile + 1) < numfiles) {
 		sprintf(string, "%d %s", numfiles - curfile - 1, morefiles);
-		emsg(string);
+		ui__ErrorMsg(string);
 	} else {
 #ifdef HAVE_LUA_H
 		bvi_lua_finish();
@@ -888,7 +891,7 @@ int force;
 		arg = NULL;
 	if (!force && edits) {
 		sprintf(string, nowrtmsg, "edit");
-		emsg(string);
+		ui__ErrorMsg(string);
 		/*
 		   if (altfile)
 		   free(altfile);
@@ -903,7 +906,7 @@ int force;
 		}
 		if (name != NULL && !strcmp(arg, "#")) {
 			if (altfile == NULL) {
-				emsg("No alternate filename@to substitute for #");
+				ui__ErrorMsg("No alternate filename@to substitute for #");
 				return FALSE;
 			}
 			tmp = name;
@@ -918,7 +921,7 @@ int force;
 		}
 	}
 	if (name == NULL) {
-		emsg("No file|No current filename");
+		ui__ErrorMsg("No file|No current filename");
 		return FALSE;
 	}
 
@@ -928,16 +931,6 @@ int force;
 		setpage(current < maxpos ? current : maxpos - 1L);
 	}
 	return TRUE;
-}
-
-void clearstr()
-{
-	int n;
-
-	move(maxy, 0);
-	for (n = 0; n < maxx; n++)
-		addch(' ');
-	move(maxy, 0);
 }
 
 /* If flag == TRUE we do a ui__Screen_Repaint
@@ -951,7 +944,7 @@ int flag;
 	signal(SIGINT, jmpproc);
 	clearstr();
 	attrset(A_REVERSE);
-	mvaddstr(maxy, 0, "[Hit return to continue]");
+	mvaddstr(core.screen.maxy, 0, "[Hit return to continue]");
 	attrset(A_NORMAL);
 	refresh();
 	c = getch();
@@ -970,23 +963,23 @@ int chk_comm(flag)
 int flag;
 {
 	if ((flag & NO_ADDR) && (addr_flag > 0)) {
-		emsg(noaddr);
+		ui__ErrorMsg(noaddr);
 		return 1;
 	}
 	if ((flag & NO_ARG) && (c_argc > 0)) {
-		emsg(extra);
+		ui__ErrorMsg(extra);
 		return 1;
 	}
 	if ((flag & MAX_ONE_ARG) && (c_argc > 1)) {
-		emsg(ambvalue);
+		ui__ErrorMsg(ambvalue);
 		return 1;
 	}
 	if ((flag & ONE_FILE) && (c_argc == 0)) {
-		emsg("Missing filename");
+		ui__ErrorMsg("Missing filename");
 		return 1;
 	}
 	if ((flag & MAX_ONE_FILE) && (c_argc > 1)) {
-		emsg(ambigous);
+		ui__ErrorMsg(ambigous);
 		return 1;
 	}
 	return 0;

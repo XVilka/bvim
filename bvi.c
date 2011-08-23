@@ -51,7 +51,7 @@ jmp_buf env;			/* context for `longjmp' function   */
 core_t core;
 state_t state;
 
-int maxx, maxy, x, xx, y;
+int x, xx, y;
 int status;
 off_t size;
 
@@ -102,7 +102,6 @@ char *nobytes = "No bytes@in the buffer";
 static char progname[8];
 static char line[MAXCMD];
 static int mark;
-static int scrolly;
 static int wrstat = 1;
 
 struct KEYMAP_ KEYMAP[32];
@@ -114,39 +113,6 @@ void usage()
        [-b begin] [-e end] [-s size] file ...\n", progname);
 	exit(1);
 }
-
-void main_window_resize(int lines_count) {
-	maxy = lines_count;
-	if (params[P_LI].flags & P_CHANGED)
-		maxy = P(P_LI);
-	scrolly = maxy / 2;
-	P(P_SS) = scrolly;
-	P(P_LI) = maxy;
-	maxy--;
-	
-	keypad(stdscr, TRUE);
-	scrollok(stdscr, TRUE);
-	nonl();
-	cbreak();
-	noecho();
-
-	/*
-	   COLUMNS_ADDRESS = 8;
-	   strcpy(addr_form,  "%06lX  ");
-	 */
-	core.params.COLUMNS_ADDRESS = 10;
-	strcpy(addr_form, "%08lX%c:");
-
-	core.params.COLUMNS_DATA = ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
-	P(P_CM) = core.params.COLUMNS_DATA;
-	maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
-	core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
-	status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
-	state.screen = core.params.COLUMNS_DATA * (maxy - 1);
-
-	ui__Screen_New();
-}
-
 
 int main(argc, argv)
 int argc;
@@ -356,9 +322,9 @@ char *argv[];
 		case 'H':
 			if (precount > 0) {
 				y = --precount;
-				if (y > maxy - 1) {
-					scrolldown(y - maxy + 1);
-					y = maxy - 1;
+				if (y > core.screen.maxy - 1) {
+					scrolldown(y - core.screen.maxy + 1);
+					y = core.screen.maxy - 1;
 				}
 			} else
 				y = 0;
@@ -368,7 +334,7 @@ char *argv[];
 				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
 			break;
 		case 'M':
-			y = maxy / 2;
+			y = core.screen.maxy / 2;
 			if ((PTR) (state.pagepos + state.screen) > maxpos)
 				y = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA / 2;
 			if (state.loc == HEX)
@@ -380,7 +346,7 @@ char *argv[];
 		case 'L':
 			if (precount < 1)
 				precount = 1;
-			n = maxy - 1;
+			n = core.screen.maxy - 1;
 			if ((PTR) ((state.pagepos + state.screen)) > maxpos)
 				n = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA;
 			if (precount < n)
@@ -448,7 +414,7 @@ char *argv[];
 				if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA)) >
 				    maxpos)
 					break;
-				if (y < (maxy - 1))
+				if (y < (core.screen.maxy - 1))
 					y++;
 				else
 					scrolldown(1);
@@ -492,13 +458,13 @@ char *argv[];
 			break;
 		case BVICTRL('D'):
 			if (precount > 1)
-				scrolly = precount;
-			scrolldown(scrolly);
+				state.scrolly = precount;
+			scrolldown(state.scrolly);
 			break;
 		case BVICTRL('U'):
 			if (precount > 1)
-				scrolly = precount;
-			scrollup(scrolly);
+				state.scrolly = precount;
+			scrollup(state.scrolly);
 			break;
 		case BVICTRL('E'):
 			if (y > 0)
@@ -526,7 +492,7 @@ char *argv[];
 			ui__Screen_New();
 			break;
 		case BVICTRL('Y'):
-			if (y < maxy)
+			if (y < core.screen.maxy)
 				y++;
 			scrollup(1);
 			break;
@@ -597,7 +563,7 @@ char *argv[];
 				sprintf(string,
 					"Max. address of current file : %06lX",
 					(long)(filesize - 1L + P(P_OF)));
-				emsg(string);
+				ui__ErrorMsg(string);
 			}
 			break;
 		case '?':
@@ -860,7 +826,7 @@ void trunc_cur()
 	filesize = state.pagepos - mem + y * core.params.COLUMNS_DATA + xpos();
 	maxpos = (PTR) (mem + filesize);
 	if (filesize == 0L) {
-		emsg(nobytes);
+		ui__ErrorMsg(nobytes);
 	} else
 		cur_back();
 	edits = U_TRUNC;
@@ -919,7 +885,7 @@ void do_undo()
 	PTR d;
 
 	if (undo_count == 0L) {
-		emsg("Nothing to undo");
+		ui__ErrorMsg("Nothing to undo");
 		return;
 	}
 	set_cursor = undo_start;
@@ -978,7 +944,7 @@ off_t n;
 PTR buf;
 {
 	if (n < 1L) {
-		emsg(nobytes);
+		ui__ErrorMsg(nobytes);
 		return;
 	}
 	if (loc + n > maxpos) {
@@ -1001,7 +967,7 @@ off_t n;
 PTR buf;
 {
 	if (n < 1L) {
-		emsg(nobytes);
+		ui__ErrorMsg(nobytes);
 		return;
 	}
 	if (loc > maxpos) {

@@ -68,12 +68,12 @@ char *pattern;
 		}
 		if (bracket) {
 			if (!(end = strchr(poi, ']'))) {
-				emsg("Missing ]");
+				ui__ErrorMsg("Missing ]");
 				return 1;
 			}
 			poi++;
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				emsg(emptyclass);
+				ui__ErrorMsg(emptyclass);
 				return 1;
 			}
 			if (magic) {
@@ -206,7 +206,7 @@ char *pattern;
 			poi++;
 		if (*poi == '[') {
 			if (!(end = strchr(poi, ']'))) {
-				emsg("Missing ]");
+				ui__ErrorMsg("Missing ]");
 				return 1;
 			}
 			poi++;
@@ -214,7 +214,7 @@ char *pattern;
 				poi++;
 
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				emsg(emptyclass);
+				ui__ErrorMsg(emptyclass);
 				return 1;
 			}
 			if (*(end + 1) == '*')
@@ -257,7 +257,7 @@ char *pattern;
 			poi++;
 			if (!(end = strchr(poi, '"'))) {
 				/*
-				   emsg("Missing '\"'");
+				   ui__ErrorMsg("Missing '\"'");
 				   return 1;
 				 */
 				end = poi + strlen(poi);
@@ -314,7 +314,7 @@ int hexchar()
 			poi++;
 		return nr;
 	} else {
-		emsg("Bad hex character@in expression");
+		ui__ErrorMsg("Bad hex character@in expression");
 		return -1;
 	}
 }

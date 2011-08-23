@@ -378,8 +378,8 @@ int mode;
 {
 	switch (mode) {
 	case '.':
-		while (y != maxy / 2) {
-			if (y > maxy / 2) {
+		while (y != core.screen.maxy / 2) {
+			if (y > core.screen.maxy / 2) {
 				state.pagepos += core.params.COLUMNS_DATA;
 				y--;
 			} else {
@@ -391,7 +391,7 @@ int mode;
 		}
 		break;
 	case '-':
-		while (y < maxy - 1) {
+		while (y < core.screen.maxy - 1) {
 			if (state.pagepos == mem)
 				break;
 			state.pagepos -= core.params.COLUMNS_DATA;
@@ -483,7 +483,7 @@ void statpos()
 		return;
 	bytepos = current - mem;
 	if (bytepos >= filesize) {
-		mvaddstr(maxy, status, "                           ");
+		mvaddstr(core.screen.maxy, status, "                           ");
 		return;
 	}
 	Char1 = *(mem + bytepos);
@@ -506,7 +506,7 @@ void statpos()
 	sprintf(string, "%08lX  \\%03o 0x%02X %3d %3s",
 		(long)(bytepos + P(P_OF)), Char1, Char1, Char1, str);
 	attrset(A_BOLD);
-	mvaddstr(maxy, status, string);
+	mvaddstr(core.screen.maxy, status, string);
 	attrset(A_NORMAL);
 }
 
@@ -524,7 +524,7 @@ PTR addr;
 			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA);
 	} else {
 		state.pagepos = (((addr - mem) / core.params.COLUMNS_DATA) * core.params.COLUMNS_DATA + mem)
-		    - (core.params.COLUMNS_DATA * (maxy / 2));
+		    - (core.params.COLUMNS_DATA * (core.screen.maxy / 2));
 		if (state.pagepos < mem)
 			state.pagepos = mem;
 		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
@@ -560,7 +560,7 @@ int check;
 	}
 	statpos();
 	ui__lineout();
-	if (y < maxy - 1) {
+	if (y < core.screen.maxy - 1) {
 		y++;
 		return 0;
 	} else {
@@ -643,7 +643,7 @@ char *fname;
 void quit()
 {
 	load_orig_palette();
-	move(maxy, 0);
+	move(core.screen.maxy, 0);
 	endwin();
 	printf("\nbvi version %s %s\n", VERSION, copyright);
 	exit(0);
@@ -759,7 +759,7 @@ int mode;
 	} else if (!strncmp("hexadecimal", arg, len) && CMDLNG(11, 1)) {
 		base = 16;
 	} else {
-		emsg("No such option");
+		ui__ErrorMsg("No such option");
 		return;
 	}
 	addch('\n');
@@ -807,7 +807,7 @@ int mode;
 				val = strtol(poi, &epoi, base);
 				if (val > 255 || val < 0 || poi == epoi) {
 					ui__Screen_Repaint();
-					emsg("Invalid value");
+					ui__ErrorMsg("Invalid value");
 					goto mfree;
 				}
 				poi = epoi;
@@ -869,5 +869,5 @@ PTR addr;
 
 void movebyte()
 {
-	emsg("Command disabled@- use ':set memmove' to enable ");
+	ui__ErrorMsg("Command disabled@- use ':set memmove' to enable ");
 }

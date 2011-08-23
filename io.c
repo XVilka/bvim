@@ -64,7 +64,7 @@ int flags;
 	off_t filesize;
 
 	if (!fname) {
-		emsg("No file|No current filename");
+		ui__ErrorMsg("No file|No current filename");
 		return 0;
 	}
 	if (stat(fname, &buf) == -1) {
@@ -161,7 +161,7 @@ char *fname;
 		} else if (S_ISREG(buf.st_mode)) {
 			if ((unsigned long)buf.st_size >
 			    (unsigned long)SIZE_T_MAX) {
-				move(maxy, 0);
+				move(core.screen.maxy, 0);
 				endwin();
 				printf("File too large\n");
 				exit(0);
@@ -189,7 +189,7 @@ char *fname;
 		memsize += buf.st_size;
 	}
 	if ((mem = (char *)malloc(memsize)) == NULL) {
-		move(maxy, 0);
+		move(core.screen.maxy, 0);
 		endwin();
 		printf("Out of memory\n");
 		exit(0);
@@ -321,7 +321,7 @@ off_t add;
 		newmem = realloc(mem, memsize + add);
 	}
 	if (newmem == NULL) {
-		emsg("Out of memory");
+		ui__ErrorMsg("Out of memory");
 		return 1;
 	}
 
@@ -342,7 +342,7 @@ void do_shell()
 	savetty();
 #ifdef DJGPP
 	shresult = system("");
-	emsg("DOS have no support for shell commands!");
+	ui__ErrorMsg("DOS have no support for shell commands!");
 #else
 	shresult = system(shell);
 	msg("shell executed successfully!");
@@ -388,7 +388,7 @@ char **buffer;
 		*buffer = (char *)realloc(*buffer, n);
 	}
 	if (*buffer == NULL) {
-		emsg("No buffer space available");
+		ui__ErrorMsg("No buffer space available");
 		return 0L;
 	}
 	return n;

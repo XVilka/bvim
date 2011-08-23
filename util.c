@@ -18,7 +18,7 @@ char *str;
 	    || mode == RROTATE) {
 		value = atoi(str);
 		if (value < 1 || value > 8) {
-			emsg(err_str);
+			ui__ErrorMsg(err_str);
 			return 1;
 		}
 	} else {
@@ -44,7 +44,7 @@ char *str;
 			value = atoi(str);
 		}
 		if (value < 0 || value > 255) {
-			emsg(err_str);
+			ui__ErrorMsg(err_str);
 			return 1;
 		}
 	}
@@ -111,14 +111,14 @@ int block_number;
 	char *err_str = "Invalid value@for bit manipulation";
 
 	if ((block_number >= BLK_COUNT) & (!(data_block[block_number].pos_start < data_block[block_number].pos_end))) {
-		emsg("Invalid block for bit manipulation!");
+		ui__ErrorMsg("Invalid block for bit manipulation!");
 		return 1;
 	}
 	if (mode == LSHIFT || mode == RSHIFT || mode == LROTATE
 	    || mode == RROTATE) {
 		value = atoi(str);
 		if (value < 1 || value > 8) {
-			emsg(err_str);
+			ui__ErrorMsg(err_str);
 			return 1;
 		}
 	} else {
@@ -144,7 +144,7 @@ int block_number;
 			value = atoi(str);
 		}
 		if (value < 0 || value > 255) {
-			emsg(err_str);
+			ui__ErrorMsg(err_str);
 			return 1;
 		}
 	}

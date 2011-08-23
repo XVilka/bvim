@@ -299,7 +299,7 @@ PTR endpos;
 					sprintf(string,
 						"No such escape sequence \\%c",
 						*poi);
-					emsg(string);
+					ui__ErrorMsg(string);
 					return 0;
 				}
 			} else {
@@ -323,7 +323,7 @@ PTR endpos;
 				poi++;
 			} else {
 				if ((n = hexchar()) < 0) {
-					emsg("Badly formed replacement pattern");
+					ui__ErrorMsg("Badly formed replacement pattern");
 					return 0;
 				}
 				repl_pat[pat_len] = n;
@@ -336,11 +336,11 @@ PTR endpos;
 	case 'c':
 		break;
 	default:
-		emsg("Extra chars|Extra characters at end of command");
+		ui__ErrorMsg("Extra chars|Extra characters at end of command");
 		return -1;
 	}
 	if (pat_len == -1) {
-		emsg("No previous substitute re|No previous substitute to repeat");
+		ui__ErrorMsg("No previous substitute re|No previous substitute to repeat");
 		return -1;
 	}
 	if (delim != '\0') {
@@ -354,7 +354,7 @@ PTR endpos;
 		toggle();
 	}
 	startpos--;
-	move(maxy, 0);
+	move(core.screen.maxy, 0);
 	refresh();
 
 	if (global) {
@@ -374,7 +374,7 @@ PTR endpos;
 	if (!found) {
 		if (!repl_count) {
 			if (P(P_WS)) {
-				emsg(notfound);
+				ui__ErrorMsg(notfound);
 			} else {
 				if (P(P_TE))
 					sprintf(string, "No match to %s",
@@ -385,7 +385,7 @@ PTR endpos;
 						"Address search hit %s without matching pattern",
 						direct ==
 						FORWARD ? "BOTTOM" : "TOP");
-				emsg(string);
+				ui__ErrorMsg(string);
 			}
 		}
 		return repl_count;
@@ -438,7 +438,7 @@ int flag;
 	static int direct;
 
 	if (line[0] == '\0' && again == 0) {
-		emsg(noprev);
+		ui__ErrorMsg(noprev);
 		return 0L;
 	}
 
@@ -480,7 +480,7 @@ int flag;
 		cmd = "";
 		msg(m);
 	}
-	move(maxy, 0);
+	move(core.screen.maxy, 0);
 	refresh();
 	sdir = (ch == 'N') ? !direct : direct;
 
@@ -505,7 +505,7 @@ int flag;
 	}
 	if (!found) {
 		if (flag & 1) {
-			emsg(notfound);
+			ui__ErrorMsg(notfound);
 		} else {
 			if (P(P_TE)) {
 				sprintf(string, "No match to %s",
@@ -515,7 +515,7 @@ int flag;
 					"Address search hit %s without matching pattern",
 					sdir == FORWARD ? "BOTTOM" : "TOP");
 			}
-			emsg(string);
+			ui__ErrorMsg(string);
 		}
 	} else {
 		setpage(found);
@@ -632,11 +632,11 @@ PTR def_addr;
 				cmd++;
 				break;
 			} else if (mark < 'a' || mark > 'z') {
-				emsg("Marks are ' and a-z");
+				ui__ErrorMsg("Marks are ' and a-z");
 				return NULL;
 			}
 			if (markbuf[mark - 'a'] == NULL) {
-				emsg("Mark not defined");
+				ui__ErrorMsg("Mark not defined");
 				return NULL;
 			}
 			addr = markbuf[mark - 'a'];
@@ -646,7 +646,7 @@ PTR def_addr;
 		case '/':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				emsg(noprev);
+				ui__ErrorMsg(noprev);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {
@@ -665,7 +665,7 @@ PTR def_addr;
 		case '?':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				emsg(noprev);
+				ui__ErrorMsg(noprev);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {

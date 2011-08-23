@@ -188,6 +188,10 @@ struct CORE {
 		PTR mem;
 		PTR maxpos;
 	} editor;
+	struct {
+		int maxy;
+		int maxx;
+	} screen;
 	/*
 	struct KEYMAP;
 	struct BLOCKS;
@@ -205,6 +209,7 @@ struct STATE {
 	int y;
 	int loc;
 	int screen;
+	int scrolly;
 };
 
 typedef struct STATE state_t;
@@ -213,19 +218,14 @@ extern char *version;
 extern char addr_form[];
 extern char pattern[];
 extern char rep_buf[];
-extern int maxx, maxy, x, y;
+extern int x, y;
 extern int filemode;
 extern int edits, new;
-/*
-extern int COLUMNS_ADDRESS;
-extern int COLUMNS_DATA, COLUMNS_HEX;
-*/
 extern int addr_flag;
 extern int ignore_case, magic;
 extern int screen, status;
 extern PTR mem;
 extern PTR maxpos;
-/* extern PTR pagepos; */
 extern PTR undo_start;
 extern PTR current_start;
 extern PTR curpos;
@@ -295,9 +295,14 @@ PTR end_word(PTR);
 PTR calc_addr(char **, PTR);
 PTR do_ft(int, int);
 char *patcpy(char *, char *, char);
-void setpage(PTR), msg(char *), emsg(char *), smsg(char *);
-int show_tools_window(int), hide_tools_window();
+void setpage(PTR), msg(char *), smsg(char *);
+
+void ui__ErrorMsg(char *);
+void ui__MsgWin_Show(char*, int width, int height);
+int ui__ToolWin_Show(int), ui__ToolWin_Hide();
 void printcolorline(int, int, int, char *);
+void ui__Line_Print();
+
 void usage(void), bvi_init(char *), statpos(void), setcur(void);
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
@@ -323,7 +328,7 @@ off_t range();
 off_t calc_size();
 void do_mark(), badcmd(), movebyte();
 void do_back(), do_ins_chg();
-void jmpproc(), printline();
+void jmpproc();
 int chk_comm();
 void docmdline(), do_over(), do_put();
 int doecmd();
@@ -345,9 +350,15 @@ PTR end_word();
 PTR calc_addr();
 PTR do_ft();
 char *patcpy();
-void setpage(), msg(), emsg(), smsg(), wmsg();
-int show_tools_window(), hide_tools_window();
+void setpage(), msg(), smsg(), wmsg();
+
+void ui__ErrorMsg();
+void ui__MsgWin_Show();
+int ui__ToolWin_Show(), ui__ToolWin_Hide();
 void printcolorline();
+void ui__Line_Print();
+int ui__lineout();
+
 void usage(), bvi_init(), statpos(), setcur();
 void showparms(), toggle(), scrolldown(), scrollup();
 void fileinfo();
@@ -359,7 +370,8 @@ void quit(), sysemsg(), do_z(), stuffin();
 off_t edit(), load();
 int ascii_comp(), hex_comp();
 int cur_forw(), cur_back();
-int lineout(), save(), at_least(), read_rc();
+
+int save(), at_least(), read_rc();
 int getcmdstr(), enlarge();
 int vgetc(), xpos();
 char *substr();

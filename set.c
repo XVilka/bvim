@@ -117,7 +117,7 @@ char *arg;			/* parameter string */
 				break;
 		}
 		if (i == 0) {
-			emsg("Wrong color name!");
+			ui__ErrorMsg("Wrong color name!");
 			return 0;
 		} else {
 			colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
@@ -128,7 +128,7 @@ char *arg;			/* parameter string */
 		}
 		return 0;
 	} else {
-		emsg(arg);
+		ui__ErrorMsg(arg);
 		return 1;
 	}
 
@@ -157,7 +157,7 @@ char *arg;			/* parameter string */
 			return 0;
 		}
 		if (!strcmp(params[i].fullname, "term")) {
-			emsg("Can't change type of terminal from within bvi");
+			ui__ErrorMsg("Can't change type of terminal from within bvi");
 			return 1;
 		}
 		if (params[i].flags & P_NUM) {
@@ -166,7 +166,7 @@ char *arg;			/* parameter string */
 			if (arg[strlen(s)] != '=' || state == FALSE) {
 				sprintf(string, "Option %s is not a toggle",
 					params[i].fullname);
-				emsg(string);
+				ui__ErrorMsg(string);
 				return 1;
 			} else {
 				s = arg + strlen(s) + 1;
@@ -185,17 +185,17 @@ char *arg;			/* parameter string */
 						core.params.COLUMNS_DATA = P(P_CM) =
 						    ((COLS - core.params.COLUMNS_ADDRESS - 1) / 4);
 					}
-					maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
+					core.screen.maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
 					core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
 					status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
-					screen = core.params.COLUMNS_DATA * (maxy - 1);
+					screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}
 			}
 		} else {	/* boolean */
 			if (arg[strlen(s)] == '=') {
-				emsg("Invalid set of boolean parameter");
+				ui__ErrorMsg("Invalid set of boolean parameter");
 				return 1;
 			} else {
 				params[i].nvalue = state;
@@ -203,12 +203,12 @@ char *arg;			/* parameter string */
 			}
 		}
 	} else {
-		emsg("No such option@- `set all' gives all option values");
+		ui__ErrorMsg("No such option@- `set all' gives all option values");
 		return 1;
 	}
 
 	if (did_window) {
-		maxy = P(P_LI) - 1;
+		core.screen.maxy = P(P_LI) - 1;
 		ui__Screen_New();
 	}
 
@@ -335,7 +335,7 @@ int x;
 
 	signal(SIGINT, jmpproc);
 	buff = p;
-	move(maxy, x);
+	move(core.screen.maxy, x);
 	do {
 		switch (c = vgetc()) {
 		case BVICTRL('H'):
@@ -343,14 +343,14 @@ int x;
 		case KEY_LEFT:
 			if (p > buff) {
 				p--;
-				move(maxy, x);
+				move(core.screen.maxy, x);
 				n = x;
 				for (q = buff; q < p; q++) {
 					addch(*q);
 					n++;
 				}
 				addch(' ');
-				move(maxy, n);
+				move(core.screen.maxy, n);
 			} else {
 				*buff = '\0';
 				msg("");

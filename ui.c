@@ -19,7 +19,35 @@ void ui__Init() {
 		set_palette();
 	}
 	attrset(A_NORMAL);
-	main_window_resize(LINES);	
+	ui__MainWin_Resize(LINES);	
+}
+
+void ui__MainWin_Resize(int lines_count) {
+	core.screen.maxy = lines_count;
+	if (params[P_LI].flags & P_CHANGED)
+		core.screen.maxy = P(P_LI);
+	state.scrolly = core.screen.maxy / 2;
+	P(P_SS) = state.scrolly;
+	P(P_LI) = core.screen.maxy;
+	core.screen.maxy--;
+	
+	keypad(stdscr, TRUE);
+	scrollok(stdscr, TRUE);
+	nonl();
+	cbreak();
+	noecho();
+
+	core.params.COLUMNS_ADDRESS = 10;
+	strcpy(addr_form, "%08lX%c:");
+
+	core.params.COLUMNS_DATA = ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
+	P(P_CM) = core.params.COLUMNS_DATA;
+	core.screen.maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
+	core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
+	status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
+	state.screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
+
+	ui__Screen_New();
 }
 
 /* ==================== Tools window ======================= */
@@ -37,10 +65,10 @@ short ui__ToolWin_Exist() {
 int ui__ToolWin_Show(int lines_count) {
 	if (tools_win == NULL) {
 		lines_count = LINES - lines_count - 2;
-		main_window_resize(lines_count);
+		ui__MainWin_Resize(lines_count);
 		refresh();
 		attron(COLOR_PAIR(C_WN + 1));
-		tools_win = newwin(LINES - lines_count + 2, maxx + 1, lines_count, 0);
+		tools_win = newwin(LINES - lines_count + 2, core.screen.maxx + 1, lines_count, 0);
 		box(tools_win, 0, 0);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
@@ -61,7 +89,7 @@ int ui__ToolWin_Print(char* str, int line) {
 		attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
-		emsg("print_tools_window: tools window not exist!\n");
+		ui__ErrorMsg("print_tools_window: tools window not exist!\n");
 		return -1;
 	}
 }
@@ -69,7 +97,7 @@ int ui__ToolWin_Print(char* str, int line) {
 /* Hides tools window */
 int ui__ToolWin_Hide() {
 	if (tools_win != NULL) {
-		main_window_resize(LINES);
+		ui__MainWin_Resize(LINES);
 		attron(COLOR_PAIR(C_WN + 1));
 		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 		wrefresh(tools_win);
@@ -79,7 +107,7 @@ int ui__ToolWin_Hide() {
 		tools_win = NULL;
 		return 0;
 	} else {
-		emsg("hide_tools_window: tools window not exist!\n");
+		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
 		return -1;
 	}
 }
@@ -120,7 +148,7 @@ void printcolorline_dathl(int y, int x, int base_palette, char *string, highligh
 	}
 }
 
-void printline(mempos, scpos)
+void ui__Line_Print(mempos, scpos)
 PTR mempos;
 int scpos;
 {
@@ -234,7 +262,7 @@ int ui__lineout()
 	off_t Address;
 	
 	Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
-	printline(mem + Address, y);
+	ui__Line_Print(mem + Address, y);
 	move(y, x);
 	/*if (k != 0) 
 		y = k;
@@ -244,14 +272,14 @@ int ui__lineout()
 
 void ui__Screen_New()
 {
-	state.screen = core.params.COLUMNS_DATA * (maxy - 1);
+	state.screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
 	clear();
 	ui__Screen_Repaint();
 }
 
 int ui__line(int line, int address)
 {
-	printline(mem + address, line);
+	ui__Line_Print(mem + address, line);
 	move(line, x);
 	return (0);
 }
@@ -266,7 +294,7 @@ void ui__Screen_Repaint()
 	int i = 0;
 
 	save_y = y;
-	for (y = 0; y < maxy; y++) {
+	for (y = 0; y < core.screen.maxy; y++) {
 		Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
 		for (i = 0; i < BLK_COUNT; i++) {
 			if ((data_block[i].folding == 1) & (data_block[i].pos_start < Address) & (data_block[i].pos_end > Address)) {
@@ -282,8 +310,18 @@ void ui__Screen_Repaint()
 	y = save_y;
 }
 
+void clearstr()
+{
+	int n;
+
+	move(core.screen.maxy, 0);
+	for (n = 0; n < core.screen.maxx; n++)
+		addch(' ');
+	move(core.screen.maxy, 0);
+}
+
 /**** displays an error message *****/
-void emsg(s)
+void ui__ErrorMsg(s)
 char *s;
 {
 	int cnt;
@@ -296,7 +334,7 @@ char *s;
 	cnt = outmsg(s);
 	/* attrset(A_NORMAL); */
 	attroff(COLOR_PAIR(C_ER + 1));
-	if (cnt >= (maxx - 25)) {	/* 25 = status */
+	if (cnt >= (core.screen.maxx - 25)) {	/* 25 = status */
 		addch('\n');
 		wait_return(TRUE);
 	}
@@ -314,7 +352,7 @@ char *s;
 	sprintf(string, "%s: %s", s, sys_errlist[errno]);
 #endif
 
-	emsg(string);
+	ui__ErrorMsg(string);
 }
 
 /*** displays mode if showmode set *****/
@@ -328,7 +366,7 @@ char *s;
 }
 
 /*** display window ***/
-void wmsg(s, height, width)
+void ui__MsgWin_Show(s, height, width)
 char *s;
 int height;
 int width;
@@ -358,7 +396,7 @@ void msg(s)
 char *s;
 {
 	clearstr();
-	if (outmsg(s) >= (maxx - 25)) {	/* 25 = status */
+	if (outmsg(s) >= (core.screen.maxx - 25)) {	/* 25 = status */
 		addch('\n');
 		wait_return(TRUE);
 	}
@@ -370,7 +408,7 @@ char *s;
 	char *poi;
 	int cnt = 0;
 
-	move(maxy, 0);
+	move(core.screen.maxy, 0);
 	poi = strchr(s, '|');
 
 	if (P(P_TE)) {
