@@ -1,14 +1,14 @@
 #include "bvi.h"
 #include "keys.h"
 
-struct keys_array keymap;
+static struct keys_array keymap;
 
 int KeyAdd(struct key item) {
 	if (keymap.items == keymap.allocated) {
 		if (keymap.allocated == 0)
 			keymap.allocated = 3;
 		else
-			keymap.allocated *= 2;
+			keymap.allocated += 4;
 
 		void *_tmp = realloc(keymap.arr, (keymap.allocated * sizeof(struct key)));
 
@@ -109,19 +109,10 @@ int KeyDefaults() {
 }
 
 void keys__Init() {
-	FILE *f;
-	int i = 0;
 	keymap.arr = NULL;
 	keymap.items = 0;
 	keymap.allocated = 0;
 	KeyDefaults();
-	f = fopen("keys_log.log", "w");
-	fprintf(f, "Keys size: %d\n", keymap.items);
-	while(i < keymap.items) {
-		fprintf(f, "name: %s id: %d\n", keymap.arr[i].name, keymap.arr[i].id);
-		i++;
-	}
-	fclose(f);
 }
 
 void keys__Destroy() {
@@ -156,15 +147,6 @@ void keys__KeyMaps_Show(void) {
 
 int keys__Key_Pressed(int key_code) {
 	int j = 0;
-	FILE *f;
-	f = fopen("keys_log2.log", "w");
-	fprintf(f, "Keys size: %d\n", keymap.items);
-	while(j < keymap.items) {
-		fprintf(f, "name: %s id: %d\n", keymap.arr[j].name, keymap.arr[j].id);
-		j++;
-	}
-	fclose(f);
-	j = 0;
 	while (j < keymap.items) {
 		if ((keymap.arr[j].id == key_code) & (keymap.arr[j].enabled == 1)) {
 			if ((keymap.arr[j].handler_type == BVI_HANDLER_INTERNAL) & (keymap.arr[j].handler.func != NULL)) {
