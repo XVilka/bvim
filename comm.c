@@ -100,6 +100,13 @@ extern struct BLOCK_ data_block[BLK_COUNT];
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
+/* Record commands history */
+void record_cmd(cmdline)
+char *cmdline;
+{
+	
+}
+
 /*
  * docmdline() - handle a colon command
  *
@@ -849,6 +856,7 @@ void do_exit()
 #ifdef HAVE_LUA_H
 		bvi_lua_finish();
 #endif
+		keys__Destroy();
 		quit();
 	}
 }

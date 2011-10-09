@@ -359,6 +359,8 @@ char *substr();
 int wait_return();
 #endif
 
+/* Event handlers */
+
 int handler__goto_HEX();
 int handler__goto_ASCII();
 int handler__toggle();

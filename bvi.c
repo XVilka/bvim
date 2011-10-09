@@ -12,8 +12,8 @@
  *
  * NOTE: Edit this file with tabstop=4 !
  *
- * Copyright 1996-2004 by Gerhard Buergmann
- * gerhard@puon.at
+ * Copyright 1996-2004 by Gerhard Buergmann gerhard@puon.at
+ * Copyright 2011 by Anton Kochkov anton.kochkov@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -308,6 +308,7 @@ int handler__cmdstring() {
 	clearstr();
 	addch(':');
 	refresh();
+	/* TODO: Add <Tab> autocompletion */
 	getcmdstr(cmdstr, 1);
 	if (strlen(cmdstr))
 		docmdline(cmdstr);
@@ -643,6 +644,40 @@ int handler__stuffin() {
 }
 
 /* =================== END OF EVENT HANDLERS =================== */
+extern int from_file;
+static FILE *ffp;
+static char fbuf[256];
+
+/* reads the init file (.bvirc) */
+int read_rc(fn)
+char *fn;
+{
+	if ((ffp = fopen(fn, "r")) == NULL)
+		return -1;
+	from_file = 1;
+	while (fgets(fbuf, 255, ffp) != NULL) {
+		strtok(fbuf, "\n\r");
+		docmdline(fbuf);
+	}
+	fclose(ffp);
+	from_file = 0;
+	return 0;
+}
+
+/* reads the history file (.bvihistory) */
+int read_history(fn)
+char *fn;
+{
+	if ((ffp = fopen(fn, "r")) == NULL)
+		return -1;
+	from_file = 1;
+	while (fgets(fbuf, 255, ffp) != NULL) {
+		strtok(fbuf, "\n\r");
+	}
+	fclose(ffp);
+	from_file = 0;
+	return 0;
+}
 
 void usage()
 {
@@ -660,7 +695,8 @@ char *argv[];
 	int script = -1;
 	int i;
 	char *poi;
-	struct key pkey;
+
+	keys__Init();
 
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_ALL, "");
@@ -669,7 +705,6 @@ char *argv[];
 	bvi_lua_init();
 #endif
 
-	keys__Init();
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
 
@@ -827,7 +862,7 @@ char *argv[];
 	
 		/* TODO: move all checks in keys.c */
 
-		keys__Key_Pressed(ch, &pkey);
+		keys__Key_Pressed(ch);
 		/*
 		if (pkey.handler_type == BVI_HANDLER_INTERNAL) {
 			if (pkey.handler.func != NULL)

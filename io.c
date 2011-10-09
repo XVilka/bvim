@@ -280,15 +280,6 @@ char *dir;
 		docmdline(initstr);
 		return;
 	}
-#ifdef DJGPP
-	strcpy(rcpath, "c:");
-	strcpy(rcpath, dir);
-	poi = strrchr(rcpath, '\\');
-	*poi = '\0';
-	strcat(rcpath, "\\BVI.RC");
-	read_rc(rcpath);
-	read_rc("BVI.RC");
-#else
 	strncpy(rcpath, getenv("HOME"), MAXCMD - 8);
 	rcpath[MAXCMD - 8] = '\0';
 	strcat(rcpath, "/.bvirc");
@@ -302,7 +293,13 @@ char *dir;
 		if (buf.st_uid == getuid())
 			read_rc(rcpath);
 	}
-#endif
+
+	strcpy(rcpath, ".bvihistory");
+	if (stat(rcpath, &buf) == 0) {
+		if (buf.st_uid == getuid())
+			read_history(rcpath);
+	}
+
 }
 
 int enlarge(add)

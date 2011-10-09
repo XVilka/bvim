@@ -17,13 +17,15 @@ struct key {
 	} handler;
 };
 
-struct keymap {
-	char* string_id;
-	unsigned int id;
+struct keys_array {
+	struct key *arr;
+	int items;
+	int allocated;
 };
 
 void keys__Init();
-int keys__Key_Pressed(int, struct key*);
+void keys__Destroy();
+int keys__Key_Pressed(int);
 struct key* keys__KeyString_Parse(char*);
 int keys__Key_Map(struct key*, char*);
 void keys__KeyMaps_Show();

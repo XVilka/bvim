@@ -36,9 +36,8 @@
 extern struct BLOCK_ data_block[BLK_COUNT];
 extern core_t core;
 
-static int from_file = 0;
+int from_file;
 static FILE *ffp;
-static char fbuf[256];
 static char buf[64];
 
 struct param params[] = {
@@ -205,23 +204,6 @@ int all;
 		}
 	}
 	wait_return(TRUE);
-}
-
-
-/* reads the init file (.bvirc) */
-int read_rc(fn)
-char *fn;
-{
-	if ((ffp = fopen(fn, "r")) == NULL)
-		return -1;
-	from_file = 1;
-	while (fgets(fbuf, 255, ffp) != NULL) {
-		strtok(fbuf, "\n\r");
-		docmdline(fbuf);
-	}
-	fclose(ffp);
-	from_file = 0;
-	return 0;
 }
 
 int getcmdstr(p, x)
