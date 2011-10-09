@@ -86,7 +86,7 @@ uninstall:
 	@if [ -f $(man1dir)/bmore.1 ]; then rm $(man1dir)/bmore.1; fi
 
 clean:
-	rm -f core *.o bvi bvi.exe bmore bmore.exe a.out
+	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
 
 distclean: clean
 	rm -f Makefile config.cache config.h config.log config.status

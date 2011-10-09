@@ -33,7 +33,7 @@ OBJS   =  bvi.o comm.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o key
 HEADER =  bvi.h set.h bscript.h math.h ui.h keys.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
-CFLAGS =  -g -O2  -Wall -pedantic
+CFLAGS =  -g -O2  -Wall
 DEFS   =  -DHAVE_CONFIG_H
 LDFLAGS=  
 LIBS   =   -lncurses -llua -lssl
@@ -86,7 +86,7 @@ uninstall:
 	@if [ -f $(man1dir)/bmore.1 ]; then rm $(man1dir)/bmore.1; fi
 
 clean:
-	rm -f core *.o bvi bvi.exe bmore bmore.exe a.out
+	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
 
 distclean: clean
 	rm -f Makefile config.cache config.h config.log config.status

@@ -2,14 +2,6 @@
  *
  * NOTE: Edit this file with tabstop=4 !
  *
- * 1999-04-19 V 1.1.2
- * 1999-07-02 V 1.2.0 beta
- * 1999-10-30 V 1.2.0 final
- * 2000-05-14 V 1.3.0 alpha
- * 2000-07-15 V 1.3.0 final
- * 2001-12-07 V 1.3.1
- * 2003-07-04 V 1.3.2
- *
  * Copyright 1996-2003 by Gerhard Buergmann
  * gerhard@puon.at
  *
@@ -415,7 +407,7 @@ int mode;
 	ui__Screen_Repaint();
 }
 
-/* Scroll down on <count> lines */ 
+/* Scroll down on <count> lines */
 void scrolldown(lines)
 int lines;
 {
@@ -453,14 +445,16 @@ int xpos()
 	if (state.loc == HEX)
 		return ((x - core.params.COLUMNS_ADDRESS) / 3);
 	else
-		return (x - core.params.COLUMNS_ADDRESS - core.params.COLUMNS_HEX);
+		return (x - core.params.COLUMNS_ADDRESS -
+			core.params.COLUMNS_HEX);
 }
 
 /* toggle between ASCII and HEX windows positions */
 void toggle()
 {
 	if (state.loc == HEX) {
-		x = xpos() + core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		x = xpos() + core.params.COLUMNS_ADDRESS +
+		    core.params.COLUMNS_HEX;
 		state.loc = ASCII;
 	} else {
 		x = xpos() * 3 + core.params.COLUMNS_ADDRESS;
@@ -485,7 +479,8 @@ void statpos()
 		return;
 	bytepos = current - mem;
 	if (bytepos >= filesize) {
-		mvaddstr(core.screen.maxy, status, "                           ");
+		mvaddstr(core.screen.maxy, status,
+			 "                           ");
 		return;
 	}
 	Char1 = *(mem + bytepos);
@@ -512,8 +507,6 @@ void statpos()
 	attrset(A_NORMAL);
 }
 
-
-
 /******* display an arbitrary address on screen *******/
 void setpage(addr)
 PTR addr;
@@ -521,19 +514,34 @@ PTR addr;
 	if ((addr >= state.pagepos) && ((addr - state.pagepos) < state.screen)) {
 		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
 		if (state.loc == HEX)
-			x = core.params.COLUMNS_ADDRESS + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA) * 3;
+			x = core.params.COLUMNS_ADDRESS +
+			    ((addr - state.pagepos) -
+			     y * core.params.COLUMNS_DATA) * 3;
 		else
-			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA);
+			x = core.params.COLUMNS_ADDRESS +
+			    core.params.COLUMNS_HEX + ((addr - state.pagepos) -
+						       y *
+						       core.params.
+						       COLUMNS_DATA);
 	} else {
-		state.pagepos = (((addr - mem) / core.params.COLUMNS_DATA) * core.params.COLUMNS_DATA + mem)
+		state.pagepos =
+		    (((addr -
+		       mem) / core.params.COLUMNS_DATA) *
+		     core.params.COLUMNS_DATA + mem)
 		    - (core.params.COLUMNS_DATA * (core.screen.maxy / 2));
 		if (state.pagepos < mem)
 			state.pagepos = mem;
 		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
 		if (state.loc == HEX)
-			x = core.params.COLUMNS_ADDRESS + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA) * 3;
+			x = core.params.COLUMNS_ADDRESS +
+			    ((addr - state.pagepos) -
+			     y * core.params.COLUMNS_DATA) * 3;
 		else
-			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX + ((addr - state.pagepos) - y * core.params.COLUMNS_DATA);
+			x = core.params.COLUMNS_ADDRESS +
+			    core.params.COLUMNS_HEX + ((addr - state.pagepos) -
+						       y *
+						       core.params.
+						       COLUMNS_DATA);
 		ui__Screen_Repaint();
 	}
 }
@@ -548,11 +556,14 @@ int check;
 		}
 	}
 	if (state.loc == ASCII) {
-		if (x < core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
+		if (x <
+		    core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+		    core.params.COLUMNS_DATA) {
 			x++;
 			return 0;
 		} else
-			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+			x = core.params.COLUMNS_ADDRESS +
+			    core.params.COLUMNS_HEX;
 	} else {
 		if (x < 5 + core.params.COLUMNS_HEX) {
 			x += 3;
@@ -584,7 +595,8 @@ int cur_back()
 			x--;
 			return 0;
 		} else {
-			x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+			x = core.params.COLUMNS_ADDRESS - 1 +
+			    core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
 		}
 	} else {
 		if (x > core.params.COLUMNS_ADDRESS + 2) {
@@ -593,7 +605,8 @@ int cur_back()
 		} else {
 			if (current == mem)
 				return 0;
-			x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX - 3;
+			x = core.params.COLUMNS_ADDRESS +
+			    core.params.COLUMNS_HEX - 3;
 		}
 	}
 	statpos();
@@ -631,7 +644,9 @@ char *fname;
 	if (edits)
 		strcat(string, "[Modified] ");
 	if (filesize) {
-		bytepos = (state.pagepos + y * core.params.COLUMNS_DATA + xpos()) - mem + 1L;
+		bytepos =
+		    (state.pagepos + y * core.params.COLUMNS_DATA + xpos()) -
+		    mem + 1L;
 		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);

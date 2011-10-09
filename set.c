@@ -117,7 +117,8 @@ char *arg;			/* parameter string */
 			return 0;
 		}
 		if (!strcmp(params[i].fullname, "term")) {
-			ui__ErrorMsg("Can't change type of terminal from within bvi");
+			ui__ErrorMsg
+			    ("Can't change type of terminal from within bvi");
 			return 1;
 		}
 		if (params[i].flags & P_NUM) {
@@ -138,24 +139,37 @@ char *arg;			/* parameter string */
 				params[i].flags |= P_CHANGED;
 
 				if (i == P_CM) {
-					if (((COLS - core.params.COLUMNS_ADDRESS - 1) / 4) >=
-					    P(P_CM)) {
-						core.params.COLUMNS_DATA = P(P_CM);
+					if (((COLS -
+					      core.params.COLUMNS_ADDRESS -
+					      1) / 4) >= P(P_CM)) {
+						core.params.COLUMNS_DATA =
+						    P(P_CM);
 					} else {
-						core.params.COLUMNS_DATA = P(P_CM) =
-						    ((COLS - core.params.COLUMNS_ADDRESS - 1) / 4);
+						core.params.COLUMNS_DATA =
+						    P(P_CM) =
+						    ((COLS -
+						      core.params.
+						      COLUMNS_ADDRESS - 1) / 4);
 					}
-					core.screen.maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
-					core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
-					status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
-					screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
+					core.screen.maxx =
+					    core.params.COLUMNS_DATA * 4 +
+					    core.params.COLUMNS_ADDRESS + 1;
+					core.params.COLUMNS_HEX =
+					    core.params.COLUMNS_DATA * 3;
+					status =
+					    core.params.COLUMNS_HEX +
+					    core.params.COLUMNS_DATA - 17;
+					screen =
+					    core.params.COLUMNS_DATA *
+					    (core.screen.maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}
 			}
 		} else {	/* boolean */
 			if (arg[strlen(s)] == '=') {
-				ui__ErrorMsg("Invalid set of boolean parameter");
+				ui__ErrorMsg
+				    ("Invalid set of boolean parameter");
 				return 1;
 			} else {
 				params[i].nvalue = state;
@@ -163,7 +177,8 @@ char *arg;			/* parameter string */
 			}
 		}
 	} else {
-		ui__ErrorMsg("No such option@- `set all' gives all option values");
+		ui__ErrorMsg
+		    ("No such option@- `set all' gives all option values");
 		return 1;
 	}
 

@@ -35,7 +35,8 @@ struct {
 	short b;
 } original_colorpairs[8];
 
-void ui__Init() {
+void ui__Init()
+{
 	/****** Initialisation of curses ******/
 	initscr();
 	if (has_colors() != FALSE) {
@@ -44,10 +45,11 @@ void ui__Init() {
 		ui__Colors_Set();
 	}
 	attrset(A_NORMAL);
-	ui__MainWin_Resize(LINES);	
+	ui__MainWin_Resize(LINES);
 }
 
-void ui__MainWin_Resize(int lines_count) {
+void ui__MainWin_Resize(int lines_count)
+{
 	core.screen.maxy = lines_count;
 	if (params[P_LI].flags & P_CHANGED)
 		core.screen.maxy = P(P_LI);
@@ -55,7 +57,7 @@ void ui__MainWin_Resize(int lines_count) {
 	P(P_SS) = state.scrolly;
 	P(P_LI) = core.screen.maxy;
 	core.screen.maxy--;
-	
+
 	keypad(stdscr, TRUE);
 	scrollok(stdscr, TRUE);
 	nonl();
@@ -65,9 +67,11 @@ void ui__MainWin_Resize(int lines_count) {
 	core.params.COLUMNS_ADDRESS = 10;
 	strcpy(addr_form, "%08lX%c:");
 
-	core.params.COLUMNS_DATA = ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
+	core.params.COLUMNS_DATA =
+	    ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
 	P(P_CM) = core.params.COLUMNS_DATA;
-	core.screen.maxx = core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
+	core.screen.maxx =
+	    core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
 	core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
 	status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
 	state.screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
@@ -79,7 +83,8 @@ void ui__MainWin_Resize(int lines_count) {
 WINDOW *tools_win = NULL;
 
 /* Check if tools window already exist */
-short ui__ToolWin_Exist() {
+short ui__ToolWin_Exist()
+{
 	if (tools_win == NULL)
 		return 0;
 	else
@@ -87,13 +92,16 @@ short ui__ToolWin_Exist() {
 }
 
 /* Show tools window with <lines_count> height */
-int ui__ToolWin_Show(int lines_count) {
+int ui__ToolWin_Show(int lines_count)
+{
 	if (tools_win == NULL) {
 		lines_count = LINES - lines_count - 2;
 		ui__MainWin_Resize(lines_count);
 		refresh();
 		attron(COLOR_PAIR(C_WN + 1));
-		tools_win = newwin(LINES - lines_count + 2, core.screen.maxx + 1, lines_count, 0);
+		tools_win =
+		    newwin(LINES - lines_count + 2, core.screen.maxx + 1,
+			   lines_count, 0);
 		box(tools_win, 0, 0);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
@@ -106,7 +114,8 @@ int ui__ToolWin_Show(int lines_count) {
 }
 
 /* Print string in tools window in <line> line */
-int ui__ToolWin_Print(char* str, int line) {
+int ui__ToolWin_Print(char *str, int line)
+{
 	if (tools_win != NULL) {
 		attron(COLOR_PAIR(C_WN + 1));
 		mvwaddstr(tools_win, line, 1, str);
@@ -119,16 +128,19 @@ int ui__ToolWin_Print(char* str, int line) {
 	}
 }
 
-int ui__ToolWin_ScrollUp(int lines) {
+int ui__ToolWin_ScrollUp(int lines)
+{
 	return 0;
 }
 
-int ui__ToolWin_ScrollDown(int lines) {
+int ui__ToolWin_ScrollDown(int lines)
+{
 	return 0;
 }
 
 /* Hides tools window */
-int ui__ToolWin_Hide() {
+int ui__ToolWin_Hide()
+{
 	if (tools_win != NULL) {
 		ui__MainWin_Resize(LINES);
 		attron(COLOR_PAIR(C_WN + 1));
@@ -150,10 +162,12 @@ void ui__Colors_Save()
 {
 	int i;
 	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		color_content(colors[i].short_value, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
+		color_content(colors[i].short_value, &original_colors[i].r,
+			      &original_colors[i].g, &original_colors[i].b);
 	}
 	for (i = 1; i < 8; i++) {
-		pair_content(i, &original_colorpairs[i].f, &original_colorpairs[i].b);
+		pair_content(i, &original_colorpairs[i].f,
+			     &original_colorpairs[i].b);
 	}
 }
 
@@ -161,10 +175,12 @@ void ui__Colors_Load()
 {
 	int i;
 	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		init_color(colors[i].short_value, original_colors[i].r, original_colors[i].g, original_colors[i].b);
+		init_color(colors[i].short_value, original_colors[i].r,
+			   original_colors[i].g, original_colors[i].b);
 	}
 	for (i = 1; i < 8; i++) {
-		init_pair(i, original_colorpairs[i].f, original_colorpairs[i].b);
+		init_pair(i, original_colorpairs[i].f,
+			  original_colorpairs[i].b);
 	}
 }
 
@@ -198,17 +214,17 @@ void ui__Colors_Set()
 	}
 }
 
-int ui__Color_Set(char* arg)
+int ui__Color_Set(char *arg)
 {
 	int i;
 	char *s;
 	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			s = colors[i].fullname;
-			if (strncmp(arg, s, strlen(s)) == 0)
-				break;
-			s = colors[i].shortname;
-			if (strncmp(arg, s, strlen(s)) == 0)
-				break;
+		s = colors[i].fullname;
+		if (strncmp(arg, s, strlen(s)) == 0)
+			break;
+		s = colors[i].shortname;
+		if (strncmp(arg, s, strlen(s)) == 0)
+			break;
 	}
 	if (i == 0) {
 		ui__ErrorMsg("Wrong color name!");
@@ -217,7 +233,7 @@ int ui__Color_Set(char* arg)
 		colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
 		colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
 		colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
-		/*set_palette();*/
+		/*set_palette(); */
 		ui__Colors_Set();
 		ui__Screen_Repaint();
 	}
@@ -234,28 +250,36 @@ void printcolorline(int y, int x, int palette, char *string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_hexhl(int y, int x, int base_palette, char *string, highlight_table *hl, unsigned int hl_tbl_size)
+void printcolorline_hexhl(int y, int x, int base_palette, char *string,
+			  highlight_table * hl, unsigned int hl_tbl_size)
 {
 	unsigned int i;
 	printcolorline(y, x, base_palette, string);
 	for (i = 0; i < hl_tbl_size; i++) {
 		if ((hl[i].hex_start < hl[i].hex_end) & (hl[i].toggle == 1)) {
 			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].hex_start, substr(string, hl[i].hex_start, hl[i].hex_end - hl[i].hex_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
+			mvaddstr(y, x + hl[i].hex_start,
+				 substr(string, hl[i].hex_start,
+					hl[i].hex_end - hl[i].hex_start));
+			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT |
+				A_BOLD);
 		}
 	}
 }
 
-void printcolorline_dathl(int y, int x, int base_palette, char *string, highlight_table *hl, unsigned int hl_tbl_size)
+void printcolorline_dathl(int y, int x, int base_palette, char *string,
+			  highlight_table * hl, unsigned int hl_tbl_size)
 {
 	unsigned int i;
 	printcolorline(y, x, base_palette, string);
 	for (i = 0; i < hl_tbl_size; i++) {
 		if ((hl[i].dat_start < hl[i].dat_end) & (hl[i].toggle == 1)) {
 			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].dat_start, substr(string, hl[i].dat_start, hl[i].dat_end - hl[i].dat_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
+			mvaddstr(y, x + hl[i].dat_start,
+				 substr(string, hl[i].dat_start,
+					hl[i].dat_end - hl[i].dat_start));
+			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT |
+				A_BOLD);
 		}
 	}
 }
@@ -276,7 +300,7 @@ int scpos;
 	char marker = ' ';
 
 	hl_msg[0] = '\0';
-	
+
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
@@ -311,32 +335,53 @@ int scpos;
 				hl[n].hex_end = 0;
 				hl[n].dat_end = 0;
 			}
-			for (print_pos = 0; print_pos < core.params.COLUMNS_DATA * 3; print_pos += 3) {
-				if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_start) & (hl[n].flg != 1)) {
+			for (print_pos = 0;
+			     print_pos < core.params.COLUMNS_DATA * 3;
+			     print_pos += 3) {
+				if (((long)(mempos - mem + (print_pos / 3)) ==
+				     data_block[i].pos_start) & (hl[n].flg !=
+								 1)) {
 					hl[n].hex_start = print_pos;
 					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end = core.params.COLUMNS_DATA;
+					hl[n].hex_end =
+					    core.params.COLUMNS_DATA * 3;
+					hl[n].dat_end =
+					    core.params.COLUMNS_DATA;
 					hl[n].flg = 1;
-				} else if (((long)(mempos - mem + (print_pos / 3)) < data_block[i].pos_end) & 
-					((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_start) & (hl[n].flg != 1)) {
+				} else
+				    if (((long)(mempos - mem + (print_pos / 3))
+					 <
+					 data_block[i].
+					 pos_end) & ((long)(mempos - mem +
+							    (print_pos / 3)) >
+						     data_block[i].
+						     pos_start) & (hl[n].flg !=
+								   1)) {
 					hl[n].hex_start = print_pos;
 					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end = core.params.COLUMNS_DATA;
+					hl[n].hex_end =
+					    core.params.COLUMNS_DATA * 3;
+					hl[n].dat_end =
+					    core.params.COLUMNS_DATA;
 					hl[n].flg = 1;
-				} else if (((long)(mempos - mem + (print_pos / 3)) == data_block[i].pos_end) & (hl[n].flg == 1)) {
+				} else
+				    if (((long)(mempos - mem + (print_pos / 3))
+					 ==
+					 data_block[i].pos_end) & (hl[n].flg ==
+								   1)) {
 					hl[n].hex_end = print_pos + 2;
 					hl[n].dat_end = print_pos / 3 + 1;
 					hl[n].flg = 0;
-				} else if (((long)(mempos - mem + (print_pos / 3)) > data_block[i].pos_end)) {
+				} else
+				    if (((long)(mempos - mem + (print_pos / 3))
+					 > data_block[i].pos_end)) {
 					hl[n].flg = 0;
 				}
 			}
 			n++;
 		}
 	}
-	
+
 	for (print_pos = 0; print_pos < core.params.COLUMNS_DATA; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
 			sprintf(tmpbuf, "   ");
@@ -356,13 +401,12 @@ int scpos;
 	/* load color from C(C_HX) */
 	strcat(linbuf, "|");
 	printcolorline_hexhl(scpos, nxtpos, C_HX, linbuf, hl, n + 1);
-	
+
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);
 	/* load color from C(C_DT) */
 	printcolorline_dathl(scpos, nxtpos, C_DT, string, hl, n + 1);
 }
-
 
 /* TODO: add hex-data folding feature */
 
@@ -372,13 +416,13 @@ int scpos;
 int ui__lineout()
 {
 	off_t Address;
-	
+
 	Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
 	ui__Line_Print(mem + Address, y);
 	move(y, x);
 	/*if (k != 0) 
-		y = k;
-	*/
+	   y = k;
+	 */
 	return (0);
 }
 
@@ -409,10 +453,15 @@ void ui__Screen_Repaint()
 	for (y = 0; y < core.screen.maxy; y++) {
 		Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
 		for (i = 0; i < BLK_COUNT; i++) {
-			if ((data_block[i].folding == 1) & (data_block[i].pos_start < Address) & (data_block[i].pos_end > Address)) {
+			if ((data_block[i].folding ==
+			     1) & (data_block[i].pos_start <
+				   Address) & (data_block[i].pos_end >
+					       Address)) {
 				fold_start = data_block[i].pos_start;
 				fold_end = data_block[i].pos_end;
-				state.pagepos += (fold_end - fold_start) / core.params.COLUMNS_DATA;
+				state.pagepos +=
+				    (fold_end -
+				     fold_start) / core.params.COLUMNS_DATA;
 				/* Address = state.pagepos - mem + y * core.params.COLUMNS_DATA; */
 				break;
 			}
@@ -545,5 +594,3 @@ char *s;
 	}
 	return cnt;
 }
-
-

@@ -1,4 +1,0 @@
-set mm
-0,20d
-w! %.new
-q

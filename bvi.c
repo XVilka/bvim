@@ -1,15 +1,5 @@
 /* BVI  -  Binary Visual Editor
  *
- * 1996-02-28  V 1.0.0
- * 1999-01-27  V 1.1.0
- * 1999-04-22  V 1.1.1 
- * 1999-07-01  V 1.2.0 beta
- * 1999-10-22  V 1.2.0 final
- * 2000-05-10  V 1.3.0 alpha
- * 2000-10-24  V 1.3.0 final
- * 2002-01-03  V 1.3.1
- * 2004-01-04  V 1.3.2
- *
  * NOTE: Edit this file with tabstop=4 !
  *
  * Copyright 1996-2004 by Gerhard Buergmann gerhard@puon.at
@@ -61,7 +51,6 @@ off_t size;
 
 /* Tools window */
 /* WINDOW *tools_win = NULL; */
-
 
 PTR mem = NULL;
 PTR curpos;
@@ -115,9 +104,9 @@ extern struct MARKERS_ markers[MARK_COUNT];
 // TODO: eliminate global variables:
 int lflag;
 
-
 // case '^':
-int handler__goto_HEX() {
+int handler__goto_HEX()
+{
 	x = core.params.COLUMNS_ADDRESS;
 	state.loc = HEX;
 	return 0;
@@ -129,20 +118,24 @@ int handler__goto_HEX() {
  */
 
 //case '$':
-int handler__goto_ASCII() {
-	x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+int handler__goto_ASCII()
+{
+	x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+	    core.params.COLUMNS_DATA;
 	state.loc = ASCII;
 	return 0;
 }
 
 //case '\t':
-int handler__toggle() {
+int handler__toggle()
+{
 	toggle();
 	return 0;
 }
 
 //case '~':
-int handler__tilda() {
+int handler__tilda()
+{
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ld~", precount);
@@ -153,7 +146,8 @@ int handler__tilda() {
 
 //case KEY_HOME: /* go to the HOME */
 //case 'H':
-int handler__goto_home() {
+int handler__goto_home()
+{
 	if (precount > 0) {
 		y = --precount;
 		if (y > core.screen.maxy - 1) {
@@ -170,10 +164,12 @@ int handler__goto_home() {
 }
 
 //case 'M':
-int handler__M() {
+int handler__M()
+{
 	y = core.screen.maxy / 2;
 	if ((PTR) (state.pagepos + state.screen) > maxpos)
-		y = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA / 2;
+		y = (int)(maxpos -
+			  state.pagepos) / core.params.COLUMNS_DATA / 2;
 	if (state.loc == HEX)
 		x = core.params.COLUMNS_ADDRESS;
 	else
@@ -183,7 +179,8 @@ int handler__M() {
 
 //case KEY_LL:
 //case 'L':
-int handler__L() {
+int handler__L()
+{
 	int n = 0;
 	if (precount < 1)
 		precount = 1;
@@ -203,12 +200,16 @@ int handler__L() {
 //case KEY_BACKSPACE:
 //case KEY_LEFT:
 //case 'h':
-int handler__goto_left() {
+int handler__goto_left()
+{
 	do {
 		if (x > (core.params.COLUMNS_ADDRESS + 2)
-			&& x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
-				x -= 3;
-		else if (x > (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
+		    && x <
+		    (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
+			x -= 3;
+		else if (x >
+			 (core.params.COLUMNS_HEX +
+			  core.params.COLUMNS_ADDRESS - 2))
 			x--;
 	} while (--precount > 0);
 	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
@@ -221,16 +222,21 @@ int handler__goto_left() {
 //case ' ':
 //case KEY_RIGHT:
 //case 'l':
-int handler__goto_right() {
+int handler__goto_right()
+{
 	do {
 		/*
-		 if (x < (COLUMNS_HEX + 6))  x += 3;
-		*/
-		if (x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
+		   if (x < (COLUMNS_HEX + 6))  x += 3;
+		 */
+		if (x <
+		    (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
 			x += 3;
 		else if (x > (core.params.COLUMNS_HEX + 3)
-			&& x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_DATA))
-				x++;
+			 && x <
+			 (core.params.COLUMNS_HEX +
+			  core.params.COLUMNS_ADDRESS - 1 +
+			  core.params.COLUMNS_DATA))
+			x++;
 	} while (--precount > 0);
 	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
 		state.loc = HEX;
@@ -242,7 +248,8 @@ int handler__goto_right() {
 //case '-':
 //case KEY_UP:
 //case 'k':
-int handler__goto_up() {
+int handler__goto_up()
+{
 	do {
 		if (y > 0)
 			y--;
@@ -254,7 +261,8 @@ int handler__goto_up() {
 
 //case '+':
 //case CR:
-int handler__goto_EOL() {
+int handler__goto_EOL()
+{
 	if (state.loc == HEX)
 		x = core.params.COLUMNS_ADDRESS;
 	else
@@ -266,9 +274,11 @@ int handler__goto_EOL() {
 //case BVICTRL('J'):
 //case BVICTRL('N'):
 //case KEY_DOWN:
-int handler__goto_down() {
+int handler__goto_down()
+{
 	do {
-		if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA)) >  maxpos)
+		if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA))
+		    > maxpos)
 			break;
 		if (y < (core.screen.maxy - 1))
 			y++;
@@ -279,22 +289,28 @@ int handler__goto_down() {
 }
 
 //case '|':
-int handler__line() {
+int handler__line()
+{
 	if (precount < 1)
 		return -1;
 	if (state.loc == ASCII)
-		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + precount;
+		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+		    precount;
 	else
 		x = 5 + 3 * precount;
-	if (x > core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
-		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+	if (x >
+	    core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+	    core.params.COLUMNS_DATA) {
+		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+		    core.params.COLUMNS_DATA;
 		state.loc = ASCII;
 	}
 	return 0;
 }
 
 //case 'S':
-int handler__toolwin_toggle() {
+int handler__toolwin_toggle()
+{
 	if (!ui__ToolWin_Exist()) {
 		ui__ToolWin_Show(10);
 	} else {
@@ -304,7 +320,8 @@ int handler__toolwin_toggle() {
 }
 
 //case ':':
-int handler__cmdstring() {
+int handler__cmdstring()
+{
 	clearstr();
 	addch(':');
 	refresh();
@@ -317,17 +334,19 @@ int handler__cmdstring() {
 
 //case BVICTRL('B'):
 //case KEY_PPAGE:
-int handler__previous_page() {
+int handler__previous_page()
+{
 	if (mem <= (PTR) (state.pagepos - state.screen))
 		state.pagepos -= state.screen;
 	else
 		state.pagepos = mem;
-		ui__Screen_Repaint();
+	ui__Screen_Repaint();
 	return 0;
 }
 
 //case BVICTRL('D'):
-int handler__scrolldown() {
+int handler__scrolldown()
+{
 	if (precount > 1)
 		state.scrolly = precount;
 	scrolldown(state.scrolly);
@@ -335,7 +354,8 @@ int handler__scrolldown() {
 }
 
 //case BVICTRL('U'):
-int handler__scrollup() {
+int handler__scrollup()
+{
 	if (precount > 1)
 		state.scrolly = precount;
 	scrollup(state.scrolly);
@@ -343,7 +363,8 @@ int handler__scrollup() {
 }
 
 //case BVICTRL('E'):
-int handler__linescroll_down() {
+int handler__linescroll_down()
+{
 	if (y > 0)
 		y--;
 	scrolldown(1);
@@ -352,7 +373,8 @@ int handler__linescroll_down() {
 
 //case BVICTRL('F'):
 //case KEY_NPAGE:
-int handler__nextpage() {
+int handler__nextpage()
+{
 	if (maxpos >= (PTR) (state.pagepos + state.screen)) {
 		state.pagepos += state.screen;
 		current += state.screen;
@@ -366,20 +388,23 @@ int handler__nextpage() {
 }
 
 //case BVICTRL('G'):
-int handler__fileinfo() {
+int handler__fileinfo()
+{
 	fileinfo(name);
 	wrstat = 0;
 	return 0;
 }
 
-//case BVICTRL('L'):	/*** REDRAW SCREEN ***/
-int handler__screen_redraw() {
+// Redraw screen
+int handler__screen_redraw()
+{
 	ui__Screen_New();
 	return 0;
 }
 
 //case BVICTRL('Y'):
-int handler__linescroll_up() {
+int handler__linescroll_up()
+{
 	if (y < core.screen.maxy)
 		y++;
 	scrollup(1);
@@ -387,7 +412,8 @@ int handler__linescroll_up() {
 }
 
 //case 'A':
-int handler__append_mode() {
+int handler__append_mode()
+{
 	smsg("APPEND MODE");
 	current = (PTR) (mem + filesize - 1L);
 	setpage(current++);
@@ -400,25 +426,29 @@ int handler__append_mode() {
 
 //case 'B':
 //case 'b':
-int handler__backsearch() {
+int handler__backsearch()
+{
 	setpage(backsearch(current, 'b'));
 	return 0;
 }
 
 //case 'e':
-int handler__setpage() {
+int handler__setpage()
+{
 	setpage(end_word(current));
 	return 0;
 }
 
 //case ',':
-int handler__doft1() {
+int handler__doft1()
+{
 	do_ft(-1, 0);
 	return 0;
 }
 
 //case ';':
-int handler__doft2() {
+int handler__doft2()
+{
 	do_ft(0, 0);
 	return 0;
 }
@@ -427,20 +457,23 @@ int handler__doft2() {
 //case 'f':
 //case 't':
 //case 'T':
-int handler__doft3() {
+int handler__doft3()
+{
 	// TODO: split handlers for each key
 	do_ft('f', 0);
 	return 0;
 }
 
 //case 'G':
-int handler__goto1() {
+int handler__goto1()
+{
 	last_motion = current;
 	if (precount > -1) {
-		if ((precount < P(P_OF)) || (precount - P(P_OF)) > (filesize - 1L)) {
+		if ((precount < P(P_OF))
+		    || (precount - P(P_OF)) > (filesize - 1L)) {
 			beep();
 		} else {
-			setpage((PTR)(mem + precount - P(P_OF)));
+			setpage((PTR) (mem + precount - P(P_OF)));
 		}
 	} else {
 		setpage((PTR) (mem + filesize - 1L));
@@ -449,9 +482,10 @@ int handler__goto1() {
 }
 
 //case 'g':
-int handler__goto2() {
+int handler__goto2()
+{
 	off_t inaddr;
-	
+
 	last_motion = current;
 	msg("Goto Hex Address: ");
 	refresh();
@@ -473,7 +507,8 @@ int handler__goto2() {
 	} else {
 		if (filesize == 0L)
 			return -1;
-		sprintf(string, "Max. address of current file : %06lX", (long)(filesize - 1L + P(P_OF)));
+		sprintf(string, "Max. address of current file : %06lX",
+			(long)(filesize - 1L + P(P_OF)));
 		ui__ErrorMsg(string);
 	}
 	return 0;
@@ -483,8 +518,9 @@ int handler__goto2() {
 //case '/':
 //case '#':
 //case '\\':
-int handler__search_string() {
-	// TODO: split handlers for each key	
+int handler__search_string()
+{
+	// TODO: split handlers for each key    
 	char ch = '/';
 
 	clearstr();
@@ -499,23 +535,26 @@ int handler__search_string() {
 
 //case 'n':
 //case 'N':
-int handler__search_next() {
+int handler__search_next()
+{
 	last_motion = current;
 	searching('n', "", current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
 //case 'm':
-int handler__mark() {
+int handler__mark()
+{
 	do_mark(vgetc(), current);
 	return 0;
 }
 
 //case '\'':
 //case '`':
-int handler__goto_mark() {
+int handler__goto_mark()
+{
 	//if ((ch == '`' && state.loc == ASCII) || (ch == '\'' && state.loc == HEX))
-	//	toggle();
+	//      toggle();
 	mark = vgetc();
 	if (mark == '`' || mark == '\'') {
 		setpage(last_motion);
@@ -534,7 +573,8 @@ int handler__goto_mark() {
 }
 
 //case 'D':
-int handler__trunc() {
+int handler__trunc()
+{
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ldD", precount);
@@ -543,7 +583,8 @@ int handler__trunc() {
 }
 
 //case 'o':
-int handler__overwrite() {
+int handler__overwrite()
+{
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ldo", precount);
@@ -552,7 +593,8 @@ int handler__overwrite() {
 }
 
 //case 'P':
-int handler__paste() {
+int handler__paste()
+{
 	if (precount < 1)
 		precount = 1;
 	if ((undo_count = alloc_buf(yanked, &undo_buf)) == 0L)
@@ -569,7 +611,8 @@ int handler__paste() {
 
 //case 'r':
 //case 'R':
-int handler__redo() {
+int handler__redo()
+{
 	if (filesize == 0L)
 		return -1;
 	if (precount < 1)
@@ -581,21 +624,24 @@ int handler__redo() {
 }
 
 //case 'u':
-int handler__undo() {
+int handler__undo()
+{
 	do_undo();
 	return 0;
 }
 
 //case 'W':
 //case 'w':
-int handler__wordsearch() {
+int handler__wordsearch()
+{
 	state.loc = ASCII;
 	setpage(wordsearch(current, 'w'));
 	return 0;
 }
 
 //case 'y':
-int handler__yank() {
+int handler__yank()
+{
 	long count;
 
 	count = range('y');
@@ -613,19 +659,21 @@ int handler__yank() {
 		return -1;
 	}
 	/* sprintf(string, "%ld bytes yanked", labs(count));
-	 * 	msg(string);
+	 *      msg(string);
 	 */
 	return 0;
 }
 
 //case 'z':
-int handler__doz() {
+int handler__doz()
+{
 	do_z(vgetc());
 	return 0;
 }
 
 //case 'Z':
-int handler__exit() {
+int handler__exit()
+{
 	if (vgetc() == 'Z')
 		do_exit();
 	else
@@ -634,7 +682,8 @@ int handler__exit() {
 }
 
 //case '.':
-int handler__stuffin() {
+int handler__stuffin()
+{
 	if (!strlen(rep_buf)) {
 		beep();
 	} else {
@@ -644,6 +693,7 @@ int handler__stuffin() {
 }
 
 /* =================== END OF EVENT HANDLERS =================== */
+
 extern int from_file;
 static FILE *ffp;
 static char fbuf[256];
@@ -696,12 +746,15 @@ char *argv[];
 	int i;
 	char *poi;
 
+	// Hotkeys and keymap initialization
 	keys__Init();
 
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_ALL, "");
 #endif
+
 #ifdef HAVE_LUA_H
+	// Lua subsystem initialization
 	bvi_lua_init();
 #endif
 
@@ -822,8 +875,8 @@ char *argv[];
 	if (numfiles > 1)
 		fprintf(stderr, "%d files to edit\n", numfiles);
 	curfile = 0;
-	
-	/* ====== UI initialization ====== */
+
+	// UI initialization
 	ui__Init();
 
 	signal(SIGINT, SIG_IGN);
@@ -840,10 +893,12 @@ char *argv[];
 	if (*cmdstr != '\0')
 		docmdline(cmdstr);
 
-	/* main loop */
+	// Main loop
 	do {
 		setjmp(env);
-		current = (PTR) (state.pagepos + y * core.params.COLUMNS_DATA + xpos());
+		current =
+		    (PTR) (state.pagepos + y * core.params.COLUMNS_DATA +
+			   xpos());
 		if (wrstat)
 			statpos();
 		wrstat = 1;
@@ -859,19 +914,8 @@ char *argv[];
 		else
 			precount = -1;
 		lflag = arrnum = 0;
-	
-		/* TODO: move all checks in keys.c */
 
 		keys__Key_Pressed(ch);
-		/*
-		if (pkey.handler_type == BVI_HANDLER_INTERNAL) {
-			if (pkey.handler.func != NULL)
-				(*(pkey.handler.func))();
-		} else if (pkey.handler_type == BVI_HANDLER_LUA) {
-			if (pkey.handler.lua_cmd != NULL)
-				bvi_run_lua_string(pkey.handler.lua_cmd);
-		}
-		*/
 
 /*
 		default:

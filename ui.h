@@ -2,15 +2,15 @@
 
 void ui__Init(void);
 void ui__ErrorMsg(char *);
-void ui__MsgWin_Show(char*, int width, int height);
+void ui__MsgWin_Show(char *, int width, int height);
 int ui__ToolWin_Show(int), ui__ToolWin_Hide();
-int ui__ToolWin_Print(char*, int);
+int ui__ToolWin_Print(char *, int);
 short ui__ToolWin_Exist();
 void ui__MainWin_Resize(int);
 void printcolorline(int, int, int, char *);
 void ui__Line_Print();
 
-int ui__Color_Set(char*);
+int ui__Color_Set(char *);
 void ui__Colors_Set();
 void ui__Colors_Load();
 void ui__Colors_Save();

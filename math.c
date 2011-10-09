@@ -6,7 +6,6 @@
 extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];
 
-
 int do_logic(mode, str)
 int mode;
 char *str;
@@ -112,7 +111,9 @@ int block_number;
 	size_t n;
 	char *err_str = "Invalid value@for bit manipulation";
 
-	if ((block_number >= BLK_COUNT) & (!(data_block[block_number].pos_start < data_block[block_number].pos_end))) {
+	if ((block_number >=
+	     BLK_COUNT) & (!(data_block[block_number].pos_start <
+			     data_block[block_number].pos_end))) {
 		ui__ErrorMsg("Invalid block for bit manipulation!");
 		return 1;
 	}
@@ -151,14 +152,19 @@ int block_number;
 		}
 	}
 	if ((undo_count =
-	     alloc_buf((off_t) (data_block[block_number].pos_end - 
-			data_block[block_number].pos_start + 1), &undo_buf))) {
-		memcpy(undo_buf, start_addr +  data_block[block_number].pos_start, undo_count);
+	     alloc_buf((off_t) (data_block[block_number].pos_end -
+				data_block[block_number].pos_start + 1),
+		       &undo_buf))) {
+		memcpy(undo_buf,
+		       start_addr + data_block[block_number].pos_start,
+		       undo_count);
 	}
 	undo_start = start_addr + data_block[block_number].pos_start;
 	edits = U_EDIT;
 	start_addr = start_addr + data_block[block_number].pos_start;
-	end_addr = start_addr + data_block[block_number].pos_end - data_block[block_number].pos_start;
+	end_addr =
+	    start_addr + data_block[block_number].pos_end -
+	    data_block[block_number].pos_start;
 	while (start_addr <= end_addr) {
 		a = *start_addr;
 		a &= 0xff;
@@ -220,19 +226,17 @@ int block_number;
 unsigned int crc16(char *addr, int num, unsigned int crc)
 {
 	int i;
-	for (; num>0; num--)            /* Step through bytes in memory */
-	{
-		crc = crc ^ (*addr++ << 8);     /* Fetch byte from memory, XOR into CRC top byte*/
-		for (i=0; i<8; i++)             /* Prepare to rotate 8 bits */
-		{
-			if (crc & 0x10000)            /* b15 is set... */
-				crc = (crc << 1) ^ crc16_poly;    /* rotate and XOR with XMODEM polynomic */
-			else                          /* b15 is clear... */
-				crc <<= 1;                  /* just rotate */
-		}                             /* Loop for 8 bits */
-		crc &= 0xFFFF;                  /* Ensure CRC remains 16-bit value */
-	}                               /* Loop until num=0 */
-	return(crc);                    /* Return updated CRC */
+	for (; num > 0; num--) {	/* Step through bytes in memory */
+		crc = crc ^ (*addr++ << 8);	/* Fetch byte from memory, XOR into CRC top byte */
+		for (i = 0; i < 8; i++) {	/* Prepare to rotate 8 bits */
+			if (crc & 0x10000)	/* b15 is set... */
+				crc = (crc << 1) ^ crc16_poly;	/* rotate and XOR with XMODEM polynomic */
+			else	/* b15 is clear... */
+				crc <<= 1;	/* just rotate */
+		}		/* Loop for 8 bits */
+		crc &= 0xFFFF;	/* Ensure CRC remains 16-bit value */
+	}			/* Loop until num=0 */
+	return (crc);		/* Return updated CRC */
 }
 
 #define crc32_poly 0xEDB88320
@@ -243,23 +247,21 @@ unsigned int crc16(char *addr, int num, unsigned int crc)
 unsigned int crc32(char *addr, int num, unsigned int crc)
 {
 	int i;
-	for (; num>0; num--)              /* Step through bytes in memory */
-	{
-		crc = crc ^ *addr++;            /* Fetch byte from memory, XOR into CRC */
-		for (i=0; i<8; i++)             /* Prepare to rotate 8 bits */
-		{
-			if (crc & 1)                  /* b0 is set... */
-				crc = (crc >> 1) ^ crc32_poly;    /* rotate and XOR with ZIP polynomic */
-			else                          /* b0 is clear... */
-				crc >>= 1;                  /* just rotate */
-		/* Some compilers need:
-		 * crc &= 0xFFFFFFFF;
-		 */
+	for (; num > 0; num--) {	/* Step through bytes in memory */
+		crc = crc ^ *addr++;	/* Fetch byte from memory, XOR into CRC */
+		for (i = 0; i < 8; i++) {	/* Prepare to rotate 8 bits */
+			if (crc & 1)	/* b0 is set... */
+				crc = (crc >> 1) ^ crc32_poly;	/* rotate and XOR with ZIP polynomic */
+			else	/* b0 is clear... */
+				crc >>= 1;	/* just rotate */
+			/* Some compilers need:
+			 * crc &= 0xFFFFFFFF;
+			 */
 		}
 		/* Loop for 8 bits */
 	}
 	/* Loop until num=0 */
-	return(crc);                    /* Return updated CRC */
+	return (crc);		/* Return updated CRC */
 }
 
 #ifdef HAVE_OPENSSL
@@ -281,7 +283,7 @@ void md4_hash_string(unsigned char *string, long len, char outputBuffer[65])
 	MD4_Init(&md4);
 	MD4_Update(&md4, string, len);
 	MD4_Final(hash, &md4);
-	for(i = 0; i < MD4_DIGEST_LENGTH; i++) {
+	for (i = 0; i < MD4_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[64] = 0;
@@ -295,12 +297,11 @@ void md5_hash_string(unsigned char *string, long len, char outputBuffer[65])
 	MD5_Init(&md5);
 	MD5_Update(&md5, string, len);
 	MD5_Final(hash, &md5);
-	for(i = 0; i < MD5_DIGEST_LENGTH; i++) {
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[64] = 0;
 }
-
 
 /* SHA1
  * SHA-224
@@ -317,7 +318,7 @@ void sha1_hash_string(unsigned char *string, long len, char outputBuffer[65])
 	SHA1_Init(&sha1);
 	SHA1_Update(&sha1, string, len);
 	SHA1_Final(hash, &sha1);
-	for(i = 0; i < SHA_DIGEST_LENGTH; i++) {
+	for (i = 0; i < SHA_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[64] = 0;
@@ -330,16 +331,17 @@ int sha1_file(char *path, char outputBuffer[65])
 	int bytesRead = 0;
 	char *buffer = NULL;
 	SHA_CTX sha1;
-	
+
 	FILE *file = fopen(path, "rb");
-	if(!file) 
+	if (!file)
 		return -534;;
-	
+
 	SHA1_Init(&sha1);
 	buffer = (char *)malloc(bufSize);
-	if(!buffer) return ENOMEM;
+	if (!buffer)
+		return ENOMEM;
 
-	while((bytesRead = fread(buffer, 1, bufSize, file))) {
+	while ((bytesRead = fread(buffer, 1, bufSize, file))) {
 		SHA1_Update(&sha1, buffer, bytesRead);
 	}
 
@@ -355,11 +357,11 @@ void sha256_hash_string(unsigned char *string, long len, char outputBuffer[65])
 	int i = 0;
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	SHA256_CTX sha256;
-	
+
 	SHA256_Init(&sha256);
 	SHA256_Update(&sha256, string, len);
 	SHA256_Final(hash, &sha256);
-	for(i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[64] = 0;
@@ -370,18 +372,19 @@ int sha256_file(char *path, char outputBuffer[65])
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	const int bufSize = 32768;
 	int bytesRead = 0;
-	char* buffer = NULL;
+	char *buffer = NULL;
 	SHA256_CTX sha256;
-	
+
 	FILE *file = fopen(path, "rb");
-	if(!file) 
+	if (!file)
 		return -534;
-	
+
 	SHA256_Init(&sha256);
 	buffer = (char *)malloc(bufSize);
-	if(!buffer) return ENOMEM;
+	if (!buffer)
+		return ENOMEM;
 
-	while((bytesRead = fread(buffer, 1, bufSize, file))) {
+	while ((bytesRead = fread(buffer, 1, bufSize, file))) {
 		SHA256_Update(&sha256, buffer, bytesRead);
 	}
 
@@ -401,7 +404,7 @@ void sha512_hash_string(unsigned char *string, long len, char outputBuffer[129])
 	SHA512_Init(&sha512);
 	SHA512_Update(&sha512, string, len);
 	SHA512_Final(hash, &sha512);
-	for(i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+	for (i = 0; i < SHA512_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[128] = 0;
@@ -414,16 +417,17 @@ int sha512_file(char *path, char outputBuffer[129])
 	int bytesRead = 0;
 	char *buffer = NULL;
 	SHA512_CTX sha512;
-	
+
 	FILE *file = fopen(path, "rb");
-	if(!file) 
+	if (!file)
 		return -534;
 
 	SHA512_Init(&sha512);
 	buffer = (char *)malloc(bufSize);
-	if(!buffer) return ENOMEM;
+	if (!buffer)
+		return ENOMEM;
 
-	while((bytesRead = fread(buffer, 1, bufSize, file))) {
+	while ((bytesRead = fread(buffer, 1, bufSize, file))) {
 		SHA512_Update(&sha512, buffer, bytesRead);
 	}
 
@@ -436,16 +440,17 @@ int sha512_file(char *path, char outputBuffer[129])
 
 /* RIPEMD-160 */
 
-void ripemd160_hash_string(unsigned char *string, long len, char outputBuffer[65])
+void ripemd160_hash_string(unsigned char *string, long len,
+			   char outputBuffer[65])
 {
 	int i = 0;
 	unsigned char hash[RIPEMD160_DIGEST_LENGTH];
 	RIPEMD160_CTX ripemd160;
-	
+
 	RIPEMD160_Init(&ripemd160);
 	RIPEMD160_Update(&ripemd160, string, len);
 	RIPEMD160_Final(hash, &ripemd160);
-	for(i = 0; i < RIPEMD160_DIGEST_LENGTH; i++) {
+	for (i = 0; i < RIPEMD160_DIGEST_LENGTH; i++) {
 		sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
 	}
 	outputBuffer[64] = 0;
@@ -456,18 +461,19 @@ int ripemd160_file(char *path, char outputBuffer[65])
 	unsigned char hash[RIPEMD160_DIGEST_LENGTH];
 	const int bufSize = 32768;
 	int bytesRead = 0;
-	char* buffer = NULL;
+	char *buffer = NULL;
 	RIPEMD160_CTX ripemd160;
-	
+
 	FILE *file = fopen(path, "rb");
-	if(!file) 
+	if (!file)
 		return -534;
-	
+
 	RIPEMD160_Init(&ripemd160);
 	buffer = (char *)malloc(bufSize);
-	if(!buffer) return ENOMEM;
+	if (!buffer)
+		return ENOMEM;
 
-	while((bytesRead = fread(buffer, 1, bufSize, file))) {
+	while ((bytesRead = fread(buffer, 1, bufSize, file))) {
 		RIPEMD160_Update(&ripemd160, buffer, bytesRead);
 	}
 
@@ -478,6 +484,4 @@ int ripemd160_file(char *path, char outputBuffer[65])
 	return 0;
 }
 
-
 #endif
-

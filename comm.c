@@ -1,16 +1,6 @@
 /* COMM.C - Routines to parse and execute "command line" commands, such as
  * search or colon commands.
  *
- * 1996-01-16 created;
- * 1998-03-14 V 1.0.1
- * 1999-02-03 V 1.1.0
- * 1999-06-22 V 1.2.0 beta
- * 1999-09-10 V 1.2.0 final
- * 2000-03-03 V 1.3.0 beta
- * 2000-07-15 V 1.3.0 final
- * 2001-10-10 V 1.3.1  
- * 2003-07-04 V 1.3.2
- *
  * NOTE: Edit this file with tabstop=4 !
  *
  * Copyright 1996-2003 by Gerhard Buergmann
@@ -49,15 +39,8 @@
 #	include <fcntl.h>
 #endif
 
-#if defined(__MSDOS__) && !defined(DJGPP)
-#include <io.h>
-#	include <dir.h>
-#define WRITE (O_WRONLY|O_CREAT|O_TRUNC|O_BINARY)
-#define APPEND (O_WRONLY|O_APPEND|O_BINARY)
-#else
 #define WRITE (O_WRONLY|O_CREAT|O_TRUNC)
 #define APPEND (O_WRONLY|O_APPEND)
-#endif
 
 #include "plugins.h"
 
@@ -104,8 +87,10 @@ static char oldbuf[CMDSZ];		/** for :!! command **/
 void record_cmd(cmdline)
 char *cmdline;
 {
-	
+
 }
+
+/* TODO: move command handling engine on dynamic array */
 
 /*
  * docmdline() - handle a colon command
@@ -194,7 +179,8 @@ char *cmdline;
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
-			ui__ErrorMsg("Incomplete shell escape command@- use 'shell' to get a shell");
+			ui__ErrorMsg
+			    ("Incomplete shell escape command@- use 'shell' to get a shell");
 			return;
 		}
 		if (*(cmdbuf + 1) == '!') {
@@ -202,7 +188,8 @@ char *cmdline;
 				strcpy(cmdbuf + 1, oldbuf);
 				msg(oldbuf);
 			} else {
-				ui__ErrorMsg("No previous command@to substitute for !");
+				ui__ErrorMsg
+				    ("No previous command@to substitute for !");
 				return;
 			}
 		} else
@@ -247,7 +234,8 @@ char *cmdline;
 		repl_count =
 		    do_substitution(*cmd, cmd + 1, start_addr, end_addr);
 		if (repl_count == -1) {
-			ui__ErrorMsg("No previous substitute re|No previous substitute regular expression");
+			ui__ErrorMsg
+			    ("No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
 		}
 		ui__Screen_Repaint();
@@ -321,7 +309,8 @@ char *cmdline;
 			while ((p = strchr(c_argv[0], '%')) != NULL
 			       && *(p - 1) != '\\') {
 				if (name == NULL) {
-					ui__ErrorMsg("No filename@to substitute for %");
+					ui__ErrorMsg
+					    ("No filename@to substitute for %");
 					return;
 				}
 				*p = '\0';
@@ -365,7 +354,8 @@ char *cmdline;
 								filemode =
 								    REGULAR;
 						} else if (S_ISBLK(buf.st_mode)) {
-							ui__ErrorMsg("Cannot append to a block special file");
+							ui__ErrorMsg
+							    ("Cannot append to a block special file");
 							return;
 						}
 						ok = save(c_argv[0], start_addr,
@@ -415,8 +405,9 @@ char *cmdline;
 				strcat(luacmdbuf, c_argv[n]);
 			}
 			key_tmp = keys__KeyString_Parse(c_argv[0]);
-			if (!keys__Key_Map(key_tmp, luacmdbuf))
-				ui__ErrorMsg("Error: can't set new key mapping!");
+			if (!keys__Key_Map(key_tmp))
+				ui__ErrorMsg
+				    ("Error: can't set new key mapping!");
 			return;
 		}
 	} else if (!strncmp("set", cmdname, len) && CMDLNG(3, 2)) {
@@ -442,14 +433,16 @@ char *cmdline;
 			if (atoi(c_argv[1]) < atoi(c_argv[2])) {
 				data_block[n].pos_start = atoi(c_argv[1]);
 				data_block[n].pos_end = atoi(c_argv[2]);
-				if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) > 6))
+				if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) >
+							     6))
 					data_block[n].palette = C_HX;
 				else
 					data_block[n].palette = atoi(c_argv[3]);
 				data_block[n].hl_toggle = 1;
 				ui__Screen_Repaint();
 			} else {
-				ui__ErrorMsg("Wrong block start and end values!");
+				ui__ErrorMsg
+				    ("Wrong block start and end values!");
 				return;
 			}
 		} else {
@@ -745,8 +738,7 @@ char *cmdline;
 			return;
 		} else if (c_argc == 2) {
 			do_logic_block(XOR, c_argv[0], atoi(c_argv[1]));
-		}
-		else {
+		} else {
 			ui__ErrorMsg(ambvalue);
 			return;
 		}
@@ -886,7 +878,8 @@ int force;
 		}
 		if (name != NULL && !strcmp(arg, "#")) {
 			if (altfile == NULL) {
-				ui__ErrorMsg("No alternate filename@to substitute for #");
+				ui__ErrorMsg
+				    ("No alternate filename@to substitute for #");
 				return FALSE;
 			}
 			tmp = name;

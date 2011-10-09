@@ -129,8 +129,8 @@
 #define MAXCMD	255
 #define BUFFER	1024
 
-#define BLK_COUNT 32 /* number of data blocks */
-#define MARK_COUNT 64 /* number of markers */
+#define BLK_COUNT 32		/* number of data blocks */
+#define MARK_COUNT 64		/* number of markers */
 
 #define SKIP_WHITE  while(*cmd!='\0'&&isspace(*cmd))cmd++;
 
@@ -142,23 +142,18 @@ extern FILE *debug_fp;
 extern char *sys_errlist[];
 #endif
 
-struct KEYMAP_ {
-	unsigned int keycode;
-	char cmd[256];
-};
-
 struct BLOCK_ {
 	unsigned long pos_start;
 	unsigned long pos_end;
 	char name[64];
-	unsigned int hl_toggle; /* do we need highlight this block? */
-	unsigned short folding; /* do we need fold this block? */
-	unsigned int palette; /* pallete, which we are using for highlight this block */
+	unsigned int hl_toggle;	/* do we need highlight this block? */
+	unsigned short folding;	/* do we need fold this block? */
+	unsigned int palette;	/* pallete, which we are using for highlight this block */
 };
 
 struct MARKERS_ {
 	long address;
-	char marker; /* Usually we use '+' character, but can be another */
+	char marker;		/* Usually we use '+' character, but can be another */
 };
 
 struct highlight_ {
@@ -181,7 +176,7 @@ struct CORE {
 		int COLUMNS_HEX;
 		int COLUMNS_ADDRESS;
 		/*
-		 struct colors {} */
+		   struct colors {} */
 	} params;
 	struct {
 		PTR mem;
@@ -192,10 +187,10 @@ struct CORE {
 		int maxx;
 	} screen;
 	/*
-	struct KEYMAP;
-	struct BLOCKS;
-	struct MARKERS;
-	*/
+	   struct KEYMAP;
+	   struct BLOCKS;
+	   struct MARKERS;
+	 */
 };
 
 typedef struct CORE core_t;
@@ -279,7 +274,7 @@ int bregexec(PTR, char *);
 int chk_comm(int);
 int doecmd(char *, int);
 int do_append(int, char *), do_logic(int, char *);
-int do_logic_block(int, char*, int);
+int do_logic_block(int, char *, int);
 int do_delete(off_t, PTR);
 int doset(char *);
 int do_substitution(int, char *, PTR, PTR);
@@ -359,7 +354,7 @@ char *substr();
 int wait_return();
 #endif
 
-/* Event handlers */
+/* ========= Event handlers ======== */
 
 int handler__goto_HEX();
 int handler__goto_ASCII();
@@ -406,4 +401,3 @@ int handler__yank();
 int handler__doz();
 int handler__exit();
 int handler__stuffin();
-

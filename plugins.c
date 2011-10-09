@@ -1,5 +1,7 @@
-int plugins__Load() {
+int plugins__Load()
+{
 }
 
-int plugins__Unload() {
+int plugins__Unload()
+{
 }

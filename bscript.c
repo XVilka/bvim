@@ -22,11 +22,13 @@ extern PTR mem;
  * -----------------------------------------------------------------------------
  */
 
-static int bvi_add_lua_function() {
+static int bvi_add_lua_function()
+{
 	return 0;
 }
 
-static int bvi_remove_lua_function() {
+static int bvi_remove_lua_function()
+{
 	return 0;
 }
 
@@ -76,34 +78,40 @@ static int bvi_file(lua_State * L)
 
 /* Select block in the buffer */
 /* lua: block_select(block_number, start, end, pattern) */
-static int bvi_block_select(lua_State *L)
+static int bvi_block_select(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 4) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (n < BLK_COUNT) {
-			data_block[n].pos_start = (unsigned long)lua_tonumber(L, 2);
-			data_block[n].pos_end = (unsigned long)lua_tonumber(L, 3);
-			data_block[n].palette = (unsigned int)lua_tonumber(L, 4);
+			data_block[n].pos_start =
+			    (unsigned long)lua_tonumber(L, 2);
+			data_block[n].pos_end =
+			    (unsigned long)lua_tonumber(L, 3);
+			data_block[n].palette =
+			    (unsigned int)lua_tonumber(L, 4);
 			data_block[n].hl_toggle = 1;
 			ui__Screen_Repaint();
 		} else {
 			ui__ErrorMsg("Wrong block number! Too big!");
 		}
 	} else {
-		ui__ErrorMsg("Error in lua block_select function! Wrong format!");
+		ui__ErrorMsg
+		    ("Error in lua block_select function! Wrong format!");
 	}
 	return 0;
 }
 
 /* Fold block in the buffer */
 /* lua: block_fold(block_number) */
-static int bvi_block_fold(lua_State *L)
+static int bvi_block_fold(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 1) {
 		n = (unsigned int)lua_tonumber(L, 1);
-		if ((n < BLK_COUNT) & ((data_block[n].pos_end - data_block[n].pos_start) > 0)) {
+		if ((n <
+		     BLK_COUNT) & ((data_block[n].pos_end -
+				    data_block[n].pos_start) > 0)) {
 			data_block[n].folding = 1;
 			ui__Screen_Repaint();
 		} else {
@@ -117,19 +125,24 @@ static int bvi_block_fold(lua_State *L)
 
 /* Read block in the buffer */
 /* lua: block_read(block_number) */
-static int bvi_block_read(lua_State *L)
+static int bvi_block_read(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	if (lua_gettop(L) == 1) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			/*block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start);*/
-			block = (char*)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-			memcpy(block, start_addr + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
+			/*block = (void *)lua_newuserdata(L, data_block[n].pos_end - data_block[n].pos_start); */
+			block =
+			    (char *)malloc(data_block[n].pos_end -
+					   data_block[n].pos_start + 1);
+			memcpy(block, start_addr + data_block[n].pos_start,
+			       data_block[n].pos_end - data_block[n].pos_start +
+			       1);
 			lua_pushstring(L, block);
 		} else {
-			ui__ErrorMsg("You need select valid block before read!");
+			ui__ErrorMsg
+			    ("You need select valid block before read!");
 		}
 	} else {
 		ui__ErrorMsg("Error in lua block_read function! Wrong format!");
@@ -139,16 +152,17 @@ static int bvi_block_read(lua_State *L)
 
 /* AND bit operation on block */
 /* lua: block_and(block_number, mask) */
-static int bvi_block_and(lua_State *L)
+static int bvi_block_and(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(AND, (char*)lua_tostring(L, 2), n);
+			do_logic_block(AND, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before and operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before and operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -157,16 +171,17 @@ static int bvi_block_and(lua_State *L)
 
 /* OR bit operation on block */
 /* lua: block_or(block_number, mask) */
-static int bvi_block_or(lua_State *L)
+static int bvi_block_or(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(OR, (char*)lua_tostring(L, 2), n);
+			do_logic_block(OR, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before or operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before or operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -175,16 +190,17 @@ static int bvi_block_or(lua_State *L)
 
 /* XOR bit operation on block */
 /* lua: block_xor(block_number, mask) */
-static int bvi_block_xor(lua_State *L)
+static int bvi_block_xor(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(XOR, (char*)lua_tostring(L, 2), n);
+			do_logic_block(XOR, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before xor operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before xor operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -193,16 +209,17 @@ static int bvi_block_xor(lua_State *L)
 
 /* LSHIFT bit operation on block */
 /* lua: block_lshift(block_number, count) */
-static int bvi_block_lshift(lua_State *L)
+static int bvi_block_lshift(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(LSHIFT, (char*)lua_tostring(L, 2), n);
+			do_logic_block(LSHIFT, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before lshift operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before lshift operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -211,16 +228,17 @@ static int bvi_block_lshift(lua_State *L)
 
 /* RSHIFT bit operation on block */
 /* lua: block_rshift(block_number, count) */
-static int bvi_block_rshift(lua_State *L)
+static int bvi_block_rshift(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(RSHIFT, (char*)lua_tostring(L, 2), n);
+			do_logic_block(RSHIFT, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before rshift operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before rshift operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -229,16 +247,17 @@ static int bvi_block_rshift(lua_State *L)
 
 /* LROTATE bit operation on block */
 /* lua: block_lrotate(block_number, count) */
-static int bvi_block_lrotate(lua_State *L)
+static int bvi_block_lrotate(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(LROTATE, (char*)lua_tostring(L, 2), n);
+			do_logic_block(LROTATE, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before lrotate operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before lrotate operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -247,16 +266,17 @@ static int bvi_block_lrotate(lua_State *L)
 
 /* RROTATE bit operation on block */
 /* lua: block_rrotate(block_number, count) */
-static int bvi_block_rrotate(lua_State *L)
+static int bvi_block_rrotate(lua_State * L)
 {
 	unsigned int n = 0;
 	if (lua_gettop(L) == 2) {
 		n = (unsigned int)lua_tonumber(L, 1);
 		if (data_block[n].pos_end > data_block[n].pos_start) {
-			do_logic_block(RROTATE, (char*)lua_tostring(L, 2), n);
+			do_logic_block(RROTATE, (char *)lua_tostring(L, 2), n);
 		} else {
-			ui__ErrorMsg("You need select valid block before rrotate operation!");
-		}	
+			ui__ErrorMsg
+			    ("You need select valid block before rrotate operation!");
+		}
 	} else {
 		ui__ErrorMsg("Error in lua block_and function! Wrong format!");
 	}
@@ -269,20 +289,28 @@ static int bvi_block_rrotate(lua_State *L)
 static int bvi_crc16(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	unsigned int crc = 0;
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				crc = crc16(block, data_block[n].pos_end - data_block[n].pos_start + 1, crc);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				crc =
+				    crc16(block,
+					  data_block[n].pos_end -
+					  data_block[n].pos_start + 1, crc);
 				lua_pushnumber(L, crc);
 				return 1;
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char *)lua_tostring(L, 1);
 			crc = crc16(block, strlen(block), crc);
 			lua_pushnumber(L, crc);
@@ -300,20 +328,28 @@ static int bvi_crc16(lua_State * L)
 static int bvi_crc32(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	unsigned int crc = 0;
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				crc = crc32(block, data_block[n].pos_end - data_block[n].pos_start + 1, crc);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				crc =
+				    crc32(block,
+					  data_block[n].pos_end -
+					  data_block[n].pos_start + 1, crc);
 				lua_pushnumber(L, crc);
 				return 1;
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			block = (char *)lua_tostring(L, 1);
 			crc = crc32(block, strlen(block), crc);
 			lua_pushnumber(L, crc);
@@ -328,28 +364,38 @@ static int bvi_crc32(lua_State * L)
 /* Calculate MD4 hash of buffer */
 /* lua: md4_hash(block_number) */
 /* lua: md4_hash("string") */
-static int bvi_md4_hash(lua_State *L)
+static int bvi_md4_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[65];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				md4_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				md4_hash_string((unsigned char *)block,
+						data_block[n].pos_end -
+						data_block[n].pos_start + 1,
+						hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before MD4 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before MD4 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			md4_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			md4_hash_string((unsigned char *)block, strlen(block),
+					hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -362,28 +408,38 @@ static int bvi_md4_hash(lua_State *L)
 /* Calculate MD5 hash of buffer */
 /* lua: md5_hash(block_number) */
 /* lua: md5_hash("string") */
-static int bvi_md5_hash(lua_State *L)
+static int bvi_md5_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[65];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				md5_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				md5_hash_string((unsigned char *)block,
+						data_block[n].pos_end -
+						data_block[n].pos_start + 1,
+						hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before MD5 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before MD5 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			md5_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			md5_hash_string((unsigned char *)block, strlen(block),
+					hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -396,28 +452,38 @@ static int bvi_md5_hash(lua_State *L)
 /* Calculate SHA1 hash of buffer */
 /* lua: sha1_hash(block_number) */
 /* lua: sha1_hash("string") */
-static int bvi_sha1_hash(lua_State *L)
+static int bvi_sha1_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[65];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha1_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				sha1_hash_string((unsigned char *)block,
+						 data_block[n].pos_end -
+						 data_block[n].pos_start + 1,
+						 hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before SHA1 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before SHA1 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			sha1_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			sha1_hash_string((unsigned char *)block, strlen(block),
+					 hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -430,33 +496,44 @@ static int bvi_sha1_hash(lua_State *L)
 /* Calculate SHA256 hash of buffer */
 /* lua: sha256_hash(block_number) */
 /* lua: sha256_hash("string") */
-static int bvi_sha256_hash(lua_State *L)
+static int bvi_sha256_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[65];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha256_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				sha256_hash_string((unsigned char *)block,
+						   data_block[n].pos_end -
+						   data_block[n].pos_start + 1,
+						   hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before SHA256 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before SHA256 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			sha256_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			sha256_hash_string((unsigned char *)block,
+					   strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
 	} else {
-		ui__ErrorMsg("Error in lua sha256_hash function! Wrong format!");
+		ui__ErrorMsg
+		    ("Error in lua sha256_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -464,33 +541,44 @@ static int bvi_sha256_hash(lua_State *L)
 /* Calculate SHA512 hash of buffer */
 /* lua: sha512_hash(block_number) */
 /* lua: sha512_hash("string") */
-static int bvi_sha512_hash(lua_State *L)
+static int bvi_sha512_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[129];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				sha512_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				sha512_hash_string((unsigned char *)block,
+						   data_block[n].pos_end -
+						   data_block[n].pos_start + 1,
+						   hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before SHA512 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before SHA512 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			sha512_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			sha512_hash_string((unsigned char *)block,
+					   strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
 	} else {
-		ui__ErrorMsg("Error in lua sha512_hash function! Wrong format!");
+		ui__ErrorMsg
+		    ("Error in lua sha512_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -498,33 +586,44 @@ static int bvi_sha512_hash(lua_State *L)
 /* Calculate RIPEMD160 hash of buffer */
 /* lua: ripemd160_hash(block_number) */
 /* lua: ripemd160_hash("string") */
-static int bvi_ripemd160_hash(lua_State *L)
+static int bvi_ripemd160_hash(lua_State * L)
 {
 	unsigned int n = 0;
-	char* block = NULL;
+	char *block = NULL;
 	char hash[65];
 	hash[0] = '\0';
 	if (lua_gettop(L) == 1) {
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			n = (unsigned int)lua_tonumber(L, 1);
 			if (data_block[n].pos_end > data_block[n].pos_start) {
-				block = (char *)malloc(data_block[n].pos_end - data_block[n].pos_start + 1);
-				memcpy(block, mem + data_block[n].pos_start, data_block[n].pos_end - data_block[n].pos_start + 1);
-				ripemd160_hash_string((unsigned char*)block, data_block[n].pos_end - data_block[n].pos_start + 1, hash);
+				block =
+				    (char *)malloc(data_block[n].pos_end -
+						   data_block[n].pos_start + 1);
+				memcpy(block, mem + data_block[n].pos_start,
+				       data_block[n].pos_end -
+				       data_block[n].pos_start + 1);
+				ripemd160_hash_string((unsigned char *)block,
+						      data_block[n].pos_end -
+						      data_block[n].pos_start +
+						      1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
-				ui__ErrorMsg("You need select valid block before RIPEMD160 hash calculation!");
+				ui__ErrorMsg
+				    ("You need select valid block before RIPEMD160 hash calculation!");
 			}
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
-			block = (char*)malloc(strlen((char *)lua_tostring(L, 1)));
-			block = (char*)lua_tostring(L, 1);
-			ripemd160_hash_string((unsigned char*)block, strlen(block), hash);
+			block =
+			    (char *)malloc(strlen((char *)lua_tostring(L, 1)));
+			block = (char *)lua_tostring(L, 1);
+			ripemd160_hash_string((unsigned char *)block,
+					      strlen(block), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
 	} else {
-		ui__ErrorMsg("Error in lua ripemd160_hash function! Wrong format!");
+		ui__ErrorMsg
+		    ("Error in lua ripemd160_hash function! Wrong format!");
 	}
 	return 0;
 }
@@ -533,11 +632,11 @@ static int bvi_ripemd160_hash(lua_State *L)
 /* Return address found */
 /* lua: search_bytes(bytes) */
 /* or search_bytes(bytes, return_all) where return_all = [0|1] */
-static int bvi_search_bytes(lua_State *L)
+static int bvi_search_bytes(lua_State * L)
 {
 	PTR result;
 	PTR start_addr = NULL;
-	char* bytes;
+	char *bytes;
 	char msgbuf[256];
 	int i = 0;
 
@@ -545,11 +644,13 @@ static int bvi_search_bytes(lua_State *L)
 	start_addr = mem;
 	if (lua_gettop(L) == 1) {
 		bytes = (char *)lua_tostring(L, -1);
-		result = searching('\\', bytes, start_addr, maxpos - 1, FALSE | S_GLOBAL);
+		result =
+		    searching('\\', bytes, start_addr, maxpos - 1,
+			      FALSE | S_GLOBAL);
 		/*
-		sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - mem));
-		wmsg(msgbuf, 3, strlen(msgbuf) + 4);
-		*/
+		   sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - mem));
+		   wmsg(msgbuf, 3, strlen(msgbuf) + 4);
+		 */
 		lua_pushnumber(L, (long)(result - mem));
 		return 1;
 	} else if (lua_gettop(L) == 2) {
@@ -557,7 +658,9 @@ static int bvi_search_bytes(lua_State *L)
 		result = start_addr;
 		if ((int)lua_tonumber(L, 2)) {
 			while (result < maxpos) {
-				result = searching('\\', bytes, start_addr, maxpos - 1, FALSE | S_GLOBAL);
+				result =
+				    searching('\\', bytes, start_addr,
+					      maxpos - 1, FALSE | S_GLOBAL);
 				lua_pushnumber(L, (long)(result - mem));
 				i++;
 			}
@@ -570,12 +673,12 @@ static int bvi_search_bytes(lua_State *L)
 /* Replace byte sequence to another in the buffer */
 /* Return number of sustitutions */
 /* lua: replace_bytes(original, target) */
-static int bvi_replace_bytes(lua_State *L)
+static int bvi_replace_bytes(lua_State * L)
 {
 	int result = 0;
-	PTR start_addr =  NULL;
-	char* bytes;
-	char* target;
+	PTR start_addr = NULL;
+	char *bytes;
+	char *target;
 	char bytesbuf[256];
 	bytesbuf[0] = '\0';
 	start_addr = mem;
@@ -583,7 +686,8 @@ static int bvi_replace_bytes(lua_State *L)
 		bytes = (char *)lua_tostring(L, 1);
 		target = (char *)lua_tostring(L, 2);
 		sprintf(bytesbuf, "/%s/%s/", bytes, target);
-		result = do_substitution('\\', bytesbuf, start_addr, maxpos - 1);
+		result =
+		    do_substitution('\\', bytesbuf, start_addr, maxpos - 1);
 		lua_pushnumber(L, result);
 	}
 	return 1;
@@ -661,9 +765,10 @@ static int bvi_print_tools_window(lua_State * L)
 {
 	int n = lua_gettop(L);
 	if (n == 1) {
-		ui__ToolWin_Print((char*)lua_tostring(L, -1), 1);
+		ui__ToolWin_Print((char *)lua_tostring(L, -1), 1);
 	} else if (n == 2) {
-		ui__ToolWin_Print((char*)lua_tostring(L, 1), (int)lua_tonumber(L, 2));
+		ui__ToolWin_Print((char *)lua_tostring(L, 1),
+				  (int)lua_tonumber(L, 2));
 	}
 	return 0;
 }
@@ -766,13 +871,14 @@ static int bvi_set_marker(lua_State * L)
 
 /* Remove marker */
 static int bvi_unset_marker(lua_State * L)
-{ 
+{
 	long address;
 	int i = 0;
 	if (lua_gettop(L) > 0) {
 		address = (long)lua_tonumber(L, 1);
 		while (i < MARK_COUNT) {
-			if (markers[i].address == address) break;
+			if (markers[i].address == address)
+				break;
 		}
 		if (markers[i].address == address) {
 			markers[i].address = 0;

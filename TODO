@@ -1,12 +1,15 @@
-# Add C-syntax structures parsing and searching (high priority)
-- Add hex-data folding support (or lines, or blocks)
-- Add GZIP, ZIP, TAR, etc signatures to search and highlight
-- Add :unmap (:unm) feature
-- Add :split feature (low priority)
-- Add binary diff mode
-- Templates support (high priority)
-- Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
-- Add support for big-endian and little-endian
+Directions
+===========================
+
+1. Add C-syntax structures parsing and searching (high priority)
+2. Add hex-data folding support (or lines, or blocks)
+3. Add GZIP, ZIP, TAR, etc signatures to search and highlight
+4. Add :unmap (:unm) feature
+5. Add :split feature (low priority)
+6. Add binary diff mode
+7. Templates support (high priority)
+8. Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
+9. Add support for big-endian and little-endian
 
 Simple tasks
 ============================
@@ -30,6 +33,7 @@ Simple tasks
 12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
 13. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
 14. Rename project to "bvim"
+15. Add lua/plugins hooks into standard handler_* and command_*
 
 Refactoring Tasks
 ============================
@@ -43,3 +47,4 @@ Refactoring Tasks
 5. Add file stream object for supporting continious and large files
 6. Split all output to another file console.c, add unified API for GUI
 	-- IN PROGRESS
+7. Add doxygen documentation

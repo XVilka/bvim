@@ -324,7 +324,8 @@ PTR endpos;
 				poi++;
 			} else {
 				if ((n = hexchar()) < 0) {
-					ui__ErrorMsg("Badly formed replacement pattern");
+					ui__ErrorMsg
+					    ("Badly formed replacement pattern");
 					return 0;
 				}
 				repl_pat[pat_len] = n;
@@ -341,7 +342,8 @@ PTR endpos;
 		return -1;
 	}
 	if (pat_len == -1) {
-		ui__ErrorMsg("No previous substitute re|No previous substitute to repeat");
+		ui__ErrorMsg
+		    ("No previous substitute re|No previous substitute to repeat");
 		return -1;
 	}
 	if (delim != '\0') {
@@ -400,7 +402,8 @@ PTR endpos;
 				goto SKIP;
 		}
 		repl_count++;
-		current_start = state.pagepos + y * core.params.COLUMNS_DATA + xpos();
+		current_start =
+		    state.pagepos + y * core.params.COLUMNS_DATA + xpos();
 		if (!global) {
 			if ((undo_count = alloc_buf(pat_len, &undo_buf))) {
 				memcpy(undo_buf, current_start, undo_count);
