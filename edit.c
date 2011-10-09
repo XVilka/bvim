@@ -27,7 +27,9 @@
  */
 
 #include    "bvi.h"
+#include	"keys.h"
 #include    "set.h"
+#include	"ui.h"
 
 extern int precount;
 extern core_t core;
@@ -125,7 +127,7 @@ int mode;
 			setcur();
 			continue;
 		}
-		if (ch == KEY_BACKSPACE || ch == BVICTRL('H')) {
+		if (ch == KEY_BACKSPACE || ch == BVI_CTRL('H')) {
 			if (count > 0) {
 				len--;
 				count--;
@@ -642,7 +644,7 @@ char *fname;
 /********** END ************/
 void quit()
 {
-	load_orig_palette();
+	ui__Colors_Load();
 	move(core.screen.maxy, 0);
 	endwin();
 	printf("\nbvi version %s %s\n", VERSION, copyright);

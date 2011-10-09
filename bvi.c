@@ -32,6 +32,8 @@
 
 #include "bvi.h"
 #include "set.h"
+#include "ui.h"
+#include "keys.h"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -43,6 +45,8 @@
 #include <lualib.h>
 #include "bscript.h"
 #endif
+
+#include "plugins.h"
 
 char *copyright = "Copyright (C) 1996-2004 by Gerhard Buergmann";
 
@@ -104,8 +108,541 @@ static char line[MAXCMD];
 static int mark;
 static int wrstat = 1;
 
-struct KEYMAP_ KEYMAP[32];
 extern struct MARKERS_ markers[MARK_COUNT];
+
+/* ======================= EVENT HANDLERS ====================== */
+
+// TODO: eliminate global variables:
+int lflag;
+
+
+// case '^':
+int handler__goto_HEX() {
+	x = core.params.COLUMNS_ADDRESS;
+	state.loc = HEX;
+	return 0;
+}
+
+/* case '0':
+ * x = COLUMNS_ADDRESS + COLUMNS_HEX;
+ * state.loc = ASCII;
+ */
+
+//case '$':
+int handler__goto_ASCII() {
+	x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+	state.loc = ASCII;
+	return 0;
+}
+
+//case '\t':
+int handler__toggle() {
+	toggle();
+	return 0;
+}
+
+//case '~':
+int handler__tilda() {
+	if (precount < 1)
+		precount = 1;
+	sprintf(rep_buf, "%ld~", precount);
+	do_tilde(precount);
+	lflag++;
+	return 0;
+}
+
+//case KEY_HOME: /* go to the HOME */
+//case 'H':
+int handler__goto_home() {
+	if (precount > 0) {
+		y = --precount;
+		if (y > core.screen.maxy - 1) {
+			scrolldown(y - core.screen.maxy + 1);
+			y = core.screen.maxy - 1;
+		}
+	} else
+		y = 0;
+	if (state.loc == HEX)
+		x = core.params.COLUMNS_ADDRESS;
+	else
+		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+	return 0;
+}
+
+//case 'M':
+int handler__M() {
+	y = core.screen.maxy / 2;
+	if ((PTR) (state.pagepos + state.screen) > maxpos)
+		y = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA / 2;
+	if (state.loc == HEX)
+		x = core.params.COLUMNS_ADDRESS;
+	else
+		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+	return 0;
+}
+
+//case KEY_LL:
+//case 'L':
+int handler__L() {
+	int n = 0;
+	if (precount < 1)
+		precount = 1;
+	n = core.screen.maxy - 1;
+	if ((PTR) ((state.pagepos + state.screen)) > maxpos)
+		n = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA;
+	if (precount < n)
+		y = n + 1 - precount;
+	if (state.loc == HEX)
+		x = core.params.COLUMNS_ADDRESS;
+	else
+		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+	return 0;
+}
+
+//case BVICTRL('H'):
+//case KEY_BACKSPACE:
+//case KEY_LEFT:
+//case 'h':
+int handler__goto_left() {
+	do {
+		if (x > (core.params.COLUMNS_ADDRESS + 2)
+			&& x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
+				x -= 3;
+		else if (x > (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
+			x--;
+	} while (--precount > 0);
+	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
+		state.loc = HEX;
+	else
+		state.loc = ASCII;
+	return 0;
+}
+
+//case ' ':
+//case KEY_RIGHT:
+//case 'l':
+int handler__goto_right() {
+	do {
+		/*
+		 if (x < (COLUMNS_HEX + 6))  x += 3;
+		*/
+		if (x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
+			x += 3;
+		else if (x > (core.params.COLUMNS_HEX + 3)
+			&& x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_DATA))
+				x++;
+	} while (--precount > 0);
+	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
+		state.loc = HEX;
+	else
+		state.loc = ASCII;
+	return 0;
+}
+
+//case '-':
+//case KEY_UP:
+//case 'k':
+int handler__goto_up() {
+	do {
+		if (y > 0)
+			y--;
+		else
+			scrollup(1);
+	} while (--precount > 0);
+	return 0;
+}
+
+//case '+':
+//case CR:
+int handler__goto_EOL() {
+	if (state.loc == HEX)
+		x = core.params.COLUMNS_ADDRESS;
+	else
+		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+	return 0;
+}
+
+//case 'j':
+//case BVICTRL('J'):
+//case BVICTRL('N'):
+//case KEY_DOWN:
+int handler__goto_down() {
+	do {
+		if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA)) >  maxpos)
+			break;
+		if (y < (core.screen.maxy - 1))
+			y++;
+		else
+			scrolldown(1);
+	} while (--precount > 0);
+	return 0;
+}
+
+//case '|':
+int handler__line() {
+	if (precount < 1)
+		return -1;
+	if (state.loc == ASCII)
+		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + precount;
+	else
+		x = 5 + 3 * precount;
+	if (x > core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
+		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
+		state.loc = ASCII;
+	}
+	return 0;
+}
+
+//case 'S':
+int handler__toolwin_toggle() {
+	if (!ui__ToolWin_Exist()) {
+		ui__ToolWin_Show(10);
+	} else {
+		ui__ToolWin_Hide();
+	}
+	return 0;
+}
+
+//case ':':
+int handler__cmdstring() {
+	clearstr();
+	addch(':');
+	refresh();
+	getcmdstr(cmdstr, 1);
+	if (strlen(cmdstr))
+		docmdline(cmdstr);
+	return 0;
+}
+
+//case BVICTRL('B'):
+//case KEY_PPAGE:
+int handler__previous_page() {
+	if (mem <= (PTR) (state.pagepos - state.screen))
+		state.pagepos -= state.screen;
+	else
+		state.pagepos = mem;
+		ui__Screen_Repaint();
+	return 0;
+}
+
+//case BVICTRL('D'):
+int handler__scrolldown() {
+	if (precount > 1)
+		state.scrolly = precount;
+	scrolldown(state.scrolly);
+	return 0;
+}
+
+//case BVICTRL('U'):
+int handler__scrollup() {
+	if (precount > 1)
+		state.scrolly = precount;
+	scrollup(state.scrolly);
+	return 0;
+}
+
+//case BVICTRL('E'):
+int handler__linescroll_down() {
+	if (y > 0)
+		y--;
+	scrolldown(1);
+	return 0;
+}
+
+//case BVICTRL('F'):
+//case KEY_NPAGE:
+int handler__nextpage() {
+	if (maxpos >= (PTR) (state.pagepos + state.screen)) {
+		state.pagepos += state.screen;
+		current += state.screen;
+		if (current - mem >= filesize) {
+			current = mem + filesize;
+			setpage((PTR) (mem + filesize - 1L));
+		}
+		ui__Screen_Repaint();
+	}
+	return 0;
+}
+
+//case BVICTRL('G'):
+int handler__fileinfo() {
+	fileinfo(name);
+	wrstat = 0;
+	return 0;
+}
+
+//case BVICTRL('L'):	/*** REDRAW SCREEN ***/
+int handler__screen_redraw() {
+	ui__Screen_New();
+	return 0;
+}
+
+//case BVICTRL('Y'):
+int handler__linescroll_up() {
+	if (y < core.screen.maxy)
+		y++;
+	scrollup(1);
+	return 0;
+}
+
+//case 'A':
+int handler__append_mode() {
+	smsg("APPEND MODE");
+	current = (PTR) (mem + filesize - 1L);
+	setpage(current++);
+	cur_forw(0);
+	setcur();
+	undosize = filesize;
+	undo_count = edit('A');
+	return 0;
+}
+
+//case 'B':
+//case 'b':
+int handler__backsearch() {
+	setpage(backsearch(current, 'b'));
+	return 0;
+}
+
+//case 'e':
+int handler__setpage() {
+	setpage(end_word(current));
+	return 0;
+}
+
+//case ',':
+int handler__doft1() {
+	do_ft(-1, 0);
+	return 0;
+}
+
+//case ';':
+int handler__doft2() {
+	do_ft(0, 0);
+	return 0;
+}
+
+//case 'F':
+//case 'f':
+//case 't':
+//case 'T':
+int handler__doft3() {
+	// TODO: split handlers for each key
+	do_ft('f', 0);
+	return 0;
+}
+
+//case 'G':
+int handler__goto1() {
+	last_motion = current;
+	if (precount > -1) {
+		if ((precount < P(P_OF)) || (precount - P(P_OF)) > (filesize - 1L)) {
+			beep();
+		} else {
+			setpage((PTR)(mem + precount - P(P_OF)));
+		}
+	} else {
+		setpage((PTR) (mem + filesize - 1L));
+	}
+	return 0;
+}
+
+//case 'g':
+int handler__goto2() {
+	off_t inaddr;
+	
+	last_motion = current;
+	msg("Goto Hex Address: ");
+	refresh();
+	getcmdstr(cmdstr, 19);
+	if (cmdstr[0] == '^') {
+		inaddr = P(P_OF);
+	} else if (cmdstr[0] == '$') {
+		inaddr = filesize + P(P_OF) - 1L;
+	} else {
+		unsigned long ltmp;
+		sscanf(cmdstr, "%lx", &ltmp);
+		inaddr = (off_t) ltmp;
+	}
+	if (inaddr < P(P_OF))
+		return -1;
+	inaddr -= P(P_OF);
+	if (inaddr < filesize) {
+		setpage(mem + inaddr);
+	} else {
+		if (filesize == 0L)
+			return -1;
+		sprintf(string, "Max. address of current file : %06lX", (long)(filesize - 1L + P(P_OF)));
+		ui__ErrorMsg(string);
+	}
+	return 0;
+}
+
+//case '?':
+//case '/':
+//case '#':
+//case '\\':
+int handler__search_string() {
+	// TODO: split handlers for each key	
+	char ch = '/';
+
+	clearstr();
+	addch(ch);
+	refresh();
+	if (getcmdstr(line, 1))
+		return -1;
+	last_motion = current;
+	searching(ch, line, current, maxpos - 1, P(P_WS));
+	return 0;
+}
+
+//case 'n':
+//case 'N':
+int handler__search_next() {
+	last_motion = current;
+	searching('n', "", current, maxpos - 1, P(P_WS));
+	return 0;
+}
+
+//case 'm':
+int handler__mark() {
+	do_mark(vgetc(), current);
+	return 0;
+}
+
+//case '\'':
+//case '`':
+int handler__goto_mark() {
+	//if ((ch == '`' && state.loc == ASCII) || (ch == '\'' && state.loc == HEX))
+	//	toggle();
+	mark = vgetc();
+	if (mark == '`' || mark == '\'') {
+		setpage(last_motion);
+		last_motion = current;
+	} else {
+		if (mark < 'a' || mark > 'z') {
+			beep();
+			return -1;
+		} else if (markbuf[mark - 'a'] == NULL) {
+			beep();
+			return -1;
+		}
+		setpage(markbuf[mark - 'a']);
+	}
+	return 0;
+}
+
+//case 'D':
+int handler__trunc() {
+	if (precount < 1)
+		precount = 1;
+	sprintf(rep_buf, "%ldD", precount);
+	trunc_cur();
+	return 0;
+}
+
+//case 'o':
+int handler__overwrite() {
+	if (precount < 1)
+		precount = 1;
+	sprintf(rep_buf, "%ldo", precount);
+	do_over(current, yanked, yank_buf);
+	return 0;
+}
+
+//case 'P':
+int handler__paste() {
+	if (precount < 1)
+		precount = 1;
+	if ((undo_count = alloc_buf(yanked, &undo_buf)) == 0L)
+		return -1;
+	sprintf(rep_buf, "%ldP", precount);
+	if (do_append(yanked, yank_buf))
+		return -1;
+	/* we save it not for undo but for the dot command
+	 * memcpy(undo_buf, yank_buf, yanked);
+	 */
+	ui__Screen_Repaint();
+	return 0;
+}
+
+//case 'r':
+//case 'R':
+int handler__redo() {
+	if (filesize == 0L)
+		return -1;
+	if (precount < 1)
+		precount = 1;
+	sprintf(rep_buf, "%ld%c", precount, 'r');
+	undo_count = edit('r');
+	lflag++;
+	return 0;
+}
+
+//case 'u':
+int handler__undo() {
+	do_undo();
+	return 0;
+}
+
+//case 'W':
+//case 'w':
+int handler__wordsearch() {
+	state.loc = ASCII;
+	setpage(wordsearch(current, 'w'));
+	return 0;
+}
+
+//case 'y':
+int handler__yank() {
+	long count;
+
+	count = range('y');
+	if (count > 0) {
+		if ((yanked = alloc_buf(count, &yank_buf)) == 0L) {
+			return -1;
+		}
+		memcpy(yank_buf, current, yanked);
+	} else if (count < 0) {
+		if ((yanked = alloc_buf(-count, &yank_buf)) == 0L) {
+			return -1;
+		}
+		memcpy(yank_buf, current + count, yanked);
+	} else {
+		return -1;
+	}
+	/* sprintf(string, "%ld bytes yanked", labs(count));
+	 * 	msg(string);
+	 */
+	return 0;
+}
+
+//case 'z':
+int handler__doz() {
+	do_z(vgetc());
+	return 0;
+}
+
+//case 'Z':
+int handler__exit() {
+	if (vgetc() == 'Z')
+		do_exit();
+	else
+		beep();
+	return 0;
+}
+
+//case '.':
+int handler__stuffin() {
+	if (!strlen(rep_buf)) {
+		beep();
+	} else {
+		stuffin(rep_buf);
+	}
+	return 0;
+}
+
+/* =================== END OF EVENT HANDLERS =================== */
 
 void usage()
 {
@@ -119,13 +656,11 @@ int argc;
 char *argv[];
 {
 	int ch;
-	int lflag;
-	long count;
 	int n = 1;
-	int i = 0;
 	int script = -1;
-	off_t inaddr;
+	int i;
 	char *poi;
+	struct key pkey;
 
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_ALL, "");
@@ -133,10 +668,11 @@ char *argv[];
 #ifdef HAVE_LUA_H
 	bvi_lua_init();
 #endif
-	for (i = 0; i < 32; i++)
-		KEYMAP[i].keycode = 0;
+
+	keys__Init();
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
+
 	poi = strrchr(argv[0], DELIM);
 
 	if (poi)
@@ -288,408 +824,23 @@ char *argv[];
 		else
 			precount = -1;
 		lflag = arrnum = 0;
+	
+		/* TODO: move all checks in keys.c */
 
-		for (i = 0; i < 32; i++) {
-			if (ch == KEYMAP[i].keycode) {
-				docmdline(KEYMAP[i].cmd);
-			}
+		keys__Key_Pressed(ch, &pkey);
+		/*
+		if (pkey.handler_type == BVI_HANDLER_INTERNAL) {
+			if (pkey.handler.func != NULL)
+				(*(pkey.handler.func))();
+		} else if (pkey.handler_type == BVI_HANDLER_LUA) {
+			if (pkey.handler.lua_cmd != NULL)
+				bvi_run_lua_string(pkey.handler.lua_cmd);
 		}
-		switch (ch) {
-		case '^':
-			x = core.params.COLUMNS_ADDRESS;
-			state.loc = HEX;
-			break;
-			/*
-			   case '0':    x = COLUMNS_ADDRESS + COLUMNS_HEX;
-			   state.loc = ASCII;
-			   break;
-			 */
-		case '$':
-			x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
-			state.loc = ASCII;
-			break;
-		case '\t':
-			toggle();
-			break;
-		case '~':
-			if (precount < 1)
-				precount = 1;
-			sprintf(rep_buf, "%ld~", precount);
-			do_tilde(precount);
-			lflag++;
-			break;
-		case KEY_HOME: /* go to the HOME */
-		case 'H':
-			if (precount > 0) {
-				y = --precount;
-				if (y > core.screen.maxy - 1) {
-					scrolldown(y - core.screen.maxy + 1);
-					y = core.screen.maxy - 1;
-				}
-			} else
-				y = 0;
-			if (state.loc == HEX)
-				x = core.params.COLUMNS_ADDRESS;
-			else
-				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
-			break;
-		case 'M':
-			y = core.screen.maxy / 2;
-			if ((PTR) (state.pagepos + state.screen) > maxpos)
-				y = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA / 2;
-			if (state.loc == HEX)
-				x = core.params.COLUMNS_ADDRESS;
-			else
-				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
-			break;
-		case KEY_LL:
-		case 'L':
-			if (precount < 1)
-				precount = 1;
-			n = core.screen.maxy - 1;
-			if ((PTR) ((state.pagepos + state.screen)) > maxpos)
-				n = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA;
-			if (precount < n)
-				y = n + 1 - precount;
-			if (state.loc == HEX)
-				x = core.params.COLUMNS_ADDRESS;
-			else
-				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
-			break;
-		case BVICTRL('H'):
-		case KEY_BACKSPACE:
-		case KEY_LEFT:
-		case 'h':
-			do {
-				if (x > (core.params.COLUMNS_ADDRESS + 2)
-				    && x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
-					x -= 3;
-				else if (x > (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
-					x--;
-			} while (--precount > 0);
-			if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
-				state.loc = HEX;
-			else
-				state.loc = ASCII;
-			break;
-		case ' ':
-		case KEY_RIGHT:
-		case 'l':
-			do {
-				/*
-				   if (x < (COLUMNS_HEX + 6))  x += 3;
-				 */
-				if (x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
-					x += 3;
-				else if (x > (core.params.COLUMNS_HEX + 3)
-					 && x < (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_DATA))
-					x++;
-			} while (--precount > 0);
-			if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
-				state.loc = HEX;
-			else
-				state.loc = ASCII;
-			break;
-		case '-':
-		case KEY_UP:
-		case 'k':
-			do {
-				if (y > 0)
-					y--;
-				else
-					scrollup(1);
-			} while (--precount > 0);
-			break;
-		case '+':
-		case CR:
-			if (state.loc == HEX)
-				x = core.params.COLUMNS_ADDRESS;
-			else
-				x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
-		case 'j':
-		case BVICTRL('J'):
-		case BVICTRL('N'):
-		case KEY_DOWN:
-			do {
-				if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA)) >
-				    maxpos)
-					break;
-				if (y < (core.screen.maxy - 1))
-					y++;
-				else
-					scrolldown(1);
-			} while (--precount > 0);
-			break;
-		case '|':
-			if (precount < 1)
-				break;
-			if (state.loc == ASCII)
-				x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + precount;
-			else
-				x = 5 + 3 * precount;
-			if (x > core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA) {
-				x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX + core.params.COLUMNS_DATA;
-				state.loc = ASCII;
-			}
-			break;
-		case 'S':
-			if (!ui__ToolWin_Exist()) {
-				ui__ToolWin_Show(10);
-			} else {
-				ui__ToolWin_Hide();
-			}
-			break;
-		case ':':
-			clearstr();
-			addch(ch);
-			refresh();
-			getcmdstr(cmdstr, 1);
-			if (strlen(cmdstr))
-				docmdline(cmdstr);
-			break;
-		case BVICTRL('B'):
-		case KEY_PPAGE:
-			       /**** Previous Page ****/
-			if (mem <= (PTR) (state.pagepos - state.screen))
-				state.pagepos -= state.screen;
-			else
-				state.pagepos = mem;
-			ui__Screen_Repaint();
-			break;
-		case BVICTRL('D'):
-			if (precount > 1)
-				state.scrolly = precount;
-			scrolldown(state.scrolly);
-			break;
-		case BVICTRL('U'):
-			if (precount > 1)
-				state.scrolly = precount;
-			scrollup(state.scrolly);
-			break;
-		case BVICTRL('E'):
-			if (y > 0)
-				y--;
-			scrolldown(1);
-			break;
-		case BVICTRL('F'):
-		case KEY_NPAGE:
-			       /**** Next Page *****/
-			if (maxpos >= (PTR) (state.pagepos + state.screen)) {
-				state.pagepos += state.screen;
-				current += state.screen;
-				if (current - mem >= filesize) {
-					current = mem + filesize;
-					setpage((PTR) (mem + filesize - 1L));
-				}
-				ui__Screen_Repaint();
-			}
-			break;
-		case BVICTRL('G'):
-			fileinfo(name);
-			wrstat = 0;
-			break;
-		case BVICTRL('L'):	/*** REDRAW SCREEN ***/
-			ui__Screen_New();
-			break;
-		case BVICTRL('Y'):
-			if (y < core.screen.maxy)
-				y++;
-			scrollup(1);
-			break;
-		case 'A':
-			smsg("APPEND MODE");
-			current = (PTR) (mem + filesize - 1L);
-			setpage(current++);
-			cur_forw(0);
-			setcur();
-			undosize = filesize;
-			undo_count = edit(ch);
-			break;
-		case 'B':
-		case 'b':
-			setpage(backsearch(current, ch));
-			break;
-		case 'e':
-			setpage(end_word(current));
-			break;
-		case ',':
-			do_ft(-1, 0);
-			break;
-		case ';':
-			do_ft(0, 0);
-			break;
-		case 'F':
-		case 'f':
-		case 't':
-		case 'T':
-			do_ft(ch, 0);
-			break;
-		case 'G':
-			last_motion = current;
-			if (precount > -1) {
-				if ((precount < P(P_OF)) ||
-				    (precount - P(P_OF)) > (filesize - 1L)) {
-					beep();
-				} else {
-					setpage((PTR)
-						(mem + precount - P(P_OF)));
-				}
-			} else {
-				setpage((PTR) (mem + filesize - 1L));
-			}
-			break;
-		case 'g':
-			last_motion = current;
-			msg("Goto Hex Address: ");
-			refresh();
-			getcmdstr(cmdstr, 19);
-			if (cmdstr[0] == '^') {
-				inaddr = P(P_OF);
-			} else if (cmdstr[0] == '$') {
-				inaddr = filesize + P(P_OF) - 1L;
-			} else {
-				unsigned long ltmp;
-				sscanf(cmdstr, "%lx", &ltmp);
-				inaddr = (off_t) ltmp;
-			}
-			if (inaddr < P(P_OF))
-				break;
-			inaddr -= P(P_OF);
-			if (inaddr < filesize) {
-				setpage(mem + inaddr);
-			} else {
-				if (filesize == 0L)
-					break;
-				sprintf(string,
-					"Max. address of current file : %06lX",
-					(long)(filesize - 1L + P(P_OF)));
-				ui__ErrorMsg(string);
-			}
-			break;
-		case '?':
-		case '/':	/**** Search String ****/
-		case '#':
-		case '\\':
-			clearstr();
-			addch(ch);
-			refresh();
-			if (getcmdstr(line, 1))
-				break;
-			last_motion = current;
-			searching(ch, line, current, maxpos - 1, P(P_WS));
-			break;
-		case 'n':		/**** Search Next ****/
-		case 'N':
-			last_motion = current;
-			searching(ch, "", current, maxpos - 1, P(P_WS));
-			break;
-		case 'm':
-			do_mark(vgetc(), current);
-			break;
-		case '\'':
-		case '`':
-			if ((ch == '`' && state.loc == ASCII) ||
-			    (ch == '\'' && state.loc == HEX))
-				toggle();
-			mark = vgetc();
-			if (mark == '`' || mark == '\'') {
-				setpage(last_motion);
-				last_motion = current;
-			} else {
-				if (mark < 'a' || mark > 'z') {
-					beep();
-					break;
-				} else if (markbuf[mark - 'a'] == NULL) {
-					beep();
-					break;
-				}
-				setpage(markbuf[mark - 'a']);
-			}
-			break;
-		case 'D':
-			if (precount < 1)
-				precount = 1;
-			sprintf(rep_buf, "%ldD", precount);
-			trunc_cur();
-			break;
-		case 'o':	/* overwrite: this is an overwriting put */
-			if (precount < 1)
-				precount = 1;
-			sprintf(rep_buf, "%ldo", precount);
-			do_over(current, yanked, yank_buf);
-			break;
-		case 'P':
-			if (precount < 1)
-				precount = 1;
-			if ((undo_count = alloc_buf(yanked, &undo_buf)) == 0L)
-				break;
-			sprintf(rep_buf, "%ldP", precount);
-			if (do_append(yanked, yank_buf))
-				break;
-			/* we save it not for undo but for the dot command
-			   memcpy(undo_buf, yank_buf, yanked);
-			 */
-			ui__Screen_Repaint();
-			break;
-		case 'r':
-		case 'R':
-			if (filesize == 0L)
-				break;
-			if (precount < 1)
-				precount = 1;
-			sprintf(rep_buf, "%ld%c", precount, ch);
-			undo_count = edit(ch);
-			lflag++;
-			break;
-		case 'u':
-			do_undo();
-			break;
-		case 'W':
-		case 'w':
-			state.loc = ASCII;
-			setpage(wordsearch(current, ch));
-			break;
-		case 'y':
-			count = range(ch);
-			if (count > 0) {
-				if ((yanked =
-				     alloc_buf(count, &yank_buf)) == 0L) {
-					break;
-				}
-				memcpy(yank_buf, current, yanked);
-			} else if (count < 0) {
-				if ((yanked =
-				     alloc_buf(-count, &yank_buf)) == 0L) {
-					break;
-				}
-				memcpy(yank_buf, current + count, yanked);
-			} else {
-				break;
-			}
+		*/
+
 /*
-					sprintf(string, "%ld bytes yanked", labs(count));
-					msg(string);
-*/
-			break;
-		case 'z':
-			do_z(vgetc());
-			break;
-		case 'Z':
-			if (vgetc() == 'Z')
-				do_exit();
-			else
-				beep();
-			break;
-		case '.':
-			if (!strlen(rep_buf)) {
-				beep();
-			} else {
-				stuffin(rep_buf);
-			}
-			break;
 		default:
-			if P
-				(P_MM) {
+			if P(P_MM) {
 				if (precount < 1)
 					precount = 1;
 				switch (ch) {
@@ -700,8 +851,7 @@ char *argv[];
 					ui__Screen_Repaint();
 					undo_count = edit('i');
 					lflag++;
-					break;
-/* undo does not work correctly !!! */
+					break; // undo does not work correctly !!!
 				case 's':
 					sprintf(rep_buf, "%lds", precount);
 					if (do_delete
@@ -737,11 +887,11 @@ char *argv[];
 						precount = 1;
 						undo_count = edit('i');
 						lflag++;
-/*
-					} else if (count) {
-						sprintf(string, "%ld bytes deleted", labs(count));
-						msg(string);
-*/
+//
+//					} else if (count) {
+//						sprintf(string, "%ld bytes deleted", labs(count));
+//						msg(string);
+//
 					}
 					break;
 				case 'x':
@@ -785,6 +935,7 @@ char *argv[];
 				}
 			}
 		}
+*/
 		if (lflag)
 			ui__lineout();
 	} while (1);

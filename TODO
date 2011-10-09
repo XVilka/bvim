@@ -1,4 +1,3 @@
-# Add saving terminal state/colors when starting and restoring it when exiting
 # Add C-syntax structures parsing and searching (high priority)
 - Add hex-data folding support (or lines, or blocks)
 - Add GZIP, ZIP, TAR, etc signatures to search and highlight
@@ -9,13 +8,38 @@
 - Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
 - Add support for big-endian and little-endian
 
+Simple tasks
+============================
+
+1. Add block <start> +<size> syntax
+2. Add history of commands
+3. Ability for list blocks
+4. Add lua events:
+	a) cursor move back, forward, up and down
+	b) cursor on some block
+5. Add scrolling in tools window (with keys and from lua) (HIGH PRIORITY!)
+6. Add checks of terminal color mode
+7. Add normal keymapping with keys names
+	-- IN PROGRESS
+	a) implement all kee handler types and enabled/disable state as bitfields
+	b) move all hardcoded keys into config file
+8. Implement block parameter as bitfields (folding, highlighting, color, etc)
+9. Logic operations (XOR, AND, etc) must support hexadecimal arguments
+10. Prevent blocks overlapping
+11. Add folding empty and repeating data sequences
+12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
+13. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
+14. Rename project to "bvim"
+
 Refactoring Tasks
 ============================
 
 1. Split out math and logic functions in math.c (and/xor/etc)
 2. Implement Core and Editor objects/structures
+	-- IN PROGRESS
 3. Convert editor output to editor container (for support splitting/diff features)
 4. Eliminate DOS stuff
+	-- IN PROGRESS
 5. Add file stream object for supporting continious and large files
 6. Split all output to another file console.c, add unified API for GUI
-
+	-- IN PROGRESS

@@ -97,7 +97,6 @@
 #define BS			8
 #define	ESC			27
 #define SEARCH		0
-#define BVICTRL(n)		(n&0x1f)
 
 #define CMDLNG(a,b)     (len <= a && len >= b)
 
@@ -297,18 +296,10 @@ PTR do_ft(int, int);
 char *patcpy(char *, char *, char);
 void setpage(PTR), msg(char *), smsg(char *);
 
-void ui__ErrorMsg(char *);
-void ui__MsgWin_Show(char*, int width, int height);
-int ui__ToolWin_Show(int), ui__ToolWin_Hide();
-void printcolorline(int, int, int, char *);
-void ui__Line_Print();
-
 void usage(void), bvi_init(char *), statpos(void), setcur(void);
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
 void clearstr(void), clear_marks(void);
-
-void ui__Screen_Repaint(void), ui__Screen_New(void);
 
 void quit(void), sysemsg(char *), do_z(int), stuffin(char *);
 off_t edit(int), load(char *);
@@ -352,20 +343,10 @@ PTR do_ft();
 char *patcpy();
 void setpage(), msg(), smsg(), wmsg();
 
-void ui__ErrorMsg();
-void ui__MsgWin_Show();
-int ui__ToolWin_Show(), ui__ToolWin_Hide();
-void printcolorline();
-void ui__Line_Print();
-int ui__lineout();
-
 void usage(), bvi_init(), statpos(), setcur();
 void showparms(), toggle(), scrolldown(), scrollup();
 void fileinfo();
 void clearstr(), clear_marks();
-
-void ui__Screen_New(), ui__Screen_Repaint();
-
 void quit(), sysemsg(), do_z(), stuffin();
 off_t edit(), load();
 int ascii_comp(), hex_comp();
@@ -377,3 +358,50 @@ int vgetc(), xpos();
 char *substr();
 int wait_return();
 #endif
+
+int handler__goto_HEX();
+int handler__goto_ASCII();
+int handler__toggle();
+int handler__tilda();
+int handler__goto_home();
+int handler__M();
+int handler__L();
+int handler__goto_left();
+int handler__goto_right();
+int handler__goto_up();
+int handler__goto_EOL();
+int handler__goto_down();
+int handler__line();
+int handler__toolwin_toggle();
+int handler__cmdstring();
+int handler__previous_page();
+int handler__scrolldown();
+int handler__scrollup();
+int handler__linescroll_down();
+int handler__nextpage();
+int handler__fileinfo();
+int handler__screen_redraw();
+int handler__linescroll_up();
+int handler__append_mode();
+int handler__backsearch();
+int handler__setpage();
+int handler__doft1();
+int handler__doft2();
+int handler__doft3();
+int handler__goto1();
+int handler__goto2();
+int handler__search_string();
+int handler__search_next();
+int handler__mark();
+int handler__goto_mark();
+int handler__trunc();
+int handler__overwrite();
+int handler__paste();
+int handler__redo();
+int handler__undo();
+int handler__wordsearch();
+int handler__yank();
+int handler__doz();
+int handler__exit();
+int handler__stuffin();
+

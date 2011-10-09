@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "bvi.h"
 #include "set.h"
+#include "ui.h"
 
 extern core_t core;
 extern state_t state;
@@ -10,13 +11,37 @@ extern struct MARKERS_ markers[MARK_COUNT];
 char tmpbuf[10];
 char linbuf[256];
 
+struct color colors[] = {	/* RGB definitions and default value, if have no support of 256 colors */
+	{"background", "bg", 50, 50, 50, COLOR_BLACK},
+	{"addresses", "addr", 335, 506, 700, COLOR_BLUE},
+	{"hex", "hex", 600, 600, 600, COLOR_MAGENTA},
+	{"data", "data", 0, 800, 400, COLOR_GREEN},
+	{"error", "err", 999, 350, 0, COLOR_RED},
+	{"status", "stat", 255, 255, 255, COLOR_WHITE},
+	{"command", "comm", 255, 255, 255, COLOR_WHITE},
+	{"window", "win", 0, 800, 900, COLOR_YELLOW},
+	{"addrbg", "addrbg", 0, 0, 0, COLOR_CYAN},
+	{"", "", 0, 0, 0, 0}	/* end marker */
+};
+
+struct {
+	short r;
+	short g;
+	short b;
+} original_colors[8];
+
+struct {
+	short f;
+	short b;
+} original_colorpairs[8];
+
 void ui__Init() {
 	/****** Initialisation of curses ******/
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
-		save_orig_palette();
-		set_palette();
+		ui__Colors_Save();
+		ui__Colors_Set();
 	}
 	attrset(A_NORMAL);
 	ui__MainWin_Resize(LINES);	
@@ -94,6 +119,14 @@ int ui__ToolWin_Print(char* str, int line) {
 	}
 }
 
+int ui__ToolWin_ScrollUp(int lines) {
+	return 0;
+}
+
+int ui__ToolWin_ScrollDown(int lines) {
+	return 0;
+}
+
 /* Hides tools window */
 int ui__ToolWin_Hide() {
 	if (tools_win != NULL) {
@@ -110,6 +143,85 @@ int ui__ToolWin_Hide() {
 		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
 		return -1;
 	}
+}
+
+/* ========================== Colors handling ============================ */
+void ui__Colors_Save()
+{
+	int i;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		color_content(colors[i].short_value, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		pair_content(i, &original_colorpairs[i].f, &original_colorpairs[i].b);
+	}
+}
+
+void ui__Colors_Load()
+{
+	int i;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		init_color(colors[i].short_value, original_colors[i].r, original_colors[i].g, original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		init_pair(i, original_colorpairs[i].f, original_colorpairs[i].b);
+	}
+}
+
+void ui__Colors_Set()
+{
+	int i;
+	if (can_change_color()) {
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (init_color
+			    (colors[i].short_value, C_r(i), C_g(i),
+			     C_b(i)) == ERR)
+				fprintf(stderr, "Failed to set [%d] color!\n",
+					i);
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), C_s(0));
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), C_s(0));
+			}
+		}
+		init_pair(C_AD + 1, C_s(C_AD), COLOR_CYAN);
+	} else {		/* if have no support of changing colors */
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), C_s(0));
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), C_s(0));
+			}
+		}
+	}
+}
+
+int ui__Color_Set(char* arg)
+{
+	int i;
+	char *s;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			s = colors[i].fullname;
+			if (strncmp(arg, s, strlen(s)) == 0)
+				break;
+			s = colors[i].shortname;
+			if (strncmp(arg, s, strlen(s)) == 0)
+				break;
+	}
+	if (i == 0) {
+		ui__ErrorMsg("Wrong color name!");
+		return -1;
+	} else {
+		colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
+		colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
+		colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
+		/*set_palette();*/
+		ui__Colors_Set();
+		ui__Screen_Repaint();
+	}
+	return 0;
 }
 
 /* ========================== lines print interface ====================== */
@@ -301,7 +413,7 @@ void ui__Screen_Repaint()
 				fold_start = data_block[i].pos_start;
 				fold_end = data_block[i].pos_end;
 				state.pagepos += (fold_end - fold_start) / core.params.COLUMNS_DATA;
-				//Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
+				/* Address = state.pagepos - mem + y * core.params.COLUMNS_DATA; */
 				break;
 			}
 		}

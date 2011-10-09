@@ -5,8 +5,10 @@
 
 #include "bvi.h"
 #include "set.h"
-#include "util.h"
+#include "math.h"
 #include "bscript.h"
+#include "ui.h"
+#include "plugins.h"
 
 lua_State *lstate;
 
@@ -14,6 +16,22 @@ extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
 extern PTR mem;
+
+/* -----------------------------------------------------------------------------
+ *                       Interface for plugins API
+ * -----------------------------------------------------------------------------
+ */
+
+static int bvi_add_lua_function() {
+	return 0;
+}
+
+static int bvi_remove_lua_function() {
+	return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ */
 
 /* Save current buffer into file */
 /* lua: save(filename, [start, end, flags]) */

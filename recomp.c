@@ -28,6 +28,7 @@
 
 #include	"bvi.h"
 #include	"set.h"
+#include	"ui.h"
 
 char *poi;
 int smode;

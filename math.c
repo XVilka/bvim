@@ -1,5 +1,7 @@
 #include "bvi.h"
 #include "set.h"
+#include "ui.h"
+#include "math.h"
 
 extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];

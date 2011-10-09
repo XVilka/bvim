@@ -29,6 +29,7 @@
 
 #include "bvi.h"
 #include "set.h"
+#include "ui.h"
 
 #include <limits.h>
 #ifndef SIZE_T_MAX

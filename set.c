@@ -30,6 +30,8 @@
 
 #include "bvi.h"
 #include "set.h"
+#include "ui.h"
+#include "keys.h"
 
 extern struct BLOCK_ data_block[BLK_COUNT];
 extern core_t core;
@@ -38,17 +40,6 @@ static int from_file = 0;
 static FILE *ffp;
 static char fbuf[256];
 static char buf[64];
-
-struct {
-	short r;
-	short g;
-	short b;
-} original_colors[8];
-
-struct {
-	short f;
-	short b;
-} original_colorpairs[8];
 
 struct param params[] = {
 	{"autowrite", "aw", FALSE, "", P_BOOL},
@@ -68,19 +59,6 @@ struct param params[] = {
 	{"wordlength", "wl", 4, "", P_NUM},
 	{"wrapscan", "ws", TRUE, "", P_BOOL},
 	{"", "", 0, "", 0,}	/* end marker */
-};
-
-struct color colors[] = {	/* RGB definitions and default value, if have no support of 256 colors */
-	{"background", "bg", 50, 50, 50, COLOR_BLACK},
-	{"addresses", "addr", 335, 506, 700, COLOR_BLUE},
-	{"hex", "hex", 600, 600, 600, COLOR_MAGENTA},
-	{"data", "data", 0, 800, 400, COLOR_GREEN},
-	{"error", "err", 999, 350, 0, COLOR_RED},
-	{"status", "stat", 255, 255, 255, COLOR_WHITE},
-	{"command", "comm", 255, 255, 255, COLOR_WHITE},
-	{"window", "win", 0, 800, 900, COLOR_YELLOW},
-	{"addrbg", "addrbg", 0, 0, 0, COLOR_CYAN},
-	{"", "", 0, 0, 0, 0}	/* end marker */
 };
 
 int doset(arg)
@@ -108,24 +86,7 @@ char *arg;			/* parameter string */
 	/* extract colors section */
 	if (!strncmp(arg, "color", 5)) {
 		arg = substr(arg, 6, -1);
-		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			s = colors[i].fullname;
-			if (strncmp(arg, s, strlen(s)) == 0)
-				break;
-			s = colors[i].shortname;
-			if (strncmp(arg, s, strlen(s)) == 0)
-				break;
-		}
-		if (i == 0) {
-			ui__ErrorMsg("Wrong color name!");
-			return 0;
-		} else {
-			colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
-			colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
-			colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
-			set_palette();
-			ui__Screen_Repaint();
-		}
+		ui__Color_Set(arg);
 		return 0;
 	} else {
 		ui__ErrorMsg(arg);
@@ -246,57 +207,6 @@ int all;
 	wait_return(TRUE);
 }
 
-void save_orig_palette()
-{
-	int i;
-	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		color_content(colors[i].short_value, &original_colors[i].r, &original_colors[i].g, &original_colors[i].b);
-	}
-	for (i = 1; i < 8; i++) {
-		pair_content(i, &original_colorpairs[i].f, &original_colorpairs[i].b);
-	}
-}
-
-void load_orig_palette()
-{
-	int i;
-	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		init_color(colors[i].short_value, original_colors[i].r, original_colors[i].g, original_colors[i].b);
-	}
-	for (i = 1; i < 8; i++) {
-		init_pair(i, original_colorpairs[i].f, original_colorpairs[i].b);
-	}
-}
-
-void set_palette()
-{
-	int i;
-	if (can_change_color()) {
-		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			if (init_color
-			    (colors[i].short_value, C_r(i), C_g(i),
-			     C_b(i)) == ERR)
-				fprintf(stderr, "Failed to set [%d] color!\n",
-					i);
-			if (C_s(i) <= 7) {
-				init_pair(i + 1, C_s(i), C_s(0));
-			} else {
-				colors[i].short_value = COLOR_WHITE;
-				init_pair(i + 1, C_s(i), C_s(0));
-			}
-		}
-		init_pair(C_AD + 1, C_s(C_AD), COLOR_CYAN);
-	} else {		/* if have no support of changing colors */
-		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			if (C_s(i) <= 7) {
-				init_pair(i + 1, C_s(i), C_s(0));
-			} else {
-				colors[i].short_value = COLOR_WHITE;
-				init_pair(i + 1, C_s(i), C_s(0));
-			}
-		}
-	}
-}
 
 /* reads the init file (.bvirc) */
 int read_rc(fn)
@@ -338,7 +248,7 @@ int x;
 	move(core.screen.maxy, x);
 	do {
 		switch (c = vgetc()) {
-		case BVICTRL('H'):
+		case BVI_CTRL('H'):
 		case KEY_BACKSPACE:
 		case KEY_LEFT:
 			if (p > buff) {

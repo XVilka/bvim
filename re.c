@@ -31,6 +31,7 @@
 
 #include	"bvi.h"
 #include	"set.h"
+#include	"ui.h"
 
 extern core_t core;
 extern state_t state;

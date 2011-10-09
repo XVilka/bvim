@@ -30,7 +30,9 @@
  */
 
 #include "bvi.h"
+#include "keys.h"
 #include "set.h"
+#include "ui.h"
 
 #ifdef HAVE_LUA_H
 #include <lua.h>
@@ -56,6 +58,8 @@
 #define WRITE (O_WRONLY|O_CREAT|O_TRUNC)
 #define APPEND (O_WRONLY|O_APPEND)
 #endif
+
+#include "plugins.h"
 
 #define	CMDSZ	256		/* size of the command buffer */
 #define MAXNAME	10		/* size of a : command name */
@@ -92,7 +96,6 @@ extern char *name;		/* actual filename */
 extern char **files;		/* used for "next" and "rewind" */
 extern int numfiles, curfile;
 extern int errno;
-extern struct KEYMAP_ KEYMAP[32];
 extern struct BLOCK_ data_block[BLK_COUNT];
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
@@ -110,7 +113,7 @@ char *cmdline;
 	char cmdbuf[CMDSZ];
 	char cmdname[MAXNAME];
 	char luacmdbuf[CMDSZ];
-	char dispbuf[2048];
+	struct key *key_tmp;
 	char *cmd;
 	char *p;
 	size_t len;
@@ -395,20 +398,7 @@ char *cmdline;
 			if (strncmp(c_argv[0], "all", 3)) {
 				ui__ErrorMsg("Map what?");
 			} else {
-				dispbuf[0] = '\0';
-				for (n = 0; n < 32; n++) {
-					if (KEYMAP[n].keycode != 0) {
-						luacmdbuf[0] = '\0';
-						sprintf(luacmdbuf,
-							"map %d %s\n",
-							KEYMAP[n].keycode,
-							KEYMAP[n].cmd);
-						strcat(dispbuf, luacmdbuf);
-
-					}
-				}
-				msg(dispbuf);
-				wait_return(TRUE);
+				keys__KeyMaps_Show();
 			}
 		} else {
 			luacmdbuf[0] = '\0';
@@ -417,27 +407,9 @@ char *cmdline;
 				strcat(luacmdbuf, " ");
 				strcat(luacmdbuf, c_argv[n]);
 			}
-			for (n = 0; n < 32; n++) {
-				if (KEYMAP[n].keycode == atoi(c_argv[0])) {
-					map_toggle = 1;
-					ui__ErrorMsg("Already mapped key. Try tomorrow, please!");
-					break;
-				}
-			}
-			if (map_toggle == 0) {
-				for (n = 0; n < 32; n++) {
-					if (KEYMAP[n].keycode == 0) {
-						KEYMAP[n].keycode =
-						    atoi(c_argv[0]);
-						strcpy(KEYMAP[n].cmd,
-						       luacmdbuf);
-						map_toggle = 1;
-						break;
-					}
-				}
-				if (map_toggle == 0)
-					ui__ErrorMsg("There is no empty slots for mapping!");
-			}
+			key_tmp = keys__KeyString_Parse(c_argv[0]);
+			if (!keys__Key_Map(key_tmp, luacmdbuf))
+				ui__ErrorMsg("Error: can't set new key mapping!");
 			return;
 		}
 	} else if (!strncmp("set", cmdname, len) && CMDLNG(3, 2)) {
