@@ -112,9 +112,17 @@ int CmdAdd(struct command item)
 	return cmdmap.items;
 }
 
-int CmdDel(struct command item)
+int CmdDel(char *name)
 {
-	return 0;
+	int i = 0;
+	while (i < cmdmap.items) {
+		if (strcmp(name, cmdmap.arr[i].name) == 0) {
+			cmdmap.arr[i].enabled = 0;
+			return 0;
+		}
+		i++;
+	}
+	return -1;
 }
 
 int CmdDefaults()
@@ -174,6 +182,18 @@ void commands__Init()
 void commands__Destroy()
 {
 	free(cmdmap.arr);
+}
+
+int commands__Cmd_Add(struct command *new_cmd)
+{
+	CmdAdd(*new_cmd);
+	return 0;
+}
+
+int commands__Cmd_Del(char* name)
+{
+	CmdDel(name);
+	return 0;
 }
 
 
@@ -547,10 +567,14 @@ int command__quit(char flags, int c_argc, char **c_argv) {
 				ui__ErrorMsg(string);
 				return -1;
 			} else
+			keys__Destroy();
+			commands__Destroy();
 			quit();
 			return 0;
 		}
 	} else
+		keys__Destroy();
+		commands__Destroy();
 		quit();
 	return 0;
 }

@@ -6,7 +6,9 @@
 #include "bvi.h"
 #include "set.h"
 #include "math.h"
+#include "keys.h"
 #include "bscript.h"
+#include "commands.h"
 #include "ui.h"
 #include "plugins.h"
 
@@ -29,6 +31,48 @@ static int bvi_add_lua_function()
 
 static int bvi_remove_lua_function()
 {
+	return 0;
+}
+
+/* Add new editor command, like :command */
+/* lua: command_add(name, description, type, script) */
+static int bvi_command_add(lua_State *L)
+{
+	int handler_type = 0;
+	struct command new_cmd;
+	if (lua_gettop(L) == 4) {
+		new_cmd.id = 1;
+		new_cmd.name = (char *)lua_tostring(L, 1);
+		new_cmd.description = (char *)lua_tostring(L, 2);
+		new_cmd.enabled = 1;
+		handler_type = (int)lua_tonumber(L, 3);
+		if (handler_type == 2) {
+			new_cmd.handler_type = BVI_HANDLER_LUA;
+			new_cmd.handler.lua_cmd = (char *)lua_tostring(L, 4);
+		} else if (handler_type == 1) {
+			new_cmd.handler_type = BVI_HANDLER_SCRIPT;
+			new_cmd.handler.int_cmd = (char *)lua_tostring(L, 4);
+		}
+		new_cmd.size1 = strlen(new_cmd.name);
+		new_cmd.size2 = 2;
+		commands__Cmd_Add(&new_cmd);
+	} else {
+		ui__ErrorMsg("Error in lua command_add function! Wrong format!");
+	}
+	return 0;
+}
+
+/* Remove editor command, like :command */
+/* lua: command_del(name) */
+static int bvi_command_del(lua_State *L)
+{
+	char* name;
+	if (lua_gettop(L) == 1) {
+		name = (char *)lua_tostring(L, 1);
+		commands__Cmd_Del(name);
+	} else {
+		ui__ErrorMsg("Error in lua command_del function! Wrong format!");
+	}
 	return 0;
 }
 
@@ -912,6 +956,8 @@ static int bvi_setpage(lua_State * L)
 void bvi_lua_init()
 {
 	struct luaL_reg bvi_methods[] = {
+		{"command_add", bvi_command_add},
+		{"command_del", bvi_command_del},
 		{"save", bvi_save},
 		{"load", bvi_load},
 		{"file", bvi_file},
