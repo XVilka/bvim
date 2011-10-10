@@ -84,6 +84,12 @@ extern struct BLOCK_ data_block[BLK_COUNT];
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
+char* bvi_substr(const char* str, size_t begin, size_t len) 
+{
+	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin+len))
+		return 0;
+	return strndup(str + begin, len);
+}
 
 /* =================== Commands storage ===================== */
 static struct command_array cmdmap;
@@ -268,11 +274,28 @@ int command__set(char flags, int c_argc, char **c_argv) {
 }
 
 // :block
+// TODO: implement :block <num> <start> +<size> syntax
 int command__block(char flags, int c_argc, char **c_argv) {
 	int n  = 0;
+	char size[256];
+
+	size[0] = '\0';
 
 	if (c_argc == 0) {
 		return -1;
+	} else if (c_argc == 3) {
+		n = atoi(c_argv[0]);
+		if (n >= BLK_COUNT) {
+			ui__ErrorMsg("Too big block number!");
+			return -1;
+		}
+		if (atoi(c_argv[1]) < atoi(c_argv[2])) {
+			data_block[n].pos_start = atoi(c_argv[1]);
+			data_block[n].pos_end = data_block[n].pos_start + atoi(c_argv[2]);
+			data_block[n].palette = 2;
+			data_block[n].hl_toggle = 1;
+			ui__Screen_Repaint();
+		}
 	} else if (c_argc == 4) {
 		n = atoi(c_argv[0]);
 		if (n >= BLK_COUNT) {
@@ -281,7 +304,13 @@ int command__block(char flags, int c_argc, char **c_argv) {
 		}
 		if (atoi(c_argv[1]) < atoi(c_argv[2])) {
 			data_block[n].pos_start = atoi(c_argv[1]);
-			data_block[n].pos_end = atoi(c_argv[2]);
+			strcpy(size, c_argv[2]);
+			if (size[0] == '+') {
+				data_block[n].pos_end = atoi(bvi_substr(size, 1, strlen(size) - 1));
+			}
+			else {
+				data_block[n].pos_end = atoi(c_argv[2]);
+			}
 			if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) > 6))
 				data_block[n].palette = C_HX;
 			else
