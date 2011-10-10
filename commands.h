@@ -21,6 +21,7 @@ struct command_array {
 	int allocated;
 };
 
+int command__help(char, int, char**);
 int command__map(char, int, char**);
 int command__set(char, int, char**);
 int command__block(char, int, char**);

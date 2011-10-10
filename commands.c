@@ -129,38 +129,39 @@ int CmdDefaults()
 {
 	int i = 0;
 	struct command cmds_def[] = {
-		{ 1, "map", "", 1, BVI_HANDLER_INTERNAL, { .func = command__map }, 3, 2},
-		{ 2, "set", "", 1, BVI_HANDLER_INTERNAL, { .func = command__set }, 3, 2},
-		{ 3, "block", "", 1, BVI_HANDLER_INTERNAL, { .func = command__block }, 5, 2},
-		{ 4, "lua", "", 1, BVI_HANDLER_INTERNAL, { .func = command__lua }, 3, 2},
-		{ 5, "args", "", 1, BVI_HANDLER_INTERNAL, { .func = command__args }, 4, 2},
-		{ 6, "source", "", 1, BVI_HANDLER_INTERNAL, { .func = command__source }, 6, 2},
-		{ 7, "run", "", 1, BVI_HANDLER_INTERNAL, { .func = command__run }, 3, 2},
-		{ 8, "cd", "", 1, BVI_HANDLER_INTERNAL, { .func = command__cd }, 2, 2},
-		{ 9, "edit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__edit }, 4, 1},
-		{ 10, "file", "", 1, BVI_HANDLER_INTERNAL, { .func = command__file }, 4, 1},
-		{ 11, "read", "", 1, BVI_HANDLER_INTERNAL, { .func = command__read }, 4, 1},
-		{ 12, "xit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__xit }, 3, 1},
-		{ 13, "next", "", 1, BVI_HANDLER_INTERNAL, { .func = command__next }, 4, 1},
-		{ 14, "rewind", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rewind }, 6, 3},
-		{ 15, "append", "", 1, BVI_HANDLER_INTERNAL, { .func = command__append }, 6, 1},
-		{ 16, "change", "", 1, BVI_HANDLER_INTERNAL, { .func = command__change }, 6, 1},
-		{ 17, "mark", "", 1, BVI_HANDLER_INTERNAL, { .func = command__mark }, 4, 2},
-		{ 18, "yank", "", 1, BVI_HANDLER_INTERNAL, { .func = command__yank }, 4, 1},
-		{ 19, "overwrite", "", 1, BVI_HANDLER_INTERNAL, { .func = command__overwrite }, 9, 1},
-		{ 20, "undo", "", 1, BVI_HANDLER_INTERNAL, { .func = command__undo }, 4, 1},
-		{ 21, "version", "", 1, BVI_HANDLER_INTERNAL, { .func = command__version }, 7, 2},
-		{ 22, "shell", "", 1, BVI_HANDLER_INTERNAL, { .func = command__shell }, 5, 2},
-		{ 23, "quit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__quit }, 4, 1},
-		{ 24, "sleft", "", 1, BVI_HANDLER_INTERNAL, { .func = command__sleft }, 5, 2},
-		{ 25, "sright", "", 1, BVI_HANDLER_INTERNAL, { .func = command__sright }, 6, 2},
-		{ 26, "rleft", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rleft }, 5, 2},
-		{ 27, "rright", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rright }, 6, 2},
-		{ 28, "and", "", 1, BVI_HANDLER_INTERNAL, { .func = command__and }, 3, 2},
-		{ 29, "or", "", 1, BVI_HANDLER_INTERNAL, { .func = command__or }, 2, 2},
-		{ 30, "xor", "", 1, BVI_HANDLER_INTERNAL, { .func = command__xor }, 3, 2},
-		{ 31, "neg", "", 1, BVI_HANDLER_INTERNAL, { .func = command__neg }, 3, 2},
-		{ 32, "not", "", 1, BVI_HANDLER_INTERNAL, { .func = command__not }, 3, 2},
+		{ 1, "help", "show usage for every command", 1, BVI_HANDLER_INTERNAL, { .func = command__help }, 4, 2},
+		{ 2, "map", "", 1, BVI_HANDLER_INTERNAL, { .func = command__map }, 3, 2},
+		{ 3, "set", "", 1, BVI_HANDLER_INTERNAL, { .func = command__set }, 3, 2},
+		{ 4, "block", "", 1, BVI_HANDLER_INTERNAL, { .func = command__block }, 5, 2},
+		{ 5, "lua", "", 1, BVI_HANDLER_INTERNAL, { .func = command__lua }, 3, 2},
+		{ 6, "args", "", 1, BVI_HANDLER_INTERNAL, { .func = command__args }, 4, 2},
+		{ 7, "source", "", 1, BVI_HANDLER_INTERNAL, { .func = command__source }, 6, 2},
+		{ 8, "run", "", 1, BVI_HANDLER_INTERNAL, { .func = command__run }, 3, 2},
+		{ 9, "cd", "", 1, BVI_HANDLER_INTERNAL, { .func = command__cd }, 2, 2},
+		{ 10, "edit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__edit }, 4, 1},
+		{ 11, "file", "", 1, BVI_HANDLER_INTERNAL, { .func = command__file }, 4, 1},
+		{ 12, "read", "", 1, BVI_HANDLER_INTERNAL, { .func = command__read }, 4, 1},
+		{ 13, "xit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__xit }, 3, 1},
+		{ 14, "next", "", 1, BVI_HANDLER_INTERNAL, { .func = command__next }, 4, 1},
+		{ 15, "rewind", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rewind }, 6, 3},
+		{ 16, "append", "", 1, BVI_HANDLER_INTERNAL, { .func = command__append }, 6, 1},
+		{ 17, "change", "", 1, BVI_HANDLER_INTERNAL, { .func = command__change }, 6, 1},
+		{ 18, "mark", "", 1, BVI_HANDLER_INTERNAL, { .func = command__mark }, 4, 2},
+		{ 19, "yank", "", 1, BVI_HANDLER_INTERNAL, { .func = command__yank }, 4, 1},
+		{ 20, "overwrite", "", 1, BVI_HANDLER_INTERNAL, { .func = command__overwrite }, 9, 1},
+		{ 21, "undo", "", 1, BVI_HANDLER_INTERNAL, { .func = command__undo }, 4, 1},
+		{ 22, "version", "", 1, BVI_HANDLER_INTERNAL, { .func = command__version }, 7, 2},
+		{ 23, "shell", "", 1, BVI_HANDLER_INTERNAL, { .func = command__shell }, 5, 2},
+		{ 24, "quit", "", 1, BVI_HANDLER_INTERNAL, { .func = command__quit }, 4, 1},
+		{ 25, "sleft", "", 1, BVI_HANDLER_INTERNAL, { .func = command__sleft }, 5, 2},
+		{ 26, "sright", "", 1, BVI_HANDLER_INTERNAL, { .func = command__sright }, 6, 2},
+		{ 27, "rleft", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rleft }, 5, 2},
+		{ 28, "rright", "", 1, BVI_HANDLER_INTERNAL, { .func = command__rright }, 6, 2},
+		{ 29, "and", "", 1, BVI_HANDLER_INTERNAL, { .func = command__and }, 3, 2},
+		{ 30, "or", "", 1, BVI_HANDLER_INTERNAL, { .func = command__or }, 2, 2},
+		{ 31, "xor", "", 1, BVI_HANDLER_INTERNAL, { .func = command__xor }, 3, 2},
+		{ 32, "neg", "", 1, BVI_HANDLER_INTERNAL, { .func = command__neg }, 3, 2},
+		{ 33, "not", "", 1, BVI_HANDLER_INTERNAL, { .func = command__not }, 3, 2},
 		{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0 }
 	};
 	while (cmds_def[i].id != 0) {
@@ -202,6 +203,25 @@ int commands__Cmd_Del(char* name)
 char luacmdbuf[CMDSZ];
 
 static char* tmp_cmd;
+
+// :help
+int command__help(char flags, int c_argc, char **c_argv) {
+	int i = 0;
+	if (c_argc == 0) {
+		ui__ErrorMsg("What?");
+	} else if (c_argc == 1) {
+		while (i < cmdmap.items) {
+			if (strncmp(c_argv[0], cmdmap.arr[i].name, strlen(cmdmap.arr[i].name))) {
+				ui__ErrorMsg("Command not exist!");
+			} else {
+				ui__ErrorMsg(cmdmap.arr[i].description);
+				return 0;
+			}
+			i++;
+		}
+	}
+	return -1;
+}
 
 // :map
 int command__map(char flags, int c_argc, char **c_argv) {
