@@ -37,7 +37,7 @@ struct {
 
 void ui__Init()
 {
-	/****** Initialisation of curses ******/
+	// Initialisation of curses
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
@@ -81,6 +81,9 @@ void ui__MainWin_Resize(int lines_count)
 
 /* ==================== Tools window ======================= */
 WINDOW *tools_win = NULL;
+
+// TODO: Improve tools window to show information from 
+// TODO: buffer and make it scrollable
 
 /* Check if tools window already exist */
 short ui__ToolWin_Exist()
@@ -440,9 +443,9 @@ int ui__line(int line, int address)
 	return (0);
 }
 
+// Redraw screen
 void ui__Screen_Repaint()
 {
-/***** redraw screen *********************/
 	off_t Address;
 	int save_y;
 	int fold_start = 0;
@@ -481,7 +484,7 @@ void clearstr()
 	move(core.screen.maxy, 0);
 }
 
-/**** displays an error message *****/
+// Displays an error message
 void ui__ErrorMsg(s)
 char *s;
 {
@@ -501,7 +504,7 @@ char *s;
 	}
 }
 
-/*** System error message *****/
+// System error message
 void sysemsg(s)
 char *s;
 {

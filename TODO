@@ -34,6 +34,7 @@ Simple tasks
 13. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
 14. Rename project to "bvim"
 15. Add lua/plugins hooks into standard handler_* and command_*
+16. Add block and symbol annotations - show when place cursor on it
 
 Refactoring Tasks
 ============================

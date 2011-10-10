@@ -181,7 +181,7 @@ int KeyDefaults()
 		 {.func = handler__exit}},
 		{'.', ".", "", 1, BVI_HANDLER_INTERNAL,
 		 {.func = handler__stuffin}},
-		{0, NULL, NULL, 0, 0, {NULL}}
+		{0, NULL, NULL, 0, 0, {NULL}} // end marker
 	};
 	while (keys_def[i].id != 0) {
 		KeyAdd(keys_def[i]);

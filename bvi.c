@@ -24,6 +24,7 @@
 #include "set.h"
 #include "ui.h"
 #include "keys.h"
+#include "commands.h"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -757,6 +758,9 @@ char *argv[];
 	// Lua subsystem initialization
 	bvi_lua_init();
 #endif
+
+	// Commands parser initialization
+	commands__Init();
 
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
