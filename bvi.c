@@ -25,6 +25,7 @@
 #include "ui.h"
 #include "keys.h"
 #include "commands.h"
+#include "blocks.h"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -39,7 +40,9 @@
 
 #include "plugins.h"
 
-char *copyright = "Copyright (C) 1996-2004 by Gerhard Buergmann";
+char *copyright = 
+"\nCopyright (C) 1996-2004 by Gerhard Buergmann\n\
+Copyright (C) 2011 by Anton Kochkov";
 
 jmp_buf env;			/* context for `longjmp' function   */
 
@@ -49,9 +52,6 @@ state_t state;
 int x, xx, y;
 int status;
 off_t size;
-
-/* Tools window */
-/* WINDOW *tools_win = NULL; */
 
 PTR mem = NULL;
 PTR curpos;
@@ -412,6 +412,17 @@ int handler__linescroll_up()
 	return 0;
 }
 
+// "Ctrl-S" - Toggle selection with help of cursor
+int handler__toggle_selection()
+{
+	if (state.toggle_selection == 0) {
+		state.toggle_selection = 1;
+	} else {
+		state.toggle_selection = 0;
+	}
+	return 0;
+}
+
 //case 'A':
 int handler__append_mode()
 {
@@ -516,12 +527,23 @@ int handler__goto2()
 }
 
 //case '?':
-//case '/':
-//case '#':
-//case '\\':
-int handler__search_string()
+int handler__search_string1()
 {
-	// TODO: split handlers for each key    
+	char ch = '?';
+
+	clearstr();
+	addch(ch);
+	refresh();
+	if (getcmdstr(line, 1))
+		return -1;
+	last_motion = current;
+	searching(ch, line, current, maxpos - 1, P(P_WS));
+	return 0;
+}
+
+// case '/':
+int handler__search_string2()
+{
 	char ch = '/';
 
 	clearstr();
@@ -533,6 +555,37 @@ int handler__search_string()
 	searching(ch, line, current, maxpos - 1, P(P_WS));
 	return 0;
 }
+
+// case '#':
+int handler__search_string3()
+{
+	char ch = '#';
+
+	clearstr();
+	addch(ch);
+	refresh();
+	if (getcmdstr(line, 1))
+		return -1;
+	last_motion = current;
+	searching(ch, line, current, maxpos - 1, P(P_WS));
+	return 0;
+}
+
+// case '\\':
+int handler__search_string4()
+{
+	char ch = '\\';
+
+	clearstr();
+	addch(ch);
+	refresh();
+	if (getcmdstr(line, 1))
+		return -1;
+	last_motion = current;
+	searching(ch, line, current, maxpos - 1, P(P_WS));
+	return 0;
+}
+
 
 //case 'n':
 //case 'N':
@@ -593,7 +646,8 @@ int handler__overwrite()
 	return 0;
 }
 
-//case 'P':
+/* Paste previously yanked buffer/byte */
+/* "P" key */
 int handler__paste()
 {
 	if (precount < 1)
@@ -610,8 +664,8 @@ int handler__paste()
 	return 0;
 }
 
-//case 'r':
-//case 'R':
+/* Redo handler */
+/* "r" and "R" keys */
 int handler__redo()
 {
 	if (filesize == 0L)
@@ -624,10 +678,18 @@ int handler__redo()
 	return 0;
 }
 
-//case 'u':
+/* Undo handler */
+/* "u" and "U" keys */
 int handler__undo()
 {
 	do_undo();
+	return 0;
+}
+
+/* VISUAL mode selection/toggle handler */
+/* "v" key */
+int handler__visual()
+{
 	return 0;
 }
 
@@ -640,7 +702,8 @@ int handler__wordsearch()
 	return 0;
 }
 
-//case 'y':
+/* Yanking buffer or byte */
+/* "y" key */
 int handler__yank()
 {
 	long count;
@@ -672,7 +735,8 @@ int handler__doz()
 	return 0;
 }
 
-//case 'Z':
+/* Exit program */
+/* "Z" key */
 int handler__exit()
 {
 	if (vgetc() == 'Z')
@@ -690,6 +754,106 @@ int handler__stuffin()
 	} else {
 		stuffin(rep_buf);
 	}
+	return 0;
+}
+
+/* ---------------------- Disabled handlers ------------------------ */
+
+//			if P(P_MM) {
+
+//				if (precount < 1)
+//					precount = 1;
+//
+//				case 'I':
+int handler__insert()
+{
+	sprintf(rep_buf, "%ldI", precount);
+	current = mem;
+	setpage(mem);
+	ui__Screen_Repaint();
+	undo_count = edit('i');
+	lflag++;
+	return 0;
+}	
+// undo does not work correctly !!!
+
+//case 's':
+int handler__s()
+{
+	sprintf(rep_buf, "%lds", precount);
+	if (do_delete((off_t) precount, current))
+		return 0;
+	precount = 1;
+	undo_count = edit('i');
+	lflag++;
+	return 0;
+}
+
+//case 'a':
+int handler__append2()
+{
+	if (cur_forw(1))
+		return 0;
+	current++;
+	return 0;
+}
+
+//case 'i':
+int handler__insert2()
+{
+	char ch = 'i';
+
+	sprintf(rep_buf, "%ld%c", precount, ch);
+	undo_count = edit(ch);
+	lflag++;
+	return 0;
+}
+
+//case 'p':
+int handler__paste2()
+{
+	sprintf(rep_buf, "%ldp", precount);
+	do_put(current, yanked, yank_buf);
+	return 0;
+}	
+
+//case 'c':
+//case 'd':
+int handler__c_or_d()
+{
+	char ch = 'c';
+	int count = range(ch);
+
+	if (count > 0)
+		do_delete((off_t) count, current);
+	else if (count < 0)
+		do_back(-(off_t) count, current);
+	if (ch == 'c') {
+		precount = 1;
+		undo_count = edit('i');
+		lflag++;
+	//
+	//} else if (count) {
+	//	sprintf(string, "%ld bytes deleted", labs(count));
+	//	msg(string);
+	//
+	}
+	return 0;
+}
+
+//case 'x':
+int handler__x()
+{
+	sprintf(rep_buf, "%ldx", precount);
+	do_delete((off_t) precount, current);
+	return 0;
+}
+
+//case 'X':
+int handler__x2()
+{
+	sprintf(rep_buf, "%ldX", precount);
+	do_back((off_t) precount, current);
 	return 0;
 }
 

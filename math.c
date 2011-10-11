@@ -1,10 +1,52 @@
 #include "bvi.h"
+#include "blocks.h"
 #include "set.h"
 #include "ui.h"
 #include "math.h"
 
-extern struct BLOCK_ data_block[BLK_COUNT];
+//extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];
+
+/* Math expressions */
+
+char* bvi_substr(const char* str, size_t begin, size_t len) 
+{
+	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin+len))
+		return 0;
+	return strndup(str + begin, len);
+}
+
+long math__eval(int mode, char* expression) {
+	char multiplicator;
+	long i = 1;
+
+	if (mode == MATH_ARITH) {
+		if (!strcmp(bvi_substr(expression, 0, 1), "+")) {
+			multiplicator = expression[strlen(expression) - 1];
+			switch (multiplicator) {
+				case 'K':
+					i = 1000;
+					break;
+				case 'M':
+					i = 1000000;
+					break;
+				default:
+					i = 1;
+					break;
+			}
+			return atoi(substr(expression, 1, strlen(expression) -1 )) * i;
+		}
+		else if (!strcmp(bvi_substr(expression, 0, 2), "0x")) {
+			
+		}
+		else {
+			return atoi(expression);
+		}
+	}
+	return 0;
+}
+
+/* Logic functions */
 
 int do_logic(mode, str)
 int mode;
@@ -101,22 +143,23 @@ char *str;
 	return (0);
 }
 
-int do_logic_block(mode, str, block_number)
+int do_logic_block(mode, str, block_id)
 int mode;
 char *str;
-int block_number;
+int block_id;
 {
 	int a, b;
 	int value;
 	size_t n;
 	char *err_str = "Invalid value@for bit manipulation";
-
-	if ((block_number >=
-	     BLK_COUNT) & (!(data_block[block_number].pos_start <
-			     data_block[block_number].pos_end))) {
-		ui__ErrorMsg("Invalid block for bit manipulation!");
+	struct block_item *tmp_blk;
+	
+	tmp_blk = blocks__GetByID(block_id);
+	if ((tmp_blk == NULL) | ((tmp_blk != NULL) & (tmp_blk->pos_start < tmp_blk->pos_end))) {
+		ui__ErrorMsg("Invalid block for bit manupulation!");
 		return 1;
 	}
+
 	if (mode == LSHIFT || mode == RSHIFT || mode == LROTATE
 	    || mode == RROTATE) {
 		value = atoi(str);
@@ -152,19 +195,18 @@ int block_number;
 		}
 	}
 	if ((undo_count =
-	     alloc_buf((off_t) (data_block[block_number].pos_end -
-				data_block[block_number].pos_start + 1),
+	     alloc_buf((off_t) (tmp_blk->pos_end -
+				tmp_blk->pos_start + 1),
 		       &undo_buf))) {
 		memcpy(undo_buf,
-		       start_addr + data_block[block_number].pos_start,
+		       start_addr + tmp_blk->pos_start,
 		       undo_count);
 	}
-	undo_start = start_addr + data_block[block_number].pos_start;
+	undo_start = start_addr + tmp_blk->pos_start;
 	edits = U_EDIT;
-	start_addr = start_addr + data_block[block_number].pos_start;
+	start_addr = start_addr + tmp_blk->pos_start;
 	end_addr =
-	    start_addr + data_block[block_number].pos_end -
-	    data_block[block_number].pos_start;
+	    start_addr + tmp_blk->pos_end - tmp_blk->pos_start;
 	while (start_addr <= end_addr) {
 		a = *start_addr;
 		a &= 0xff;

@@ -19,7 +19,9 @@
  */
 
 #include    "bvi.h"
+#include	"blocks.h"
 #include	"keys.h"
+#include	"commands.h"
 #include    "set.h"
 #include	"ui.h"
 
@@ -41,7 +43,7 @@ char contru[][4] = { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
 	"DEL"
 };
 
-struct BLOCK_ data_block[BLK_COUNT];
+//struct BLOCK_ data_block[BLK_COUNT];
 struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
@@ -659,6 +661,9 @@ char *fname;
 /********** END ************/
 void quit()
 {
+	keys__Destroy();
+	commands__Destroy();
+	blocks__Destroy();
 	ui__Colors_Load();
 	move(core.screen.maxy, 0);
 	endwin();

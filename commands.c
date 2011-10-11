@@ -3,8 +3,8 @@
  *
  * NOTE: Edit this file with tabstop=4 !
  *
- * Copyright 1996-2003 by Gerhard Buergmann
- * gerhard@puon.at
+ * Copyright 1996-2003 by Gerhard Buergmann gerhard@puon.at
+ * Copyright 2011 by Anton Kochkov anton.kochkov@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -21,6 +21,8 @@
 
 #include "bvi.h"
 #include "keys.h"
+#include "blocks.h"
+#include "math.h"
 #include "set.h"
 #include "ui.h"
 #include "commands.h"
@@ -80,18 +82,13 @@ extern char *name;		/* actual filename */
 extern char **files;		/* used for "next" and "rewind" */
 extern int numfiles, curfile;
 extern int errno;
-extern struct BLOCK_ data_block[BLK_COUNT];
+
+//extern struct BLOCK_ data_block[BLK_COUNT];
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
-char* bvi_substr(const char* str, size_t begin, size_t len) 
-{
-	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin+len))
-		return 0;
-	return strndup(str + begin, len);
-}
-
 /* =================== Commands storage ===================== */
+
 static struct command_array cmdmap;
 
 int CmdAdd(struct command item)
@@ -203,9 +200,8 @@ int commands__Cmd_Del(char* name)
 	return 0;
 }
 
-
-
 /* =================== Command handlers ===================== */
+
 char luacmdbuf[CMDSZ];
 
 static char* tmp_cmd;
@@ -274,48 +270,34 @@ int command__set(char flags, int c_argc, char **c_argv) {
 }
 
 // :block
-// TODO: implement :block <num> <start> +<size> syntax
+/* Syntax:
+ *	:block add <start> <end>
+ *	or
+ *	:block add <start> +size
+ *	where size can be 456, 15K, 20M
+ */
 int command__block(char flags, int c_argc, char **c_argv) {
 	int n  = 0;
 	char size[256];
+	struct block_item tmp_blk;
 
 	size[0] = '\0';
 
 	if (c_argc == 0) {
 		return -1;
-	} else if (c_argc == 3) {
-		n = atoi(c_argv[0]);
-		if (n >= BLK_COUNT) {
-			ui__ErrorMsg("Too big block number!");
-			return -1;
-		}
-		if (atoi(c_argv[1]) < atoi(c_argv[2])) {
-			data_block[n].pos_start = atoi(c_argv[1]);
-			data_block[n].pos_end = data_block[n].pos_start + atoi(c_argv[2]);
-			data_block[n].palette = 2;
-			data_block[n].hl_toggle = 1;
-			ui__Screen_Repaint();
-		}
 	} else if (c_argc == 4) {
-		n = atoi(c_argv[0]);
-		if (n >= BLK_COUNT) {
-			ui__ErrorMsg("Too big block number!");
-			return -1;
-		}
+		/* Filling info into tmp_blk structure */
+		n = atoi(c_argv[0]); // block id
 		if (atoi(c_argv[1]) < atoi(c_argv[2])) {
-			data_block[n].pos_start = atoi(c_argv[1]);
-			strcpy(size, c_argv[2]);
-			if (size[0] == '+') {
-				data_block[n].pos_end = atoi(bvi_substr(size, 1, strlen(size) - 1));
-			}
-			else {
-				data_block[n].pos_end = atoi(c_argv[2]);
-			}
+			tmp_blk.pos_start = math__eval(MATH_ARITH, c_argv[1]);
+			tmp_blk.pos_end = math__eval(MATH_ARITH, c_argv[2]);
 			if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) > 6))
-				data_block[n].palette = C_HX;
+				tmp_blk.palette = C_HX;
 			else
-				data_block[n].palette = atoi(c_argv[3]);
-			data_block[n].hl_toggle = 1;
+				tmp_blk.palette = atoi(c_argv[3]);
+			tmp_blk.hl_toggle = 1;
+		/* Allocating new block and inserting it into blocks list */
+			blocks__Add(tmp_blk);
 			ui__Screen_Repaint();
 		} else {
 			ui__ErrorMsg("Wrong block start and end values!");
@@ -616,14 +598,10 @@ int command__quit(char flags, int c_argc, char **c_argv) {
 				ui__ErrorMsg(string);
 				return -1;
 			} else
-			keys__Destroy();
-			commands__Destroy();
 			quit();
 			return 0;
 		}
 	} else
-		keys__Destroy();
-		commands__Destroy();
 		quit();
 	return 0;
 }
@@ -1189,15 +1167,15 @@ void do_exit()
 	}
 }
 
-int doecmd(arg, force)
+int doecmd(arg, flags)
 char *arg;
-int force;
+int flags;
 {
 	char *tmp;
 
 	if (*arg == '\0')
 		arg = NULL;
-	if (!force && edits) {
+	if (!(flags & FLAG_FORCE) && edits) {
 		sprintf(string, nowrtmsg, "edit");
 		ui__ErrorMsg(string);
 		/*
@@ -1209,7 +1187,7 @@ int force;
 	}
 	if (arg != NULL) {
 		if (name != NULL && !strcmp(arg, name)) {
-			if (!edits || (edits && !force))
+			if (!edits || (edits && !(flags & FLAG_FORCE)))
 				return TRUE;
 		}
 		if (name != NULL && !strcmp(arg, "#")) {

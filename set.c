@@ -33,7 +33,6 @@
 #include "ui.h"
 #include "keys.h"
 
-extern struct BLOCK_ data_block[BLK_COUNT];
 extern core_t core;
 
 int from_file;

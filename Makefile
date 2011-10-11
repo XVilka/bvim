@@ -29,8 +29,8 @@ libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
 
-OBJS   =  bvi.o commands.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o keys.o
-HEADER =  bvi.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h
+OBJS   =  bvi.o blocks.o keys.o commands.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o
+HEADER =  bvi.h blocks.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
 CFLAGS =  -g -O2  -Wall

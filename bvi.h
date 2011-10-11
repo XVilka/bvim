@@ -1,19 +1,9 @@
 /*  BVI.H
  *
- * 1996-02-28  V 1.0.0
- * 1999-01-21  V 1.1.0
- * 1999-03-17  V 1.1.1
- * 1999-07-01  V 1.2.0 beta
- * 1999-08-21  V 1.2.0 final
- * 2000-05-10  V 1.3.0 alpha
- * 2000-10-24  V 1.3.0 final
- * 2001-10-29  V 1.3.1
- * 2003-07-04  V 1.3.2
- *
  *  NOTE: Edit this file with tabstop=4 !
  *
- * Copyright 1996-2003 by Gerhard Buergmann
- * gerhard@puon.at
+ * Copyright 1996-2003 by Gerhard Buergmann gerhard@puon.at
+ * Copyright 2011 by Anton Kochkov anton.kochkov@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -37,19 +27,13 @@
 #include <sys/stat.h>
 #include <setjmp.h>
 
-#if defined(__MSDOS__) && !defined(DJGPP)
-#	include "patchlev.h"
-#	include "dosconf.h"
-#include "doscur.h"
-#include <alloc.h>
-#else
-#	include "patchlevel.h"
-#	include "config.h"
+#include "patchlevel.h"
+#include "config.h"
+
 #if HAVE_NCURSES_H
 #include <ncurses.h>
 #else
 #include <curses.h>
-#endif
 #endif
 
 /* defines for filemode */
@@ -109,19 +93,8 @@
 #	define FALSE	0
 #endif
 
-#if defined(__MSDOS__) && !defined(DJGPP)
-#	define ANSI
-#	define PTR		char huge *
-#	define off_t	long
-#define DELIM	'\\'
-#define  strncasecmp strnicmp
-#define  strcasecmp	stricmp
-#	define	memcpy	d_memcpy
-#	define	memmove	d_memmove
-#else
-#	define PTR		char *
+#define PTR		char *
 #define DELIM	'/'
-#endif
 
 /* Define escape key */
 #define KEY_ESC		27
@@ -141,15 +114,6 @@ extern FILE *debug_fp;
 #ifndef HAVE_STRERROR
 extern char *sys_errlist[];
 #endif
-
-struct BLOCK_ {
-	unsigned long pos_start;
-	unsigned long pos_end;
-	char name[64];
-	unsigned int hl_toggle;	/* do we need highlight this block? */
-	unsigned short folding;	/* do we need fold this block? */
-	unsigned int palette;	/* pallete, which we are using for highlight this block */
-};
 
 struct MARKERS_ {
 	long address;
@@ -187,7 +151,6 @@ struct CORE {
 		int maxx;
 	} screen;
 	/*
-	   struct KEYMAP;
 	   struct BLOCKS;
 	   struct MARKERS;
 	 */
@@ -196,6 +159,9 @@ struct CORE {
 typedef struct CORE core_t;
 
 struct STATE {
+	/* Command, Edit or Visual modes */
+	int mode;
+	/* Current positions */
 	PTR pagepos;
 	PTR curpos;
 	PTR mempos;
@@ -204,6 +170,7 @@ struct STATE {
 	int loc;
 	int screen;
 	int scrolly;
+	int toggle_selection;
 };
 
 typedef struct STATE state_t;
@@ -252,11 +219,6 @@ extern off_t block_begin, block_end, block_size;
 #define	S_ISBLK(m)	((m & 0170000) == 0060000)	/* block special */
 #define	S_ISREG(m)	((m & 0170000) == 0100000)	/* regular file */
 #define	S_ISFIFO(m)	((m & 0170000) == 0010000)	/* fifo */
-#endif
-
-#if defined(__MSDOS__) && !defined(DJGPP)
-void d_memcpy(PTR, PTR, off_t);
-void d_memmove(PTR, PTR, off_t);
 #endif
 
 #ifdef ANSI
@@ -379,6 +341,7 @@ int handler__nextpage();
 int handler__fileinfo();
 int handler__screen_redraw();
 int handler__linescroll_up();
+int handler__toggle_selection();
 int handler__append_mode();
 int handler__backsearch();
 int handler__setpage();
@@ -387,7 +350,10 @@ int handler__doft2();
 int handler__doft3();
 int handler__goto1();
 int handler__goto2();
-int handler__search_string();
+int handler__search_string1();
+int handler__search_string2();
+int handler__search_string3();
+int handler__search_string4();
 int handler__search_next();
 int handler__mark();
 int handler__goto_mark();
@@ -396,8 +362,10 @@ int handler__overwrite();
 int handler__paste();
 int handler__redo();
 int handler__undo();
+int handler__visual();
 int handler__wordsearch();
 int handler__yank();
 int handler__doz();
 int handler__exit();
 int handler__stuffin();
+

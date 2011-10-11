@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include "bvi.h"
+#include "blocks.h"
 #include "set.h"
 #include "ui.h"
 
 extern core_t core;
 extern state_t state;
-extern struct BLOCK_ data_block[BLK_COUNT];
+//extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
@@ -287,13 +288,61 @@ void printcolorline_dathl(int y, int x, int base_palette, char *string,
 	}
 }
 
+/* -------------------- Highlighting engine --------------------- */
+
+highlight_table hl[BLK_COUNT];
+char* tmp_mem;
+
+int highlight_block(struct block_item *tmp_blk) {
+	int n = 0;
+	int i = 0;
+	
+	if (tmp_blk->hl_toggle == 1) {
+			hl[n].toggle = 1;
+			hl[n].hex_start = 0;
+			hl[n].dat_start = 0;
+			hl[n].palette = tmp_blk->palette;
+			if (hl[n].flg == 1) {
+				hl[n].hex_end = core.params.COLUMNS_DATA * 3;
+				hl[n].dat_end = core.params.COLUMNS_DATA;
+			} else {
+				hl[n].hex_end = 0;
+				hl[n].dat_end = 0;
+			}
+			for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
+				if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (hl[n].flg != 1)) {
+					hl[n].hex_start = i;
+					hl[n].dat_start = i / 3;
+					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
+					hl[n].dat_end = core.params.COLUMNS_DATA;
+					hl[n].flg = 1;
+				} else
+				    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (hl[n].flg != 1)) {
+					hl[n].hex_start = i;
+					hl[n].dat_start = i / 3;
+					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
+					hl[n].dat_end = core.params.COLUMNS_DATA;
+					hl[n].flg = 1;
+				} else
+				    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (hl[n].flg == 1)) {
+					hl[n].hex_end = i + 2;
+					hl[n].dat_end = i / 3 + 1;
+					hl[n].flg = 0;
+				} else
+				    if (((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_end)) {
+					hl[n].flg = 0;
+				}
+			}
+			n++;
+	}
+	return 0;
+}
+
 void ui__Line_Print(mempos, scpos)
 PTR mempos;
 int scpos;
 {
 	char hl_msg[256];
-	highlight_table hl[BLK_COUNT];
-	unsigned int i = 0;
 	unsigned int n = 0;
 	unsigned int k = 0;
 	unsigned int print_pos;
@@ -303,6 +352,7 @@ int scpos;
 	char marker = ' ';
 
 	hl_msg[0] = '\0';
+	*linbuf = '\0';
 
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
@@ -324,66 +374,8 @@ int scpos;
 	nxtpos = 11;
 	*linbuf = '\0';
 
-	/* handle highlighted blocks */
-	for (i = 0; i < BLK_COUNT; i++) {
-		if (data_block[i].hl_toggle == 1) {
-			hl[n].toggle = 1;
-			hl[n].hex_start = 0;
-			hl[n].dat_start = 0;
-			hl[n].palette = data_block[i].palette;
-			if (hl[n].flg == 1) {
-				hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-				hl[n].dat_end = core.params.COLUMNS_DATA;
-			} else {
-				hl[n].hex_end = 0;
-				hl[n].dat_end = 0;
-			}
-			for (print_pos = 0;
-			     print_pos < core.params.COLUMNS_DATA * 3;
-			     print_pos += 3) {
-				if (((long)(mempos - mem + (print_pos / 3)) ==
-				     data_block[i].pos_start) & (hl[n].flg !=
-								 1)) {
-					hl[n].hex_start = print_pos;
-					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end =
-					    core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end =
-					    core.params.COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else
-				    if (((long)(mempos - mem + (print_pos / 3))
-					 <
-					 data_block[i].
-					 pos_end) & ((long)(mempos - mem +
-							    (print_pos / 3)) >
-						     data_block[i].
-						     pos_start) & (hl[n].flg !=
-								   1)) {
-					hl[n].hex_start = print_pos;
-					hl[n].dat_start = print_pos / 3;
-					hl[n].hex_end =
-					    core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end =
-					    core.params.COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else
-				    if (((long)(mempos - mem + (print_pos / 3))
-					 ==
-					 data_block[i].pos_end) & (hl[n].flg ==
-								   1)) {
-					hl[n].hex_end = print_pos + 2;
-					hl[n].dat_end = print_pos / 3 + 1;
-					hl[n].flg = 0;
-				} else
-				    if (((long)(mempos - mem + (print_pos / 3))
-					 > data_block[i].pos_end)) {
-					hl[n].flg = 0;
-				}
-			}
-			n++;
-		}
-	}
+	tmp_mem = mempos;
+	blocks__Iterator(highlight_block, 1);
 
 	for (print_pos = 0; print_pos < core.params.COLUMNS_DATA; print_pos++) {
 		if (mempos + print_pos >= maxpos) {
@@ -443,10 +435,25 @@ int ui__line(int line, int address)
 	return (0);
 }
 
+off_t buf_address;
+
+int fold_block(struct block_item tmp_blk) {
+/*
+	if ((tmp_blk.folding == 1) & (tmp_blk.pos_start < Address) & (tmp_blk.pos_end > Address))
+	{
+		fold_start = tmp_blk.pos_start;
+		fold_end = tmp_blk.pos_end;
+		state.pagepos += (fold_end - fold_start) / core.params.COLUMNS_DATA;
+		// Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
+		return 0;
+	}
+*/
+	return 0;
+}
+
 // Redraw screen
 void ui__Screen_Repaint()
 {
-	off_t Address;
 	int save_y;
 	int fold_start = 0;
 	int fold_end = 0;
@@ -454,22 +461,8 @@ void ui__Screen_Repaint()
 
 	save_y = y;
 	for (y = 0; y < core.screen.maxy; y++) {
-		Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
-		for (i = 0; i < BLK_COUNT; i++) {
-			if ((data_block[i].folding ==
-			     1) & (data_block[i].pos_start <
-				   Address) & (data_block[i].pos_end >
-					       Address)) {
-				fold_start = data_block[i].pos_start;
-				fold_end = data_block[i].pos_end;
-				state.pagepos +=
-				    (fold_end -
-				     fold_start) / core.params.COLUMNS_DATA;
-				/* Address = state.pagepos - mem + y * core.params.COLUMNS_DATA; */
-				break;
-			}
-		}
-		ui__line(y, Address);
+		buf_address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
+		ui__line(y, buf_address);
 	}
 	y = save_y;
 }

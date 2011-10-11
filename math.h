@@ -1,3 +1,8 @@
+#define MATH_ARITH 1
+
+/* Arithmetics */
+long math__eval(int mode, char *expression);
+
 /* Checksums */
 unsigned int crc16(char *addr, int num, unsigned int crc);
 unsigned int crc32(char *addr, int num, unsigned int crc);

@@ -5,36 +5,38 @@ Directions
 2. Add hex-data folding support (or lines, or blocks)
 3. Add GZIP, ZIP, TAR, etc signatures to search and highlight
 4. Add :unmap (:unm) feature
+   -- IN PROGRESS
 5. Add :split feature (low priority)
 6. Add binary diff mode
 7. Templates support (high priority)
 8. Add support for 8-bit, 16-bit, 32-bit, 64-bit and 128-bit modes
 9. Add support for big-endian and little-endian
+10. Add signature search for executable code and file headers
+11. VISUAL mode
 
 Simple tasks
 ============================
 
-1. Add block <start> +<size> syntax
-2. Add history of commands
-3. Ability for list blocks
-4. Add lua events:
+1. Add history of commands
+2. Blocks commands:
+	a) block-save to separate file
+	b) block-reverse
+3. Add lua events:
 	a) cursor move back, forward, up and down
 	b) cursor on some block
-5. Add scrolling in tools window (with keys and from lua) (HIGH PRIORITY!)
-6. Add checks of terminal color mode
-7. Add normal keymapping with keys names
+4. Add scrolling in tools window (with keys and from lua) (HIGH PRIORITY!)
+5. Add checks of terminal color mode
+6. Add normal keymapping with keys names
 	-- IN PROGRESS
-	a) implement all kee handler types and enabled/disable state as bitfields
-	b) move all hardcoded keys into config file
-8. Implement block parameter as bitfields (folding, highlighting, color, etc)
-9. Logic operations (XOR, AND, etc) must support hexadecimal arguments
-10. Prevent blocks overlapping
-11. Add folding empty and repeating data sequences
-12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
-13. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
-14. Rename project to "bvim"
-15. Add lua/plugins hooks into standard handler_* and command_*
-16. Add block and symbol annotations - show when place cursor on it
+7. Implement block parameter as bitfields (folding, highlighting, color, etc)
+8. All operations (XOR, AND, etc) must support hexadecimal arguments
+9. Prevent blocks overlapping
+10. Add folding empty and repeating data sequences
+11. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
+12. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
+13. Rename project to "bvim"
+14. Add lua/plugins hooks into standard handler_* and command_*
+15. Add block and symbol annotations - show when place cursor on it
 
 Refactoring Tasks
 ============================

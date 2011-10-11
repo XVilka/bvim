@@ -58,5 +58,5 @@ int command__not(char, int, char**);
 void commands__Init();
 void commands__Destroy();
 int commands__Cmd_Add(struct command*);
-int commands_Cmd_Del(char *name);
+int commands__Cmd_Del(char *name);
 
