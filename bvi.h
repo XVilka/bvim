@@ -221,6 +221,8 @@ extern off_t block_begin, block_end, block_size;
 #define	S_ISFIFO(m)	((m & 0170000) == 0010000)	/* fifo */
 #endif
 
+/* ================= Debug utilities ================ */
+
 #ifdef ANSI
 off_t alloc_buf(off_t, char **), yd_addr(void);
 off_t range(int);
@@ -289,15 +291,15 @@ int do_substitution();
 int hexchar();
 int outmsg();
 PTR searching();
-PTR wordsearch();
-PTR backsearch();
+PTR wordsearch(PTR start, char mode);
+PTR backsearch(PTR start, char mode);
 int bregexec();
 PTR fsearch();
 PTR rsearch();
 PTR end_word();
 PTR calc_addr();
 PTR do_ft();
-char *patcpy();
+char *patcpy(char* s1, char *s2, char delim);
 void setpage(), msg(), smsg(), wmsg();
 
 void usage(), bvi_init(), statpos(), setcur();

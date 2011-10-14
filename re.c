@@ -46,10 +46,7 @@ char *noprev = "No previous expression";
 char *emptyclass =
     "Bad character class|Empty byte class '[]' or '[^]' cannot match";
 
-char *substr(str, begin, len)
-const char *str;
-size_t begin;
-size_t len;
+char *substr(const char* str, size_t begin, size_t len)
 {
 	if (str == 0 || strlen(str) == 0 || strlen(str) < begin
 	    || strlen(str) < (begin + len))
@@ -59,9 +56,7 @@ size_t len;
 	return strndup(str + begin, len);
 }
 
-int bregexec(start, scan)
-PTR start;
-char *scan;
+int bregexec(PTR start, char* scan)
 {
 	char *act;
 	int count, test;
@@ -142,10 +137,7 @@ char *scan;
 	return 1;		/* found */
 }
 
-static int sbracket(start, scan, count)
-int start;
-char *scan;
-int count;
+static int sbracket(int start, char* scan, int count)
 {
 	if (*scan++ == '^') {
 		if (!memchr(scan, start, --count))
@@ -157,8 +149,7 @@ int count;
 	return 1;
 }
 
-PTR end_word(start)
-PTR start;
+PTR end_word(PTR start)
 {
 	PTR pos;
 
@@ -173,9 +164,7 @@ PTR start;
 
 /* wordsearch serves the 'W' and 'w' - command
  */
-PTR wordsearch(start, mode)
-PTR start;
-char mode;
+PTR wordsearch(PTR start, char mode)
 {
 	PTR found;
 	PTR pos;
@@ -211,9 +200,7 @@ char mode;
 
 /* backsearch serves the 'b' and 'B' command
  */
-PTR backsearch(start, mode)
-PTR start;
-char mode;
+PTR backsearch(PTR start, char mode)
 {
 	PTR pos;
 	int ccount;
@@ -245,11 +232,7 @@ char mode;
 
 /* used by :s
  */
-int do_substitution(delim, line, startpos, endpos)
-int delim;
-char *line;
-PTR startpos;
-PTR endpos;
+int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 {
 	int n;
 	char *found;
@@ -428,12 +411,7 @@ PTR endpos;
  *
  * return	address found
  */
-PTR searching(ch, line, startpos, endpos, flag)
-int ch;
-char *line;
-PTR startpos;
-PTR endpos;
-int flag;
+PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 {
 	char *cmd = NULL;
 	PTR found;
@@ -548,9 +526,7 @@ int flag;
 /* Copies a string from s2 to s1, up to delim or 0
  * returns pointer to next character
  */
-char *patcpy(s1, s2, delim)
-char *s1, *s2;
-char delim;
+char *patcpy(char *s1, char* s2, char delim)
 {
 	while (*s2 != '\0' && *s2 != delim) {
 		if (*s2 == '\\' && *(s2 + 1) == delim)
@@ -563,10 +539,7 @@ char delim;
 	return s2;
 }
 
-PTR fsearch(start, end, smem)
-PTR start;
-PTR end;
-char *smem;
+PTR fsearch(PTR start, PTR end, char* smem)
 {
 	PTR spos;
 
@@ -581,10 +554,7 @@ char *smem;
 	return (NULL);
 }
 
-PTR rsearch(start, end, smem)
-PTR start;
-PTR end;
-char *smem;
+PTR rsearch(PTR start, PTR end, char *smem)
 {
 	PTR spos;
 
@@ -602,9 +572,7 @@ char *smem;
 /* Calculates an address of a colon command
  * returns NULL on error or default_address, if nothing found
  */
-PTR calc_addr(pointer, def_addr)
-char **pointer;
-PTR def_addr;
+PTR calc_addr(char** pointer, PTR def_addr)
 {
 	PTR addr;
 	int ch, mark;

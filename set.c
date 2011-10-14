@@ -59,8 +59,7 @@ struct param params[] = {
 	{"", "", 0, "", 0,}	/* end marker */
 };
 
-int doset(arg)
-char *arg;			/* parameter string */
+int doset(char *arg)
 {
 	int i;
 	char *s;
@@ -190,8 +189,7 @@ char *arg;			/* parameter string */
 }
 
 /* show ALL parameters */
-void showparms(all)
-int all;
+void showparms(int all)
 {
 	struct param *p;
 	int n;
@@ -220,9 +218,7 @@ int all;
 	wait_return(TRUE);
 }
 
-int getcmdstr(p, x)
-char *p;
-int x;
+int getcmdstr(char* p, int x)
 {
 	int c;
 	int n;

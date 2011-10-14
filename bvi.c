@@ -864,8 +864,7 @@ static FILE *ffp;
 static char fbuf[256];
 
 /* reads the init file (.bvirc) */
-int read_rc(fn)
-char *fn;
+int read_rc(char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
 		return -1;
@@ -880,8 +879,7 @@ char *fn;
 }
 
 /* reads the history file (.bvihistory) */
-int read_history(fn)
-char *fn;
+int read_history(char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
 		return -1;
@@ -901,9 +899,7 @@ void usage()
 	exit(1);
 }
 
-int main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char* argv[])
 {
 	int ch;
 	int n = 1;
@@ -1188,8 +1184,7 @@ char *argv[];
 	} while (1);
 }
 
-off_t calc_size(arg)
-char *arg;
+off_t calc_size(char* arg)
 {
 	long val;
 	char *poi;
@@ -1231,9 +1226,7 @@ void trunc_cur()
 	ui__Screen_Repaint();
 }
 
-int do_append(count, buf)
-int count;
-char *buf;
+int do_append(int count, char* buf)
 {
 	if (filesize + count > memsize) {
 		if (enlarge(count + 100L))
@@ -1249,8 +1242,7 @@ char *buf;
 	return 0;
 }
 
-void do_tilde(count)
-off_t count;
+void do_tilde(off_t count)
 {
 	if (filesize == 0L)
 		return;
@@ -1336,10 +1328,7 @@ void do_undo()
 	ui__Screen_Repaint();
 }
 
-void do_over(loc, n, buf)
-PTR loc;
-off_t n;
-PTR buf;
+void do_over(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
 		ui__ErrorMsg(nobytes);
@@ -1359,10 +1348,7 @@ PTR buf;
 	ui__Screen_Repaint();
 }
 
-void do_put(loc, n, buf)
-PTR loc;
-off_t n;
-PTR buf;
+void do_put(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
 		ui__ErrorMsg(nobytes);
@@ -1389,8 +1375,7 @@ PTR buf;
 }
 
 /* argument sig not used, because only SIGINT will be catched */
-void jmpproc(sig)
-int sig;
+void jmpproc(int sig)
 {
 	if (P(P_EB))
 		beep();
@@ -1400,8 +1385,7 @@ int sig;
 	longjmp(env, 0);
 }
 
-off_t range(ch)
-int ch;
+off_t range(int ch)
 {
 	int ch1;
 	long count;

@@ -269,43 +269,78 @@ int command__set(char flags, int c_argc, char **c_argv) {
 	return -1;
 }
 
-// :block
-/* Syntax:
+/* COMMAND: ":block"
+ *
+ * Syntax:
  *	:block add <start> <end>
  *	or
  *	:block add <start> +size
  *	where size can be 456, 15K, 20M
+ *	:block del <id>
+ *	or
+ *	:block del <start>
+ *	or
+ *	:block info <id>
+ *	or
+ *	:block list
  */
 int command__block(char flags, int c_argc, char **c_argv) {
-	int n  = 0;
 	char size[256];
 	struct block_item tmp_blk;
+	
+	// Need to be removed/cleared
+	char tmptmp[256];
+	tmptmp[0] = '\0';
+	struct block_item *blkblk;
 
 	size[0] = '\0';
 
 	if (c_argc == 0) {
 		return -1;
-	} else if (c_argc == 4) {
-		/* Filling info into tmp_blk structure */
-		n = atoi(c_argv[0]); // block id
-		if (atoi(c_argv[1]) < atoi(c_argv[2])) {
-			tmp_blk.pos_start = math__eval(MATH_ARITH, c_argv[1]);
-			tmp_blk.pos_end = math__eval(MATH_ARITH, c_argv[2]);
-			if ((atoi(c_argv[3]) < 0) | (atoi(c_argv[3]) > 6))
-				tmp_blk.palette = C_HX;
-			else
-				tmp_blk.palette = atoi(c_argv[3]);
-			tmp_blk.hl_toggle = 1;
-		/* Allocating new block and inserting it into blocks list */
-			blocks__Add(tmp_blk);
-			ui__Screen_Repaint();
+	} else {
+		/* :block add */
+		if (!strncmp(c_argv[0], "add", 3)) {
+			if (c_argc == 5) {
+				/* Filling info into tmp_blk structure */
+				tmp_blk.id = (unsigned int)atoi(c_argv[1]); // block id
+				if (atoi(c_argv[2]) < atoi(c_argv[3])) {
+					tmp_blk.pos_start = math__eval(MATH_ARITH, c_argv[2]);
+					tmp_blk.pos_end = math__eval(MATH_ARITH, c_argv[3]);
+					if ((atoi(c_argv[4]) < 0) | (atoi(c_argv[4]) > 6))
+						tmp_blk.palette = C_HX;
+					else
+						tmp_blk.palette = atoi(c_argv[4]);
+					tmp_blk.hl_toggle = 1;
+					tmp_blk.folding = 0;
+					/* Allocating new block and inserting it into blocks list */
+					blocks__Add(tmp_blk);
+
+					// this we need to remove too
+					blkblk = blocks__GetByID(tmp_blk.id);
+					sprintf(tmptmp, "Added block: start %d end %d", blkblk->pos_start, blkblk->pos_end);
+					
+					ui__Screen_Repaint();
+
+					// And this need to be destroyed too
+					ui__ErrorMsg(tmptmp);
+				} else {
+					ui__ErrorMsg("Wrong block start and end values!");
+					return -1;
+				}
+			} else {
+				ui__ErrorMsg("Wrong :block command format!");
+				return -1;
+			}
+		/* :block del */
+		} else if (!strncmp(c_argv[0], "del", 3)) {
+		/* :block info */
+		} else if (!strncmp(c_argv[0], "info", 4)) {
+		/* :block list */
+		} else if (!strncmp(c_argv[0], "list", 4)) {
 		} else {
-			ui__ErrorMsg("Wrong block start and end values!");
+			ui__ErrorMsg("Wrong :block command format!");
 			return -1;
 		}
-	} else {
-		ui__ErrorMsg("Wrong :block command format!");
-		return -1;
 	}
 	return 0;
 }
@@ -738,8 +773,7 @@ int command__not(char flags, int c_argc, char **c_argv) {
 /* =============== End of command handlers ================== */
 
 /* Record commands history */
-void record_cmd(cmdline)
-char *cmdline;
+void record_cmd(char* cmdline)
 {
 
 }
@@ -752,8 +786,7 @@ char *cmdline;
  * Handles a colon command received interactively by getcmdln() or from
  * the environment variable "BVIINIT" (or eventually .bvirc).
  */
-void docmdline(cmdline)
-char *cmdline;
+void docmdline(char* cmdline)
 {
 	char buff[CMDSZ];
 	char cmdbuf[CMDSZ];
@@ -1000,7 +1033,7 @@ char *cmdline;
 						ui__ErrorMsg(string);
 						return;
 					} else {	/* APPEND */
-/* We can only append to a regular file! */
+					/* We can only append to a regular file! */
 						if (S_ISREG(buf.st_mode)) {
 							if (filemode == PARTIAL)
 								filemode =
@@ -1018,9 +1051,9 @@ char *cmdline;
 						ui__ErrorMsg("No such file");
 						return;
 					} else {	/* WRITE */
-/* If we write the block of a partial file to a new file, it will
- * become a regular file!
- */
+					/* If we write the block of a partial file to a new file, it will
+					 * become a regular file!
+					 */
 						if (filemode == PARTIAL)
 							filemode = REGULAR;
 						ok = save(c_argv[0], start_addr,
@@ -1167,9 +1200,7 @@ void do_exit()
 	}
 }
 
-int doecmd(arg, flags)
-char *arg;
-int flags;
+int doecmd(char* arg, int flags)
 {
 	char *tmp;
 
@@ -1220,11 +1251,8 @@ int flags;
 	return TRUE;
 }
 
-/* If flag == TRUE we do a ui__Screen_Repaint
- *
- */
-int wait_return(flag)
-int flag;
+/* If flag == TRUE we do a ui__Screen_Repaint */
+int wait_return(int flag)
 {
 	int c;
 
@@ -1246,8 +1274,8 @@ int flag;
 	return 0;
 }
 
-int chk_comm(flag)
-int flag;
+/* check command arguments for integrity */
+int chk_comm(int flag)
 {
 	if ((flag & NO_ADDR) && (addr_flag > 0)) {
 		ui__ErrorMsg(noaddr);

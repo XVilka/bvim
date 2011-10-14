@@ -48,9 +48,7 @@ long math__eval(int mode, char* expression) {
 
 /* Logic functions */
 
-int do_logic(mode, str)
-int mode;
-char *str;
+int do_logic(int mode, char* str)
 {
 	int a, b;
 	int value;
@@ -143,10 +141,7 @@ char *str;
 	return (0);
 }
 
-int do_logic_block(mode, str, block_id)
-int mode;
-char *str;
-int block_id;
+int do_logic_block(int mode, char* str, int block_id)
 {
 	int a, b;
 	int value;
@@ -388,7 +383,7 @@ int sha1_file(char *path, char outputBuffer[65])
 	}
 
 	SHA1_Final(hash, &sha1);
-	sha1_hash_string(hash, strlen(hash), outputBuffer);
+	sha1_hash_string(hash, strlen((char*)hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
@@ -431,7 +426,7 @@ int sha256_file(char *path, char outputBuffer[65])
 	}
 
 	SHA256_Final(hash, &sha256);
-	sha256_hash_string(hash, strlen(hash), outputBuffer);
+	sha256_hash_string(hash, strlen((char*)hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
@@ -474,7 +469,7 @@ int sha512_file(char *path, char outputBuffer[129])
 	}
 
 	SHA512_Final(hash, &sha512);
-	sha512_hash_string(hash, strlen(hash), outputBuffer);
+	sha512_hash_string(hash, strlen((char*)hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;
@@ -520,7 +515,7 @@ int ripemd160_file(char *path, char outputBuffer[65])
 	}
 
 	RIPEMD160_Final(hash, &ripemd160);
-	ripemd160_hash_string(hash, strlen(hash), outputBuffer);
+	ripemd160_hash_string(hash, strlen((char*)hash), outputBuffer);
 	fclose(file);
 	free(buffer);
 	return 0;

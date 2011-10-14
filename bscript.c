@@ -151,7 +151,7 @@ static int bvi_block_select(lua_State * L)
 static int bvi_block_fold(lua_State * L)
 {
 	struct block_item *tmp_blk;
-	int id = 0;
+	unsigned int id = 0;
 	if (lua_gettop(L) == 1) {
 		id = (int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
@@ -173,7 +173,7 @@ static int bvi_block_fold(lua_State * L)
 static int bvi_block_read(lua_State * L)
 {
 	struct block_item *tmp_blk;
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	if (lua_gettop(L) == 1) {
 		id = (int)lua_tonumber(L, 1);
@@ -197,7 +197,7 @@ static int bvi_block_read(lua_State * L)
 /* lua: block_and(block_number, mask) */
 static int bvi_block_and(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -218,7 +218,7 @@ static int bvi_block_and(lua_State * L)
 /* lua: block_or(block_number, mask) */
 static int bvi_block_or(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -240,7 +240,7 @@ static int bvi_block_or(lua_State * L)
 /* lua: block_xor(block_number, mask) */
 static int bvi_block_xor(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -262,7 +262,7 @@ static int bvi_block_xor(lua_State * L)
 /* lua: block_lshift(block_number, count) */
 static int bvi_block_lshift(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -284,7 +284,7 @@ static int bvi_block_lshift(lua_State * L)
 /* lua: block_rshift(block_number, count) */
 static int bvi_block_rshift(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -306,7 +306,7 @@ static int bvi_block_rshift(lua_State * L)
 /* lua: block_lrotate(block_number, count) */
 static int bvi_block_lrotate(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -328,7 +328,7 @@ static int bvi_block_lrotate(lua_State * L)
 /* lua: block_rrotate(block_number, count) */
 static int bvi_block_rrotate(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	struct block_item *tmp_blk;
 
 	if (lua_gettop(L) == 2) {
@@ -351,7 +351,7 @@ static int bvi_block_rrotate(lua_State * L)
 /* lua: crc16("string") */
 static int bvi_crc16(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	unsigned int crc = 0;
@@ -384,7 +384,7 @@ static int bvi_crc16(lua_State * L)
 /* lua: crc32("string") */
 static int bvi_crc32(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	unsigned int crc = 0;
@@ -417,7 +417,7 @@ static int bvi_crc32(lua_State * L)
 /* lua: md4_hash("string") */
 static int bvi_md4_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[65];
@@ -454,7 +454,7 @@ static int bvi_md4_hash(lua_State * L)
 /* lua: md5_hash("string") */
 static int bvi_md5_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[65];
@@ -491,7 +491,7 @@ static int bvi_md5_hash(lua_State * L)
 /* lua: sha1_hash("string") */
 static int bvi_sha1_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[65];
@@ -528,7 +528,7 @@ static int bvi_sha1_hash(lua_State * L)
 /* lua: sha256_hash("string") */
 static int bvi_sha256_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[65];
@@ -566,7 +566,7 @@ static int bvi_sha256_hash(lua_State * L)
 /* lua: sha512_hash("string") */
 static int bvi_sha512_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[129];
@@ -604,7 +604,7 @@ static int bvi_sha512_hash(lua_State * L)
 /* lua: ripemd160_hash("string") */
 static int bvi_ripemd160_hash(lua_State * L)
 {
-	int id = 0;
+	unsigned int id = 0;
 	char *blck = NULL;
 	struct block_item *tmp_blk;
 	char hash[65];

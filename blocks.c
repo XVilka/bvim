@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "bvi.h"
 #include "blocks.h"
 #include "bscript.h"
@@ -22,15 +23,15 @@ int InitBlocksList(int N)
 int BlockAdd(struct block_item i)
 {
 	block_link t = NULL;
-	t = (block_link)malloc(sizeof(block_link));
+	t = (block_link)malloc(sizeof(*t));
 	if (t != NULL) {
 		t->item = i;
 		if (blocks != NULL) {
 			t->next = blocks->next;
 			blocks->next = t;
 		} else {
-			t->next = NULL;
 			blocks = t;
+			blocks->next = NULL;
 		}
 	} else {
 		return -1;
@@ -51,7 +52,7 @@ void BlockInsertNext(block_link x, block_link t)
 
 block_link BlockDeleteNext(block_link x)
 {
-	block_link t;
+	block_link t =  NULL;
 	if (x != NULL) {
 		t = x->next;
 		x->next = t->next;
@@ -103,17 +104,43 @@ int blocks__DelByName(char* name) {
 	return 0;
 }
 
-struct block_item* blocks__GetByID(int id) {
+struct block_item* blocks__GetByID(unsigned int id) {
+	block_link t;
+	
+	t = blocks;
+	
+	while (t != NULL)
+	{
+		FILE *fp = fopen("debugging.log", "a");
+		fprintf(fp, "blocks__GetByID(%d): t != NULL\n\t\tt->item.id = %d\n", id, id);
+		fclose(fp);
+
+		if (t->item.id == id) return &(t->item);
+		t = t->next;
+	}
 	return NULL;
 }
 
 struct block_item* blocks__GetByName(char* name) {
+	block_link t;
+
+	t = blocks;
+
+	while (t != NULL)
+	{
+		FILE *fp = fopen("debugging.log", "a");
+		fprintf(fp, "blocks__GetByName(%s): t != NULL\n\t\tt->item.name = %s\n", name, name);
+		fclose(fp);
+
+		if (!strcmp(t->item.name, name)) return &(t->item);
+		t = t->next;
+	}
 	return NULL;
 }
 
 int blocks__Init()
 {
-	InitBlocksList(10);
+	//InitBlocksList(10);
 	return 0;
 }
 
@@ -123,7 +150,7 @@ int blocks__Destroy()
 	t = blocks;
 	while (t != NULL)
 	{
-		BlockFree(t);
+		free(t);
 		t = t->next;
 	}
 	return 0;

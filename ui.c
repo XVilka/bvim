@@ -376,6 +376,7 @@ int scpos;
 
 	tmp_mem = mempos;
 	blocks__Iterator(highlight_block, 1);
+	mempos = tmp_mem;
 
 	for (print_pos = 0; print_pos < core.params.COLUMNS_DATA; print_pos++) {
 		if (mempos + print_pos >= maxpos) {

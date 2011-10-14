@@ -62,8 +62,7 @@ static char *getcnext = NULL;
  * for insert and append we misuse the undo buffer for the inserted
  * characters (for "." command)
  */
-off_t edit(mode)
-int mode;
+off_t edit(int mode)
 {
 	unsigned int ch, ch1;
 	size_t len;
@@ -295,8 +294,7 @@ int mode;
  * If flag == 1 save the character in rep_buf
  * else setpage()
  */
-PTR do_ft(ch, flag)
-int ch, flag;
+PTR do_ft(int ch, int flag)
 {
 	static int chi;
 	static int chp = 1;
@@ -369,8 +367,7 @@ int ch, flag;
 	return NULL;
 }
 
-void do_z(mode)
-int mode;
+void do_z(int mode)
 {
 	switch (mode) {
 	case '.':
@@ -410,8 +407,7 @@ int mode;
 }
 
 /* Scroll down on <count> lines */
-void scrolldown(lines)
-int lines;
+void scrolldown(int lines)
 {
 	while (lines--) {
 		if (maxpos >= (state.pagepos + core.params.COLUMNS_DATA))
@@ -426,8 +422,7 @@ int lines;
 }
 
 /* Scroll up on <count> lines */
-void scrollup(lines)
-int lines;
+void scrollup(int lines)
 {
 	while (lines--) {
 		if (mem <= (PTR) (state.pagepos - core.params.COLUMNS_DATA))
@@ -510,8 +505,7 @@ void statpos()
 }
 
 /******* display an arbitrary address on screen *******/
-void setpage(addr)
-PTR addr;
+void setpage(PTR addr)
 {
 	if ((addr >= state.pagepos) && ((addr - state.pagepos) < state.screen)) {
 		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
@@ -548,8 +542,7 @@ PTR addr;
 	}
 }
 
-int cur_forw(check)
-int check;
+int cur_forw(int check)
 {
 	if (check) {
 		if (current - mem >= filesize) {
@@ -628,8 +621,7 @@ int cur_back()
 	}
 }
 
-void fileinfo(fname)
-char *fname;
+void fileinfo(char* fname)
 {
 	off_t bytepos;
 	char fstatus[64];
@@ -686,8 +678,7 @@ int vgetc()
 	return getch();
 }
 
-void stuffin(s)
-char *s;
+void stuffin(char* s)
 {
 	if (s == NULL) {	/* clear the stuff buffer */
 		getcnext = NULL;
@@ -700,9 +691,7 @@ char *s;
 		strcat(getcbuff, s);
 }
 
-void do_back(n, start)
-off_t n;
-PTR start;
+void do_back(off_t n, PTR start)
 {
 	if (start - n < mem) {
 		beep();
@@ -722,9 +711,7 @@ PTR start;
 	ui__Screen_Repaint();
 }
 
-int do_delete(n, start)
-off_t n;
-PTR start;
+int do_delete(off_t n, PTR start)
 {
 	if (n + start > maxpos) {
 		beep();
@@ -752,10 +739,7 @@ PTR start;
 /*
  * The :insert, :append and :change command
  */
-void do_ins_chg(start, arg, mode)
-PTR start;
-char *arg;
-int mode;
+void do_ins_chg(PTR start, char* arg, int mode)
 {
 	int base;
 	off_t buffer = BUFFER;
@@ -830,7 +814,8 @@ int mode;
 				if (val > 255 || val < 0 || poi == epoi) {
 					ui__Screen_Repaint();
 					ui__ErrorMsg("Invalid value");
-					goto mfree;
+					free(tempbuf);
+					return;
 				}
 				poi = epoi;
 				*(tempbuf + count++) = val;
@@ -839,12 +824,14 @@ int mode;
 		addch('\n');
 		if (getcmdstr(cmdstr, 0) == 1) {
 			ui__Screen_Repaint();
-			goto mfree;
+			free(tempbuf);
+			return;
 		}
 	}
 	if (count == 0) {
 		ui__Screen_Repaint();
-		goto mfree;
+		free(tempbuf);
+		return;
 	}
 	switch (mode) {
 	case U_INSERT:
@@ -856,19 +843,16 @@ int mode;
 	case U_APPEND:
 		if ((undo_count = alloc_buf(count, &undo_buf)) == 0L) {
 			ui__Screen_Repaint();
-			goto mfree;
+			free(tempbuf);
+			return;
 		}
 		do_append(count, tempbuf);
 		memcpy(undo_buf, tempbuf, count);
 		ui__Screen_Repaint();
 		break;
 	}
-      mfree:
-#if defined(__MSDOS__) && !defined(DJGPP)
-	farfree(tempbuf);
-#else
 	free(tempbuf);
-#endif
+	return;
 }
 
 void clear_marks()
@@ -880,9 +864,7 @@ void clear_marks()
 	last_motion = mem;
 }
 
-void do_mark(mark, addr)
-int mark;
-PTR addr;
+void do_mark(int mark, PTR addr)
 {
 	if (mark < 'a' || mark > 'z' || current >= maxpos)
 		return;
