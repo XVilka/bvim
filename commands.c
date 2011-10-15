@@ -283,6 +283,10 @@ int command__set(char flags, int c_argc, char **c_argv) {
  *	:block info <id>
  *	or
  *	:block list
+ *	or
+ *	:block save <id> <filename>
+ *	or
+ *	:block yank <id>
  */
 int command__block(char flags, int c_argc, char **c_argv) {
 	char size[256];
@@ -337,6 +341,10 @@ int command__block(char flags, int c_argc, char **c_argv) {
 		} else if (!strncmp(c_argv[0], "info", 4)) {
 		/* :block list */
 		} else if (!strncmp(c_argv[0], "list", 4)) {
+		/* :block save */
+		} else if (!strncmp(c_argv[0], "save", 4)) {
+		/* :block yank */
+		} else if (!strncmp(c_argv[0], "yank", 4)) {
 		} else {
 			ui__ErrorMsg("Wrong :block command format!");
 			return -1;

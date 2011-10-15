@@ -53,11 +53,7 @@ static off_t block_read;
 char *terminal;
 
 /*********** Save the patched file ********************/
-int save(fname, start, end, flags)
-char *fname;
-char *start;
-char *end;
-int flags;
+int save(char* fname, char* start, char* end, int flags)
 {
 	int fd;
 	char string[255];
@@ -127,8 +123,7 @@ int flags;
 }
 
 /* loads a file, returns the filesize */
-off_t load(fname)
-char *fname;
+off_t load(char* fname)
 {
 	int fd = -1;
 	char string[MAXCMD];
@@ -265,8 +260,7 @@ char *fname;
 /* argument "dir" not used! 
  * Needed for DOS version only
  */
-void bvi_init(dir)
-char *dir;
+void bvi_init(char* dir)
 {
 	char *initstr;
 	char rcpath[MAXCMD];
@@ -302,8 +296,7 @@ char *dir;
 
 }
 
-int enlarge(add)
-off_t add;
+int enlarge(off_t add)
 {
 	char *newmem;
 	off_t savecur, savepag, savemax, saveundo;
@@ -338,47 +331,12 @@ void do_shell()
 	int shresult = 0;
 	addch('\n');
 	savetty();
-#ifdef DJGPP
-	shresult = system("");
-	ui__ErrorMsg("DOS have no support for shell commands!");
-#else
 	shresult = system(shell);
 	msg("shell executed successfully!");
-#endif
 	resetty();
 }
 
-#ifndef HAVE_STRDUP
-char *strdup(s)
-char *s;
-{
-	char *p;
-	size_t n;
-
-	n = strlen(s) + 1;
-	if ((p = (char *)malloc(n)) != NULL)
-		memcpy(p, s, n);
-	return (p);
-}
-#endif
-
-#ifndef HAVE_MEMMOVE
-/*
- * Copy contents of memory (with possible overlapping).
- */
-char *memmove(s1, s2, n)
-char *s1;
-char *s2;
-size_t n;
-{
-	bcopy(s2, s1, n);
-	return (s1);
-}
-#endif
-
-off_t alloc_buf(n, buffer)
-off_t n;
-char **buffer;
+off_t alloc_buf(off_t n, char** buffer)
 {
 	if (*buffer == NULL) {
 		*buffer = (char *)malloc(n);
@@ -392,8 +350,7 @@ char **buffer;
 	return n;
 }
 
-int addfile(fname)
-char *fname;
+int addfile(char* fname)
 {
 	int fd;
 	off_t oldsize;
@@ -419,3 +376,26 @@ char *fname;
 	setpage(mem + oldsize);
 	return 0;
 }
+
+#ifndef HAVE_STRDUP
+char *strdup(char* s)
+{
+	char *p;
+	size_t n;
+
+	n = strlen(s) + 1;
+	if ((p = (char *)malloc(n)) != NULL)
+		memcpy(p, s, n);
+	return (p);
+}
+#endif
+
+#ifndef HAVE_MEMMOVE
+char *memmove(char* s1, char* s2, size_t n)
+{
+	bcopy(s2, s1, n);
+	return (s1);
+}
+#endif
+
+

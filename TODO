@@ -13,6 +13,8 @@ Directions
 9. Add support for big-endian and little-endian
 10. Add signature search for executable code and file headers
 11. VISUAL mode
+12. Add tabs for various buffers
+13. Add tools tabs (e.g. for templates, history, etc)
 
 Simple tasks
 ============================

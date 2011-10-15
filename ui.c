@@ -6,7 +6,7 @@
 
 extern core_t core;
 extern state_t state;
-//extern struct BLOCK_ data_block[BLK_COUNT];
+
 extern struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
@@ -38,7 +38,7 @@ struct {
 
 void ui__Init()
 {
-	// Initialisation of curses
+	// Initialization of curses
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
@@ -244,6 +244,97 @@ int ui__Color_Set(char *arg)
 	return 0;
 }
 
+/* -------------------- Highlighting engine --------------------- */
+
+hl_link hl = NULL;
+char* tmp_mem;
+
+/* ========== Abstracts ========== */
+
+int HighlightAdd(struct hl_item i)
+{
+	hl_link t = NULL;
+	t = (hl_link)malloc(sizeof(*t));
+	if (t != NULL) {
+		t->item = i;
+		if (hl != NULL) {
+			t->next = hl->next;
+			hl->next = t;
+		} else {
+			hl = t;
+			hl->next = NULL;
+		}
+	} else {
+		return -1;
+	}
+	return 0;
+}
+
+/* Iterator of any functions on highlights list,
+ * where result - expected result for function
+ * All blocks are unique */
+int HighlightIterator(int (*(func))(), int result)
+{
+	hl_link t;
+	t = hl;
+	while (t != NULL)
+	{
+		if ((*(func))(&(t->item)) == result) {
+			return 0;
+		}
+		t = t->next;
+	}
+	return -1;
+}
+
+
+/* =========== Implementation ========= */
+
+int highlight_block(struct block_item *tmp_blk) {
+	int i = 0;
+	struct hl_item thl;
+
+	if (tmp_blk->hl_toggle == 1) {
+		thl.toggle = 1;
+		thl.hex_start = 0;
+		thl.dat_start = 0;
+		thl.palette = tmp_blk->palette;
+		if (thl.flg == 1) {
+			thl.hex_end = core.params.COLUMNS_DATA * 3;
+			thl.dat_end = core.params.COLUMNS_DATA;
+		} else {
+			thl.hex_end = 0;
+			thl.dat_end = 0;
+		}
+		for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
+			if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (thl.flg != 1)) {
+				thl.hex_start = i;
+				thl.dat_start = i / 3;
+				thl.hex_end = core.params.COLUMNS_DATA * 3;
+				thl.dat_end = core.params.COLUMNS_DATA;
+				thl.flg = 1;
+			} else
+			    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (thl.flg != 1)) {
+				thl.hex_start = i;
+				thl.dat_start = i / 3;
+				thl.hex_end = core.params.COLUMNS_DATA * 3;
+				thl.dat_end = core.params.COLUMNS_DATA;
+				thl.flg = 1;
+			} else
+			    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (thl.flg == 1)) {
+				thl.hex_end = i + 2;
+				thl.dat_end = i / 3 + 1;
+				thl.flg = 0;
+			} else
+			    if (((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_end)) {
+				thl.flg = 0;
+			}
+		}
+		HighlightAdd(thl);
+	}
+	return 0;
+}
+
 /* ========================== lines print interface ====================== */
 
 void printcolorline(int y, int x, int palette, char *string)
@@ -254,96 +345,41 @@ void printcolorline(int y, int x, int palette, char *string)
 	attroff(COLOR_PAIR(palette));
 }
 
-void printcolorline_hexhl(int y, int x, int base_palette, char *string,
-			  highlight_table * hl, unsigned int hl_tbl_size)
+void printcolorline_hexhl(int y, int x, int base_palette, char *string)
 {
-	unsigned int i;
-	printcolorline(y, x, base_palette, string);
-	for (i = 0; i < hl_tbl_size; i++) {
-		if ((hl[i].hex_start < hl[i].hex_end) & (hl[i].toggle == 1)) {
-			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].hex_start,
-				 substr(string, hl[i].hex_start,
-					hl[i].hex_end - hl[i].hex_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT |
-				A_BOLD);
-		}
-	}
-}
-
-void printcolorline_dathl(int y, int x, int base_palette, char *string,
-			  highlight_table * hl, unsigned int hl_tbl_size)
-{
-	unsigned int i;
-	printcolorline(y, x, base_palette, string);
-	for (i = 0; i < hl_tbl_size; i++) {
-		if ((hl[i].dat_start < hl[i].dat_end) & (hl[i].toggle == 1)) {
-			attron(COLOR_PAIR(hl[i].palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + hl[i].dat_start,
-				 substr(string, hl[i].dat_start,
-					hl[i].dat_end - hl[i].dat_start));
-			attroff(COLOR_PAIR(hl[i].palette) | A_STANDOUT |
-				A_BOLD);
-		}
-	}
-}
-
-/* -------------------- Highlighting engine --------------------- */
-
-highlight_table hl[BLK_COUNT];
-char* tmp_mem;
-
-int highlight_block(struct block_item *tmp_blk) {
-	int n = 0;
-	int i = 0;
+	hl_link t;
 	
-	if (tmp_blk->hl_toggle == 1) {
-			hl[n].toggle = 1;
-			hl[n].hex_start = 0;
-			hl[n].dat_start = 0;
-			hl[n].palette = tmp_blk->palette;
-			if (hl[n].flg == 1) {
-				hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-				hl[n].dat_end = core.params.COLUMNS_DATA;
-			} else {
-				hl[n].hex_end = 0;
-				hl[n].dat_end = 0;
-			}
-			for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
-				if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (hl[n].flg != 1)) {
-					hl[n].hex_start = i;
-					hl[n].dat_start = i / 3;
-					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end = core.params.COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else
-				    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (hl[n].flg != 1)) {
-					hl[n].hex_start = i;
-					hl[n].dat_start = i / 3;
-					hl[n].hex_end = core.params.COLUMNS_DATA * 3;
-					hl[n].dat_end = core.params.COLUMNS_DATA;
-					hl[n].flg = 1;
-				} else
-				    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (hl[n].flg == 1)) {
-					hl[n].hex_end = i + 2;
-					hl[n].dat_end = i / 3 + 1;
-					hl[n].flg = 0;
-				} else
-				    if (((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_end)) {
-					hl[n].flg = 0;
-				}
-			}
-			n++;
+	printcolorline(y, x, base_palette, string);
+	t = hl;
+	while (t != NULL) {
+		if ((t->item.hex_start < t->item.hex_end) & (t->item.toggle == 1)) {
+			attron(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
+			mvaddstr(y, x + t->item.hex_start, substr(string, t->item.hex_start, t->item.hex_end - t->item.hex_start));
+			attroff(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
+		}
+		t = t->next;
 	}
-	return 0;
 }
 
-void ui__Line_Print(mempos, scpos)
-PTR mempos;
-int scpos;
+void printcolorline_dathl(int y, int x, int base_palette, char *string)
+{
+	hl_link t;
+
+	printcolorline(y, x, base_palette, string);
+	t = hl;
+	while (t != NULL) {
+		if ((t->item.dat_start < t->item.dat_end) & (t->item.toggle == 1)) {
+			attron(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
+			mvaddstr(y, x + t->item.dat_start, substr(string, t->item.dat_start, t->item.dat_end - t->item.dat_start));
+			attroff(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
+		}
+		t = t->next;
+	}
+}
+
+void ui__Line_Print(PTR mempos, int scpos)
 {
 	char hl_msg[256];
-	unsigned int n = 0;
 	unsigned int k = 0;
 	unsigned int print_pos;
 	int nxtpos = 0;
@@ -396,12 +432,12 @@ int scpos;
 
 	/* load color from C(C_HX) */
 	strcat(linbuf, "|");
-	printcolorline_hexhl(scpos, nxtpos, C_HX, linbuf, hl, n + 1);
+	printcolorline_hexhl(scpos, nxtpos, C_HX, linbuf);
 
 	/* strcat(linbuf, string); */
 	nxtpos += strlen(linbuf);
 	/* load color from C(C_DT) */
-	printcolorline_dathl(scpos, nxtpos, C_DT, string, hl, n + 1);
+	printcolorline_dathl(scpos, nxtpos, C_DT, string);
 }
 
 /* TODO: add hex-data folding feature */
@@ -479,8 +515,7 @@ void clearstr()
 }
 
 // Displays an error message
-void ui__ErrorMsg(s)
-char *s;
+void ui__ErrorMsg(char* s)
 {
 	int cnt;
 
@@ -499,8 +534,7 @@ char *s;
 }
 
 // System error message
-void sysemsg(s)
-char *s;
+void sysemsg(char* s)
 {
 	char string[256];
 
@@ -514,8 +548,7 @@ char *s;
 }
 
 /*** displays mode if showmode set *****/
-void smsg(s)
-char *s;
+void smsg(char* s)
 {
 	if (P(P_MO)) {
 		msg(s);
@@ -524,10 +557,7 @@ char *s;
 }
 
 /*** display window ***/
-void ui__MsgWin_Show(s, height, width)
-char *s;
-int height;
-int width;
+void ui__MsgWin_Show(char* s, int height, int width)
 {
 	WINDOW *msg_win;
 	int starty = (LINES - height) / 2;	/* Calculating for a center placement */
@@ -550,8 +580,7 @@ int width;
 }
 
 /************* displays s on status line *****************/
-void msg(s)
-char *s;
+void msg(char* s)
 {
 	clearstr();
 	if (outmsg(s) >= (core.screen.maxx - 25)) {	/* 25 = status */
@@ -560,8 +589,7 @@ char *s;
 	}
 }
 
-int outmsg(s)
-char *s;
+int outmsg(char *s)
 {
 	char *poi;
 	int cnt = 0;

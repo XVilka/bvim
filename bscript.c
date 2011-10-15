@@ -1,3 +1,5 @@
+#include <fcntl.h>
+
 /* Include the Lua API header files. */
 #include <lua.h>
 #include <lauxlib.h>
@@ -15,10 +17,10 @@
 
 lua_State *lstate;
 
-//extern struct BLOCK_ data_block[BLK_COUNT];
 extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
 extern PTR mem;
+extern PTR maxpos;
 
 /* -----------------------------------------------------------------------------
  *                       Interface for plugins API
@@ -84,7 +86,17 @@ static int bvi_command_del(lua_State *L)
 /* lua: save(filename, [start, end, flags]) */
 static int bvi_save(lua_State * L)
 {
-	/* save(filename, start, end, flags); */
+	char *filename;
+	int flags = O_RDWR;
+	int n = lua_gettop(L);
+	if (n == 1) {
+		filename = (char*)lua_tostring(L, 1);
+		save(filename, mem, maxpos, flags);
+	} else if (n == 2) {
+		filename = (char*)lua_tostring(L, 1);
+		flags = (int)lua_tonumber(L, 2);
+		save(filename, mem, maxpos, flags);
+	}
 	return 0;
 }
 
