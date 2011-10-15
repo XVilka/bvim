@@ -318,7 +318,8 @@ int command__block(char flags, int c_argc, char **c_argv) {
 					tmp_blk.folding = 0;
 					/* Allocating new block and inserting it into blocks list */
 					blocks__Add(tmp_blk);
-
+					// Adding block to highlights
+					ui__BlockHighlightAdd(&tmp_blk);
 					// this we need to remove too
 					blkblk = blocks__GetByID(tmp_blk.id);
 					sprintf(tmptmp, "Added block: start %d end %d", blkblk->pos_start, blkblk->pos_end);

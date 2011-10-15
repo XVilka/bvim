@@ -146,6 +146,7 @@ static int bvi_block_select(lua_State * L)
 			tmp_blk.palette = (unsigned int)lua_tonumber(L, 4);
 			tmp_blk.hl_toggle = 1;
 			blocks__Add(tmp_blk);
+			ui__BlockHighlightAdd(&tmp_blk);
 			ui__Screen_Repaint();
 		} else {
 			ui__ErrorMsg("Wrong block ID! It already exist!");

@@ -270,6 +270,14 @@ int HighlightAdd(struct hl_item i)
 	return 0;
 }
 
+int ui__BlockHighlightAdd(struct block_item *i)
+{
+	struct hl_item t;
+	t.id = i->id;
+	HighlightAdd(t);
+	return 0;
+}
+
 /* Iterator of any functions on highlights list,
  * where result - expected result for function
  * All blocks are unique */
@@ -287,50 +295,64 @@ int HighlightIterator(int (*(func))(), int result)
 	return -1;
 }
 
+struct hl_item* HighlightGetByID(unsigned int id) {
+	hl_link t;
+	
+	t = hl;
+	
+	while (t != NULL)
+	{
+		if (t->item.id == id) return &(t->item);
+		t = t->next;
+	}
+	return NULL;
+}
+
 
 /* =========== Implementation ========= */
 
 int highlight_block(struct block_item *tmp_blk) {
 	int i = 0;
-	struct hl_item thl;
-
+	struct hl_item *thl;
+// TODO: Implement recursive handling for highlights
 	if (tmp_blk->hl_toggle == 1) {
-		thl.toggle = 1;
-		thl.hex_start = 0;
-		thl.dat_start = 0;
-		thl.palette = tmp_blk->palette;
-		if (thl.flg == 1) {
-			thl.hex_end = core.params.COLUMNS_DATA * 3;
-			thl.dat_end = core.params.COLUMNS_DATA;
+		thl = HighlightGetByID(tmp_blk->id);
+		thl->id = tmp_blk->id;
+		thl->toggle = 1;
+		thl->hex_start = 0;
+		thl->dat_start = 0;
+		thl->palette = tmp_blk->palette;
+		if (thl->flg == 1) {
+			thl->hex_end = core.params.COLUMNS_DATA * 3;
+			thl->dat_end = core.params.COLUMNS_DATA;
 		} else {
-			thl.hex_end = 0;
-			thl.dat_end = 0;
+			thl->hex_end = 0;
+			thl->dat_end = 0;
 		}
 		for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
-			if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (thl.flg != 1)) {
-				thl.hex_start = i;
-				thl.dat_start = i / 3;
-				thl.hex_end = core.params.COLUMNS_DATA * 3;
-				thl.dat_end = core.params.COLUMNS_DATA;
-				thl.flg = 1;
+			if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (thl->flg != 1)) {
+				thl->hex_start = i;
+				thl->dat_start = i / 3;
+				thl->hex_end = core.params.COLUMNS_DATA * 3;
+				thl->dat_end = core.params.COLUMNS_DATA;
+				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (thl.flg != 1)) {
-				thl.hex_start = i;
-				thl.dat_start = i / 3;
-				thl.hex_end = core.params.COLUMNS_DATA * 3;
-				thl.dat_end = core.params.COLUMNS_DATA;
-				thl.flg = 1;
+			    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (thl->flg != 1)) {
+				thl->hex_start = i;
+				thl->dat_start = i / 3;
+				thl->hex_end = core.params.COLUMNS_DATA * 3;
+				thl->dat_end = core.params.COLUMNS_DATA;
+				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (thl.flg == 1)) {
-				thl.hex_end = i + 2;
-				thl.dat_end = i / 3 + 1;
-				thl.flg = 0;
+			    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (thl->flg == 1)) {
+				thl->hex_end = i + 2;
+				thl->dat_end = i / 3 + 1;
+				thl->flg = 0;
 			} else
 			    if (((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_end)) {
-				thl.flg = 0;
+				thl->flg = 0;
 			}
 		}
-		HighlightAdd(thl);
 	}
 	return 0;
 }

@@ -58,3 +58,6 @@ void ui__Colors_Save();
 void ui__Screen_New(), ui__Screen_Repaint();
 
 #endif
+
+int ui__BlockHighlightAdd(struct block_item *blk);
+
