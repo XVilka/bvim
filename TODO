@@ -2,6 +2,7 @@ Directions
 ===========================
 
 1. Add C-syntax structures parsing and searching (high priority)
+   -- IN PROGRESS
 2. Add hex-data folding support (or lines, or blocks)
 3. Add GZIP, ZIP, TAR, etc signatures to search and highlight
 4. Add :unmap (:unm) feature
@@ -32,10 +33,11 @@ Simple tasks
 	-- IN PROGRESS
 7. Implement block parameter as bitfields (folding, highlighting, color, etc) (LOW PRIORITY)
 8. All operations (XOR, AND, etc) must support hexadecimal arguments
+	-- IN PROGRESS
 9. Prevent blocks overlapping
 10. Add folding empty and repeating data sequences
 11. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
-12. Add C plugins api, with ability for register lua funcs, events, keymaps and :commands
+12. Add C plugins api, with ability for register lua functions, events, keymaps and :commands
 13. Rename project to "bvim"
 14. Add lua/plugins hooks into standard handler_* and command_*
 15. Add block and symbol annotations - show when place cursor on it
