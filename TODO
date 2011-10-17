@@ -30,7 +30,7 @@ Simple tasks
 5. Add checks of terminal color mode
 6. Add normal keymapping with keys names
 	-- IN PROGRESS
-7. Implement block parameter as bitfields (folding, highlighting, color, etc)
+7. Implement block parameter as bitfields (folding, highlighting, color, etc) (LOW PRIORITY)
 8. All operations (XOR, AND, etc) must support hexadecimal arguments
 9. Prevent blocks overlapping
 10. Add folding empty and repeating data sequences
@@ -53,3 +53,11 @@ Refactoring Tasks
 6. Split all output to another file console.c, add unified API for GUI
 	-- IN PROGRESS
 7. Add doxygen documentation
+
+Not needed to refactor:
+ keys.c
+ keys.h
+ bscript.c
+ bscript.h
+ blocks.c
+ blocks.h

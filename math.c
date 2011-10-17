@@ -15,6 +15,8 @@ char* bvi_substr(const char* str, size_t begin, size_t len)
 	return strndup(str + begin, len);
 }
 
+// TODO: Implement recognition of hexadecimal, binary, octary, decimal arithmetics.
+// TODO: Implement simple operations: +,-,*,/,mod,>>,<<,^,|,&.
 long math__eval(int mode, char* expression) {
 	char multiplicator;
 	long i = 1;
