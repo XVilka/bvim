@@ -892,6 +892,26 @@ int read_history(char* fn)
 	return 0;
 }
 
+/* Record commands history */
+void record_cmd(char* cmdline)
+{
+// TODO: record plain commands in one file, block commands content - in files with unique name
+// this means, that it will be full-featured history with infinite undo/redo
+	char rcpath[256];
+	FILE *hifile = NULL;
+
+	rcpath[0] = '\0';
+	strcat(rcpath, getenv("HOME"));
+	strcat(rcpath, "/.bvihistory");
+	hifile = fopen(rcpath, "a");
+	if (!strcmp(cmdline, "q")) {
+		fprintf(hifile, "### Session quit ###\n");
+	} else {
+		fprintf(hifile, "%s\n", cmdline);
+	}
+	fclose(hifile);
+}
+
 void usage()
 {
 	fprintf(stderr, "Usage: %s [-R] [-c cmd | +cmd] [-f script]\n\

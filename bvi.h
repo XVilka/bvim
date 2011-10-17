@@ -318,6 +318,9 @@ char *substr();
 int wait_return();
 #endif
 
+int read_history(char *filename);
+void record_cmd(char* cmdline);
+
 /* ========= Event handlers ======== */
 
 int handler__goto_HEX();

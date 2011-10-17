@@ -43,7 +43,6 @@ char contru[][4] = { "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
 	"DEL"
 };
 
-//struct BLOCK_ data_block[BLK_COUNT];
 struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];

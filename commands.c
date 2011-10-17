@@ -650,6 +650,8 @@ int command__quit(char flags, int c_argc, char **c_argv) {
 	return 0;
 }
 
+// TODO: Implement math expressions calculations here
+
 // :sleft
 int command__sleft(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
@@ -781,14 +783,6 @@ int command__not(char flags, int c_argc, char **c_argv) {
 
 /* =============== End of command handlers ================== */
 
-/* Record commands history */
-void record_cmd(char* cmdline)
-{
-
-}
-
-/* TODO: move command handling engine on dynamic array */
-
 /*
  * docmdline() - handle a colon command
  *
@@ -864,12 +858,14 @@ void docmdline(char* cmdline)
 	}
 
 	SKIP_WHITE
-/**** End of address range calculation ****/
-	    if (*cmd == '\0') {
+	/**** End of address range calculation ****/
+	
+	if (*cmd == '\0') {
 		setpage(end_addr);
 		return;
 	}
 	strcpy(cmdbuf, cmd);	/* save the unmodified command */
+	record_cmd(cmd);
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
