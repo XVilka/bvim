@@ -30,7 +30,7 @@ libdir = $(DESTDIR)@libdir@
 man1dir = $(mandir)/man1
 
 OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o
-HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h
+HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  @CC@
 CFLAGS =  @CFLAGS@ @CPPFLAGS@

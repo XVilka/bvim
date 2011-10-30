@@ -27,6 +27,8 @@
 #include "ui.h"
 #include "commands.h"
 
+#include "messages.h"
+
 #ifdef HAVE_LUA_H
 #include <lua.h>
 #include <lauxlib.h>
@@ -217,7 +219,7 @@ int command__help(char flags, int c_argc, char **c_argv) {
 			if (strncmp(c_argv[0], cmdmap.arr[i].name, strlen(cmdmap.arr[i].name))) {
 				ui__ErrorMsg("Command not exist!");
 			} else {
-				ui__ErrorMsg(cmdmap.arr[i].description);
+				ui__StatusMsg(cmdmap.arr[i].description);
 				return 0;
 			}
 			i++;
@@ -339,7 +341,7 @@ int command__block(char flags, int c_argc, char **c_argv) {
 					ui__BlockHighlightAdd(&tmp_blk);
 					// this we need to remove too
 					blkblk = blocks__GetByID(tmp_blk.id);
-					sprintf(tmptmp, "Added block: start %d end %d", blkblk->pos_start, blkblk->pos_end);
+					sprintf(tmptmp, "Added block: start %ld end %ld", blkblk->pos_start, blkblk->pos_end);
 					
 					ui__Screen_Repaint();
 
@@ -403,7 +405,7 @@ int command__args(char flags, int c_argc, char **c_argv) {
 			strcat(string, "]");
 		strcat(string, " ");
 	}
-	msg(string);
+	ui__StatusMsg(string);
 	return 0;
 }
 
@@ -434,7 +436,7 @@ int command__cd(char flags, int c_argc, char **c_argv) {
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, mem, maxpos, WRITE);
+				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
 				sprintf(string, nowrtmsg, "cd");
@@ -511,7 +513,7 @@ int command__next(char flags, int c_argc, char **c_argv) {
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, mem, maxpos, WRITE);
+				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
 				sprintf(string, nowrtmsg, "next");
@@ -541,7 +543,7 @@ int command__rewind(char flags, int c_argc, char **c_argv) {
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, mem, maxpos, WRITE);
+				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
 				sprintf(string, nowrtmsg, "rewind");
@@ -602,7 +604,7 @@ int command__yank(char flags, int c_argc, char **c_argv) {
 		return -1;
 	memcpy(yank_buf, start_addr, yanked);
 	sprintf(string, "%lu bytes", (long)yanked);
-	msg(string);
+	ui__StatusMsg(string);
 	return 0;
 }
 
@@ -629,7 +631,7 @@ int command__version(char flags, int c_argc, char **c_argv) {
 	if (chk_comm(NO_ADDR | NO_ARG))
 		return -1;
 	sprintf(string, "bvi version %s %s", VERSION, copyright);
-	msg(string);
+	ui__StatusMsg(string);
 	return 0;
 }
 
@@ -835,13 +837,13 @@ void docmdline(char* cmdline)
 	 * go to the end of the file (not line like in vi).
 	 */
 	addr_flag = 0;
-	start_addr = mem;
+	start_addr = core.editor.mem;
 	end_addr = maxpos - 1;
 	SKIP_WHITE if (*cmd == '%') {
 		cmd++;
 		addr_flag = 2;
 	} else {
-		if ((start_addr = calc_addr(&cmd, mem)) == NULL) {
+		if ((start_addr = calc_addr(&cmd, core.editor.mem)) == NULL) {
 			return;
 		}
 		if (*cmd == ',') {
@@ -867,7 +869,7 @@ void docmdline(char* cmdline)
 		ui__ErrorMsg("Not that many bytes@in buffer");
 		return;
 	}
-	if (start_addr < mem) {
+	if (start_addr < core.editor.mem) {
 		sprintf(string, "Negative address@- first byte is %ld",
 			P(P_OF));
 		ui__ErrorMsg(string);
@@ -893,7 +895,7 @@ void docmdline(char* cmdline)
 		if (*(cmdbuf + 1) == '!') {
 			if (oldbuf[0] != '\0') {
 				strcpy(cmdbuf + 1, oldbuf);
-				msg(oldbuf);
+				ui__StatusMsg(oldbuf);
 			} else {
 				ui__ErrorMsg
 				    ("No previous command@to substitute for !");
@@ -903,11 +905,11 @@ void docmdline(char* cmdline)
 			sprintf(oldbuf, "\n%s\n", cmdbuf + 1);
 
 		if (P(P_AW)) {
-			save(name, mem, maxpos, WRITE);
+			save(name, core.editor.mem, maxpos, WRITE);
 			edits = 0;
 		}
 		if (edits)
-			msg("[No write]|[No write since last change]");
+			ui__StatusMsg("[No write]|[No write since last change]");
 		savetty();
 		endwin();
 		shresult = system(cmdbuf + 1);
@@ -951,7 +953,7 @@ void docmdline(char* cmdline)
 		} else if (repl_count > 1) {
 			sprintf(string, "%d subs|%d substitutions", repl_count,
 				repl_count);
-			msg(string);
+			ui__StatusMsg(string);
 		}
 		return;
 	} else if (!strncmp("global", cmdname, len) && CMDLNG(6, 1)) {
@@ -974,7 +976,7 @@ void docmdline(char* cmdline)
 			wait_return(TRUE);
 		} else {
 			ui__Screen_Repaint();
-			ui__ErrorMsg(notfound);
+			ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
 		}
 		return;
 	} else if (cmdname[0] == 't') {
@@ -1131,7 +1133,7 @@ void docmdline(char* cmdline)
 					return;
 				do_delete(undo_count, start_addr);
 				sprintf(string, "%lu bytes", (long)undo_count);
-				msg(string);
+				ui__StatusMsg(string);
 			} else if (!strncmp("insert", cmdname, len)
 				   && CMDLNG(6, 1)) {
 				if (chk_comm(MAX_ONE_ARG))
@@ -1206,7 +1208,7 @@ off_t yd_addr()
 void do_exit()
 {
 	if (edits) {
-		if (!save(name, mem, maxpos - 1L, WRITE))
+		if (!save(name, core.editor.mem, maxpos - 1L, WRITE))
 			return;
 	}
 	if ((curfile + 1) < numfiles) {

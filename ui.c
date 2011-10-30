@@ -330,26 +330,26 @@ int highlight_block(struct block_item *tmp_blk) {
 			thl->dat_end = 0;
 		}
 		for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
-			if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_start) & (thl->flg != 1)) {
+			if (((long)(tmp_mem - core.editor.mem + (i / 3)) == tmp_blk->pos_start) & (thl->flg != 1)) {
 				thl->hex_start = i;
 				thl->dat_start = i / 3;
 				thl->hex_end = core.params.COLUMNS_DATA * 3;
 				thl->dat_end = core.params.COLUMNS_DATA;
 				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_start) & (thl->flg != 1)) {
+			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - core.editor.mem + (i / 3)) > tmp_blk->pos_start) & (thl->flg != 1)) {
 				thl->hex_start = i;
 				thl->dat_start = i / 3;
 				thl->hex_end = core.params.COLUMNS_DATA * 3;
 				thl->dat_end = core.params.COLUMNS_DATA;
 				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - mem + (i / 3)) == tmp_blk->pos_end) & (thl->flg == 1)) {
+			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) == tmp_blk->pos_end) & (thl->flg == 1)) {
 				thl->hex_end = i + 2;
 				thl->dat_end = i / 3 + 1;
 				thl->flg = 0;
 			} else
-			    if (((long)(tmp_mem - mem + (i / 3)) > tmp_blk->pos_end)) {
+			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) > tmp_blk->pos_end)) {
 				thl->flg = 0;
 			}
 		}
@@ -415,7 +415,7 @@ void ui__Line_Print(PTR mempos, int scpos)
 	if (mempos > maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
-		address = (long)(mempos - mem + P(P_OF));
+		address = (long)(mempos - core.editor.mem + P(P_OF));
 		while (markers[k].address != 0) {
 			if (markers[k].address == address) {
 				marker = markers[k].marker;
@@ -471,8 +471,8 @@ int ui__lineout()
 {
 	off_t Address;
 
-	Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
-	ui__Line_Print(mem + Address, y);
+	Address = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA;
+	ui__Line_Print(core.editor.mem + Address, y);
 	move(y, x);
 	/*if (k != 0) 
 	   y = k;
@@ -489,7 +489,7 @@ void ui__Screen_New()
 
 int ui__line(int line, int address)
 {
-	ui__Line_Print(mem + address, line);
+	ui__Line_Print(core.editor.mem + address, line);
 	move(line, x);
 	return (0);
 }
@@ -503,7 +503,7 @@ int fold_block(struct block_item tmp_blk) {
 		fold_start = tmp_blk.pos_start;
 		fold_end = tmp_blk.pos_end;
 		state.pagepos += (fold_end - fold_start) / core.params.COLUMNS_DATA;
-		// Address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
+		// Address = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA;
 		return 0;
 	}
 */
@@ -520,7 +520,7 @@ void ui__Screen_Repaint()
 
 	save_y = y;
 	for (y = 0; y < core.screen.maxy; y++) {
-		buf_address = state.pagepos - mem + y * core.params.COLUMNS_DATA;
+		buf_address = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA;
 		ui__line(y, buf_address);
 	}
 	y = save_y;
@@ -573,7 +573,7 @@ void sysemsg(char* s)
 void smsg(char* s)
 {
 	if (P(P_MO)) {
-		msg(s);
+		ui__StatusMsg(s);
 		setcur();
 	}
 }
@@ -602,7 +602,7 @@ void ui__MsgWin_Show(char* s, int height, int width)
 }
 
 /************* displays s on status line *****************/
-void msg(char* s)
+void ui__StatusMsg(char* s)
 {
 	clearstr();
 	if (outmsg(s) >= (core.screen.maxx - 25)) {	/* 25 = status */

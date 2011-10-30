@@ -27,8 +27,11 @@
  */
 
 #include	"bvi.h"
+#include	"blocks.h"
 #include	"set.h"
 #include	"ui.h"
+
+#include	"messages.h"
 
 char *poi;
 int smode;
@@ -38,7 +41,6 @@ int ignore_case = 0;
 
 extern long bytepos;
 extern int ignore_case;
-extern char *emptyclass;
 
 /*
  *  Compiling an ASCII sequence to a regex string
@@ -74,7 +76,7 @@ char *pattern;
 			}
 			poi++;
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				ui__ErrorMsg(emptyclass);
+				ui__ErrorMsg(BVI_ERROR_EMPTYCLASS);
 				return 1;
 			}
 			if (magic) {
@@ -215,7 +217,7 @@ char *pattern;
 				poi++;
 
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				ui__ErrorMsg(emptyclass);
+				ui__ErrorMsg(BVI_ERROR_EMPTYCLASS);
 				return 1;
 			}
 			if (*(end + 1) == '*')

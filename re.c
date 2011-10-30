@@ -30,8 +30,12 @@
  */
 
 #include	"bvi.h"
+#include	"blocks.h"
 #include	"set.h"
 #include	"ui.h"
+
+/* Error and informational messages */
+#include	"messages.h"
 
 extern core_t core;
 extern state_t state;
@@ -41,10 +45,6 @@ static int sbracket();
 char act_pat[MAXCMD];		/* found pattern */
 char pattern[MAXCMD + 1];
 char search_pat[BUFFER];	/* / or ? command */
-char *notfound = "Fail|Pattern not found";
-char *noprev = "No previous expression";
-char *emptyclass =
-    "Bad character class|Empty byte class '[]' or '[^]' cannot match";
 
 char *substr(const char* str, size_t begin, size_t len)
 {
@@ -209,24 +209,24 @@ PTR backsearch(PTR start, char mode)
 	do {
 		if (mode == 'B') {
 			while (*pos != '\0' && *pos != '\n')
-				if (pos-- < mem)
+				if (pos-- < core.editor.mem)
 					return start;
 		} else {
 			while (!isprint(*pos & 0xff))
-				if (pos-- < mem)
+				if (pos-- < core.editor.mem)
 					return start;
 		}
 		pos--;
 		ccount = 0;
 		while (isprint(*pos & 0xff)) {
-			if (pos-- < mem)
+			if (pos-- < core.editor.mem)
 				return start;
 			ccount++;
 		}
 		if (ccount >= P(P_WL))
 			return (pos + 1);
 
-	} while (pos > mem);
+	} while (pos > core.editor.mem);
 	return start;
 }
 
@@ -355,12 +355,12 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 	if (direct == FORWARD) {
 		found = fsearch(startpos + 1, endpos, find_pat);
 	} else {
-		found = rsearch(startpos - 1, mem, find_pat);
+		found = rsearch(startpos - 1, core.editor.mem, find_pat);
 	}
 	if (!found) {
 		if (!repl_count) {
 			if (P(P_WS)) {
-				ui__ErrorMsg(notfound);
+				ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
 			} else {
 				if (P(P_TE))
 					sprintf(string, "No match to %s",
@@ -379,7 +379,7 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 		setpage(found);
 		if (conf) {
 			ui__Screen_Repaint();
-			msg("Replace?");
+			ui__StatusMsg("Replace?");
 			move(y, x);
 			if (vgetc() != 'y')
 				goto SKIP;
@@ -420,7 +420,7 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 	static int direct;
 
 	if (line[0] == '\0' && again == 0) {
-		ui__ErrorMsg(noprev);
+		ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
 		return 0L;
 	}
 
@@ -460,7 +460,7 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 			return 0L;
 	} else {
 		cmd = "";
-		msg(m);
+		ui__StatusMsg(m);
 	}
 	move(core.screen.maxy, 0);
 	refresh();
@@ -472,22 +472,22 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 			return (found);
 		if (!found)
 			if (flag & 1) {
-				msg("Search wrapped BOTTOM|Search wrapped around BOTTOM of buffer");
-				found = fsearch(mem, startpos, search_pat);
+				ui__StatusMsg("Search wrapped BOTTOM|Search wrapped around BOTTOM of buffer");
+				found = fsearch(core.editor.mem, startpos, search_pat);
 			}
 	} else {
-		found = rsearch(startpos - 1, mem, search_pat);
+		found = rsearch(startpos - 1, core.editor.mem, search_pat);
 		if (flag & S_GLOBAL)
 			return (found);
 		if (!found)
 			if (flag & 1) {
-				msg("Search wrapped TOP|Search wrapped around TOP of buffer");
+				ui__StatusMsg("Search wrapped TOP|Search wrapped around TOP of buffer");
 				found = rsearch(endpos, startpos, search_pat);
 			}
 	}
 	if (!found) {
 		if (flag & 1) {
-			ui__ErrorMsg(notfound);
+			ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
 		} else {
 			if (P(P_TE)) {
 				sprintf(string, "No match to %s",
@@ -581,7 +581,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 	cmd = *pointer;
 	addr = def_addr;
 	SKIP_WHITE if (*cmd >= '1' && *cmd <= '9') {
-		addr = mem + strtol(cmd, &cmd, 10) - P(P_OF);
+		addr = core.editor.mem + strtol(cmd, &cmd, 10) - P(P_OF);
 	} else {
 		ch = *cmd;
 		switch (ch) {
@@ -590,7 +590,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 			cmd++;
 			break;
 		case '^':
-			addr = mem;
+			addr = core.editor.mem;
 			cmd++;
 			break;
 		case '$':
@@ -618,7 +618,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 		case '/':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				ui__ErrorMsg(noprev);
+				ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {
@@ -631,13 +631,13 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = fsearch(mem, maxpos - 1, search_pat);
+			addr = fsearch(core.editor.mem, maxpos - 1, search_pat);
 			break;
 		case '#':
 		case '?':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				ui__ErrorMsg(noprev);
+				ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {
@@ -650,10 +650,10 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = rsearch(maxpos - 1, mem, search_pat);
+			addr = rsearch(maxpos - 1, core.editor.mem, search_pat);
 			break;
 		case '0':
-			addr = mem + strtol(cmd, &cmd, 16) - P(P_OF);
+			addr = core.editor.mem + strtol(cmd, &cmd, 16) - P(P_OF);
 			break;
 		}
 	}

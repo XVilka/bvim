@@ -17,9 +17,11 @@
 
 lua_State *lstate;
 
+extern core_t core;
+extern state_t state;
+
 extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
-extern PTR mem;
 extern PTR maxpos;
 
 /* -----------------------------------------------------------------------------
@@ -91,11 +93,11 @@ static int bvi_save(lua_State * L)
 	int n = lua_gettop(L);
 	if (n == 1) {
 		filename = (char*)lua_tostring(L, 1);
-		save(filename, mem, maxpos, flags);
+		save(filename, core.editor.mem, maxpos, flags);
 	} else if (n == 2) {
 		filename = (char*)lua_tostring(L, 1);
 		flags = (int)lua_tonumber(L, 2);
-		save(filename, mem, maxpos, flags);
+		save(filename, core.editor.mem, maxpos, flags);
 	}
 	return 0;
 }
@@ -374,7 +376,7 @@ static int bvi_crc16(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end -  tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				crc = crc16(blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, crc);
 				lua_pushnumber(L, crc);
 				return 1;
@@ -407,7 +409,7 @@ static int bvi_crc32(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				crc = crc32(blck,  tmp_blk->pos_end - tmp_blk->pos_start + 1, crc);
 				lua_pushnumber(L, crc);
 				return 1;
@@ -441,7 +443,7 @@ static int bvi_md4_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				md4_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -478,7 +480,7 @@ static int bvi_md5_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				md5_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -515,7 +517,7 @@ static int bvi_sha1_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_end)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				sha1_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -552,7 +554,7 @@ static int bvi_sha256_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_end)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				sha256_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -590,7 +592,7 @@ static int bvi_sha512_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				sha512_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -628,7 +630,7 @@ static int bvi_ripemd160_hash(lua_State * L)
 			tmp_blk = blocks__GetByID(id);
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				ripemd160_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
@@ -663,17 +665,17 @@ static int bvi_search_bytes(lua_State * L)
 	int i = 0;
 
 	msgbuf[0] = '\0';
-	start_addr = mem;
+	start_addr = core.editor.mem;
 	if (lua_gettop(L) == 1) {
 		bytes = (char *)lua_tostring(L, -1);
 		result =
 		    searching('\\', bytes, start_addr, maxpos - 1,
 			      FALSE | S_GLOBAL);
 		/*
-		   sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - mem));
+		   sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - core.editor.mem));
 		   wmsg(msgbuf, 3, strlen(msgbuf) + 4);
 		 */
-		lua_pushnumber(L, (long)(result - mem));
+		lua_pushnumber(L, (long)(result - core.editor.mem));
 		return 1;
 	} else if (lua_gettop(L) == 2) {
 		bytes = (char *)lua_tostring(L, 1);
@@ -683,7 +685,7 @@ static int bvi_search_bytes(lua_State * L)
 				result =
 				    searching('\\', bytes, start_addr,
 					      maxpos - 1, FALSE | S_GLOBAL);
-				lua_pushnumber(L, (long)(result - mem));
+				lua_pushnumber(L, (long)(result - core.editor.mem));
 				i++;
 			}
 		}
@@ -703,7 +705,7 @@ static int bvi_replace_bytes(lua_State * L)
 	char *target;
 	char bytesbuf[256];
 	bytesbuf[0] = '\0';
-	start_addr = mem;
+	start_addr = core.editor.mem;
 	if (lua_gettop(L) == 2) {
 		bytes = (char *)lua_tostring(L, 1);
 		target = (char *)lua_tostring(L, 2);
@@ -746,7 +748,7 @@ static int bvi_status_line_msg(lua_State * L)
 	char *message;
 	if (lua_gettop(L) != 0) {
 		message = (char *)lua_tostring(L, -1);
-		msg(message);
+		ui__StatusMsg(message);
 	}
 	return 0;
 }
@@ -920,7 +922,7 @@ static int bvi_setpage(lua_State * L)
 		address = (int)lua_tonumber(L, 1);
 	} else
 		address = 0;
-	setpage(address);
+	setpage(core.editor.mem + address);
 	return 0;
 }
 

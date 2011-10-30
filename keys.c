@@ -1,4 +1,6 @@
 #include "bvi.h"
+#include "blocks.h"
+#include "ui.h"
 #include "keys.h"
 #include "bscript.h"
 
@@ -241,7 +243,7 @@ void keys__KeyMaps_Show(void)
 		strcat(dispbuf, luacmdbuf);
 		i++;
 	}
-	msg(dispbuf);
+	ui__StatusMsg(dispbuf);
 	wait_return(TRUE);
 }
 

@@ -29,6 +29,7 @@
  */
 
 #include "bvi.h"
+#include "blocks.h"
 #include "set.h"
 #include "ui.h"
 #include "keys.h"
@@ -111,7 +112,7 @@ int doset(char *arg)
 			else
 				sprintf(buf, "      %s=%ld", params[i].fullname,
 					params[i].nvalue);
-			msg(buf);
+			ui__StatusMsg(buf);
 			return 0;
 		}
 		if (!strcmp(params[i].fullname, "term")) {
@@ -195,7 +196,7 @@ void showparms(int all)
 	int n;
 
 	n = 2;
-	msg("Parameters:\n");
+	ui__StatusMsg("Parameters:\n");
 	for (p = &params[0]; p->fullname[0] != '\0'; p++) {
 		if (!all && ((p->flags & P_CHANGED) == 0))
 			continue;
@@ -207,7 +208,7 @@ void showparms(int all)
 		else
 			sprintf(buf, "      %s=%ld\n", p->fullname, p->nvalue);
 
-		msg(buf);
+		ui__StatusMsg(buf);
 		n++;
 		if (n == params[P_LI].nvalue) {
 			if (wait_return(FALSE))
@@ -255,7 +256,7 @@ int getcmdstr(char* p, int x)
 				move(core.screen.maxy, n);
 			} else {
 				*buff = '\0';
-				msg("");
+				ui__StatusMsg("");
 				attroff(COLOR_PAIR(C_CM + 1));
 				signal(SIGINT, SIG_IGN);
 				return 1;
@@ -263,7 +264,7 @@ int getcmdstr(char* p, int x)
 			break;
 		case ESC:	/* abandon command */
 			*buff = '\0';
-			msg("");
+			ui__StatusMsg("");
 			attroff(COLOR_PAIR(C_CM + 1));
 			signal(SIGINT, SIG_IGN);
 			return 1;

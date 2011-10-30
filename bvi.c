@@ -21,11 +21,11 @@
 #include <sys/types.h>
 
 #include "bvi.h"
+#include "blocks.h"
 #include "set.h"
 #include "ui.h"
 #include "keys.h"
 #include "commands.h"
-#include "blocks.h"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -53,7 +53,8 @@ int x, xx, y;
 int status;
 off_t size;
 
-PTR mem = NULL;
+//PTR mem = NULL;
+//core.editor.mem
 PTR curpos;
 PTR maxpos;
 /* PTR pagepos; */
@@ -337,10 +338,10 @@ int handler__cmdstring()
 //case KEY_PPAGE:
 int handler__previous_page()
 {
-	if (mem <= (PTR) (state.pagepos - state.screen))
+	if (core.editor.mem <= (PTR) (state.pagepos - state.screen))
 		state.pagepos -= state.screen;
 	else
-		state.pagepos = mem;
+		state.pagepos = core.editor.mem;
 	ui__Screen_Repaint();
 	return 0;
 }
@@ -379,9 +380,9 @@ int handler__nextpage()
 	if (maxpos >= (PTR) (state.pagepos + state.screen)) {
 		state.pagepos += state.screen;
 		current += state.screen;
-		if (current - mem >= filesize) {
-			current = mem + filesize;
-			setpage((PTR) (mem + filesize - 1L));
+		if (current - core.editor.mem >= filesize) {
+			current = core.editor.mem + filesize;
+			setpage((PTR) (core.editor.mem + filesize - 1L));
 		}
 		ui__Screen_Repaint();
 	}
@@ -427,7 +428,7 @@ int handler__toggle_selection()
 int handler__append_mode()
 {
 	smsg("APPEND MODE");
-	current = (PTR) (mem + filesize - 1L);
+	current = (PTR) (core.editor.mem + filesize - 1L);
 	setpage(current++);
 	cur_forw(0);
 	setcur();
@@ -485,10 +486,10 @@ int handler__goto1()
 		    || (precount - P(P_OF)) > (filesize - 1L)) {
 			beep();
 		} else {
-			setpage((PTR) (mem + precount - P(P_OF)));
+			setpage((PTR) (core.editor.mem + precount - P(P_OF)));
 		}
 	} else {
-		setpage((PTR) (mem + filesize - 1L));
+		setpage((PTR) (core.editor.mem + filesize - 1L));
 	}
 	return 0;
 }
@@ -499,7 +500,7 @@ int handler__goto2()
 	off_t inaddr;
 
 	last_motion = current;
-	msg("Goto Hex Address: ");
+	ui__StatusMsg("Goto Hex Address: ");
 	refresh();
 	getcmdstr(cmdstr, 19);
 	if (cmdstr[0] == '^') {
@@ -515,7 +516,7 @@ int handler__goto2()
 		return -1;
 	inaddr -= P(P_OF);
 	if (inaddr < filesize) {
-		setpage(mem + inaddr);
+		setpage(core.editor.mem + inaddr);
 	} else {
 		if (filesize == 0L)
 			return -1;
@@ -768,8 +769,8 @@ int handler__stuffin()
 int handler__insert()
 {
 	sprintf(rep_buf, "%ldI", precount);
-	current = mem;
-	setpage(mem);
+	current = core.editor.mem;
+	setpage(core.editor.mem);
 	ui__Screen_Repaint();
 	undo_count = edit('i');
 	lflag++;
@@ -1100,7 +1101,8 @@ int main(int argc, char* argv[])
 		lflag = arrnum = 0;
 
 		keys__Key_Pressed(ch);
-
+		
+		// TODO: There are operations disabled by default
 /*
 		default:
 			if P(P_MM) {
@@ -1109,8 +1111,8 @@ int main(int argc, char* argv[])
 				switch (ch) {
 				case 'I':
 					sprintf(rep_buf, "%ldI", precount);
-					current = mem;
-					setpage(mem);
+					current = core.editor.mem;
+					setpage(core.editor.mem);
 					ui__Screen_Repaint();
 					undo_count = edit('i');
 					lflag++;
@@ -1236,8 +1238,8 @@ void trunc_cur()
 	undosize = filesize;
 	undo_count = (off_t) (maxpos - current);
 	undo_start = current;
-	filesize = state.pagepos - mem + y * core.params.COLUMNS_DATA + xpos();
-	maxpos = (PTR) (mem + filesize);
+	filesize = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA + xpos();
+	maxpos = (PTR) (core.editor.mem + filesize);
 	if (filesize == 0L) {
 		ui__ErrorMsg(nobytes);
 	} else
@@ -1252,8 +1254,8 @@ int do_append(int count, char* buf)
 		if (enlarge(count + 100L))
 			return 1;
 	}
-	memcpy(mem + filesize, buf, count);
-	undo_start = mem + filesize - 1L;
+	memcpy(core.editor.mem + filesize, buf, count);
+	undo_start = core.editor.mem + filesize - 1L;
 	setpage(undo_start + count);
 	edits = U_APPEND;
 	undosize = filesize;
@@ -1318,7 +1320,7 @@ void do_undo()
 		tempsize = filesize;
 		filesize = undosize;
 		undosize = tempsize;
-		maxpos = (PTR) (mem + filesize);
+		maxpos = (PTR) (core.editor.mem + filesize);
 		if (filesize)
 			set_cursor = maxpos - 1L;
 		else
@@ -1482,10 +1484,10 @@ off_t range(int ch)
 			beep();
 			return 0;
 		} else {
-			if (mem + count < current) {
-				return (mem + count - current);
+			if (core.editor.mem + count < current) {
+				return (core.editor.mem + count - current);
 			} else {
-				return (count - (current - mem));
+				return (count - (current - core.editor.mem));
 			}
 		}
 	case ' ':

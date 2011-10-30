@@ -73,7 +73,7 @@ off_t edit(int mode)
 		mode = 'A';
 	}
 	if (mode != 'A' && mode != 'a') {
-		if (current - mem >= filesize) {
+		if (current - core.editor.mem >= filesize) {
 			beep();
 			return 0L;
 		}
@@ -343,10 +343,10 @@ PTR do_ft(int ch, int flag)
 		} else {
 			do {
 				ptr--;
-				if (ptr < mem)
+				if (ptr < core.editor.mem)
 					break;
 			} while (*ptr != chi);
-			if (ptr < mem)
+			if (ptr < core.editor.mem)
 				break;
 		}
 	} while (--precount > 0);
@@ -375,7 +375,7 @@ void do_z(int mode)
 				state.pagepos += core.params.COLUMNS_DATA;
 				y--;
 			} else {
-				if (state.pagepos == mem)
+				if (state.pagepos == core.editor.mem)
 					break;
 				state.pagepos -= core.params.COLUMNS_DATA;
 				y++;
@@ -384,7 +384,7 @@ void do_z(int mode)
 		break;
 	case '-':
 		while (y < core.screen.maxy - 1) {
-			if (state.pagepos == mem)
+			if (state.pagepos == core.editor.mem)
 				break;
 			state.pagepos -= core.params.COLUMNS_DATA;
 			y++;
@@ -424,7 +424,7 @@ void scrolldown(int lines)
 void scrollup(int lines)
 {
 	while (lines--) {
-		if (mem <= (PTR) (state.pagepos - core.params.COLUMNS_DATA))
+		if (core.editor.mem <= (PTR) (state.pagepos - core.params.COLUMNS_DATA))
 			state.pagepos -= core.params.COLUMNS_DATA;
 		else {
 			beep();
@@ -473,13 +473,13 @@ void statpos()
 
 	if (!P(P_MO))
 		return;
-	bytepos = current - mem;
+	bytepos = current - core.editor.mem;
 	if (bytepos >= filesize) {
 		mvaddstr(core.screen.maxy, status,
 			 "                           ");
 		return;
 	}
-	Char1 = *(mem + bytepos);
+	Char1 = *(core.editor.mem + bytepos);
 
 	if (isprint(Char1)) {
 		sprintf(str, "'%c'", Char1);
@@ -521,11 +521,11 @@ void setpage(PTR addr)
 	} else {
 		state.pagepos =
 		    (((addr -
-		       mem) / core.params.COLUMNS_DATA) *
-		     core.params.COLUMNS_DATA + mem)
+		       core.editor.mem) / core.params.COLUMNS_DATA) *
+		     core.params.COLUMNS_DATA + core.editor.mem)
 		    - (core.params.COLUMNS_DATA * (core.screen.maxy / 2));
-		if (state.pagepos < mem)
-			state.pagepos = mem;
+		if (state.pagepos < core.editor.mem)
+			state.pagepos = core.editor.mem;
 		y = (addr - state.pagepos) / core.params.COLUMNS_DATA;
 		if (state.loc == HEX)
 			x = core.params.COLUMNS_ADDRESS +
@@ -544,7 +544,7 @@ void setpage(PTR addr)
 int cur_forw(int check)
 {
 	if (check) {
-		if (current - mem >= filesize) {
+		if (current - core.editor.mem >= filesize) {
 			beep();
 			return 1;
 		}
@@ -571,7 +571,7 @@ int cur_forw(int check)
 		y++;
 		return 0;
 	} else {
-		if (state.pagepos < (PTR) (mem + filesize)) {
+		if (state.pagepos < (PTR) (core.editor.mem + filesize)) {
 			state.pagepos += core.params.COLUMNS_DATA;
 			ui__Screen_Repaint();
 			return 0;
@@ -597,7 +597,7 @@ int cur_back()
 			x -= 3;
 			return 0;
 		} else {
-			if (current == mem)
+			if (current == core.editor.mem)
 				return 0;
 			x = core.params.COLUMNS_ADDRESS +
 			    core.params.COLUMNS_HEX - 3;
@@ -609,7 +609,7 @@ int cur_back()
 		y--;
 		return 0;
 	} else {
-		if (state.pagepos > mem) {
+		if (state.pagepos > core.editor.mem) {
 			state.pagepos -= core.params.COLUMNS_DATA;
 			ui__Screen_Repaint();
 			return 0;
@@ -639,14 +639,14 @@ void fileinfo(char* fname)
 	if (filesize) {
 		bytepos =
 		    (state.pagepos + y * core.params.COLUMNS_DATA + xpos()) -
-		    mem + 1L;
+		    core.editor.mem + 1L;
 		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);
 	} else {
 		strcat(string, " 0 bytes");
 	}
-	msg(string);
+	ui__StatusMsg(string);
 }
 
 /********** END ************/
@@ -692,7 +692,7 @@ void stuffin(char* s)
 
 void do_back(off_t n, PTR start)
 {
-	if (start - n < mem) {
+	if (start - n < core.editor.mem) {
 		beep();
 		return;
 	}
@@ -726,7 +726,7 @@ int do_delete(off_t n, PTR start)
 	memmove(start, start + undo_count, maxpos - (start + undo_count));
 	filesize -= undo_count;
 	maxpos -= undo_count;
-	if (start == maxpos && start > mem) {
+	if (start == maxpos && start > core.editor.mem) {
 		start--;
 		cur_back();
 	}
@@ -748,7 +748,7 @@ void do_ins_chg(PTR start, char* arg, int mode)
 	char *tempbuf = NULL;
 	char *poi, *epoi;
 
-	if ((mode == U_EDIT) && (current - mem >= filesize)) {
+	if ((mode == U_EDIT) && (current - core.editor.mem >= filesize)) {
 		beep();
 		return;
 	}
@@ -860,7 +860,7 @@ void clear_marks()
 
 	for (n = 0; n < 26; markbuf[n++] = NULL) ;
 	undo_count = 0;
-	last_motion = mem;
+	last_motion = core.editor.mem;
 }
 
 void do_mark(int mark, PTR addr)

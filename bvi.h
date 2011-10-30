@@ -120,18 +120,6 @@ struct MARKERS_ {
 	char marker;		/* Usually we use '+' character, but can be another */
 };
 
-struct highlight_ {
-	int hex_start;
-	int hex_end;
-	int dat_start;
-	int dat_end;
-	int flg;
-	int palette;
-	int toggle;
-};
-
-typedef struct highlight_ highlight_table;
-
 /* CORE structure */
 
 struct CORE {
@@ -223,7 +211,6 @@ extern off_t block_begin, block_end, block_size;
 
 /* ================= Debug utilities ================ */
 
-#ifdef ANSI
 off_t alloc_buf(off_t, char **), yd_addr(void);
 off_t range(int);
 void do_dot(void), do_exit(void), do_shell(void), do_undo(void);
@@ -253,7 +240,7 @@ PTR end_word(PTR);
 PTR calc_addr(char **, PTR);
 PTR do_ft(int, int);
 char *patcpy(char *, char *, char);
-void setpage(PTR), msg(char *), smsg(char *);
+void setpage(PTR), smsg(char *);
 
 void usage(void), bvi_init(char *), statpos(void), setcur(void);
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
@@ -270,54 +257,7 @@ int at_least(char *, char *, int);
 int vgetc(void), xpos(void), enlarge(off_t);
 int getcmdstr(char *, int), read_rc(char *);
 int wait_return(int);
-char *substr(char *, size_t, size_t);
-#else
-int addfile();
-off_t alloc_buf(), yd_addr();
-off_t range();
-off_t calc_size();
-void do_mark(), badcmd(), movebyte();
-void do_back(), do_ins_chg();
-void jmpproc();
-int chk_comm();
-void docmdline(), do_over(), do_put();
-int doecmd();
-void do_dot(), do_exit(), do_shell(), do_undo();
-void do_tilde(), trunc_cur();
-int do_append(), do_logic(), do_logic_block();
-int do_delete();
-int doset();
-int do_substitution();
-int hexchar();
-int outmsg();
-PTR searching();
-PTR wordsearch(PTR start, char mode);
-PTR backsearch(PTR start, char mode);
-int bregexec();
-PTR fsearch();
-PTR rsearch();
-PTR end_word();
-PTR calc_addr();
-PTR do_ft();
-char *patcpy(char* s1, char *s2, char delim);
-void setpage(), msg(), smsg(), wmsg();
-
-void usage(), bvi_init(), statpos(), setcur();
-void showparms(), toggle(), scrolldown(), scrollup();
-void fileinfo();
-void clearstr(), clear_marks();
-void quit(), sysemsg(), do_z(), stuffin();
-off_t edit(), load();
-int ascii_comp(), hex_comp();
-int cur_forw(), cur_back();
-
-int save(), at_least(), read_rc();
-int getcmdstr(), enlarge();
-int vgetc(), xpos();
-char *substr();
-int wait_return();
-#endif
-
+char *substr(const char *, size_t, size_t);
 int read_history(char *filename);
 void record_cmd(char* cmdline);
 
