@@ -139,7 +139,6 @@ struct CORE {
 		int maxx;
 	} screen;
 	/*
-	   struct BLOCKS;
 	   struct MARKERS;
 	 */
 };
@@ -173,7 +172,6 @@ extern int edits, new;
 extern int addr_flag;
 extern int ignore_case, magic;
 extern int screen, status;
-extern PTR mem;
 extern PTR maxpos;
 extern PTR undo_start;
 extern PTR current_start;
@@ -286,6 +284,7 @@ int handler__nextpage();
 int handler__fileinfo();
 int handler__screen_redraw();
 int handler__linescroll_up();
+int handler__luarepl();
 int handler__toggle_selection();
 int handler__append_mode();
 int handler__backsearch();

@@ -89,7 +89,7 @@ int save(char* fname, char* start, char* end, int flags)
 	if (filemode == PARTIAL)
 		flags = O_RDWR;
 	if ((fd = open(fname, flags, 0666)) < 0) {
-		sysemsg(fname);
+		ui__SystemErrorMsg(fname);
 		return 0;
 	}
 	if (filemode == PARTIAL) {
@@ -99,7 +99,7 @@ int save(char* fname, char* start, char* end, int flags)
 				(unsigned long)block_begin,
 				(unsigned long)(block_begin - 1 + filesize));
 			if (lseek(fd, block_begin, SEEK_SET) < 0) {
-				sysemsg(fname);
+				ui__SystemErrorMsg(fname);
 				return 0;
 			}
 		} else {
@@ -113,7 +113,7 @@ int save(char* fname, char* start, char* end, int flags)
 	}
 
 	if (write(fd, start, filesize) != filesize) {
-		sysemsg(fname);
+		ui__SystemErrorMsg(fname);
 		close(fd);
 		return 0;
 	}
@@ -152,7 +152,7 @@ off_t load(char* fname)
 				P(P_RO) = TRUE;
 				params[P_RO].flags |= P_CHANGED;
 			} else {
-				sysemsg(fname);
+				ui__SystemErrorMsg(fname);
 				filemode = ERROR;
 			}
 		} else if (S_ISREG(buf.st_mode)) {
@@ -170,7 +170,7 @@ off_t load(char* fname)
 					params[P_RO].flags |= P_CHANGED;
 				}
 			} else {
-				sysemsg(fname);
+				ui__SystemErrorMsg(fname);
 				filemode = ERROR;
 			}
 		}
@@ -196,7 +196,7 @@ off_t load(char* fname)
 	if (block_flag
 	    && ((filemode == REGULAR) || (filemode == BLOCK_SPECIAL))) {
 		if (lseek(fd, block_begin, SEEK_SET) < 0) {
-			sysemsg(fname);
+			ui__SystemErrorMsg(fname);
 			filemode = ERROR;
 		} else {
 			if ((filesize = read(fd, core.editor.mem, block_size)) == 0) {
@@ -218,7 +218,7 @@ off_t load(char* fname)
 	} else if (filemode == REGULAR) {
 		filesize = buf.st_size;
 		if (read(fd, core.editor.mem, filesize) != filesize) {
-			sysemsg(fname);
+			ui__SystemErrorMsg(fname);
 			filemode = ERROR;
 		}
 	} else {
@@ -357,18 +357,18 @@ int addfile(char* fname)
 	off_t oldsize;
 
 	if (stat(fname, &buf)) {
-		sysemsg(fname);
+		ui__SystemErrorMsg(fname);
 		return 1;
 	}
 	if ((fd = open(fname, O_RDONLY)) == -1) {
-		sysemsg(fname);
+		ui__SystemErrorMsg(fname);
 		return 1;
 	}
 	oldsize = filesize;
 	if (enlarge(buf.st_size))
 		return 1;
 	if (read(fd, core.editor.mem + filesize, buf.st_size) == -1) {
-		sysemsg(fname);
+		ui__SystemErrorMsg(fname);
 		return 1;
 	}
 	filesize += buf.st_size;

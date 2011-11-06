@@ -115,6 +115,8 @@ int KeyDefaults()
 		 {.func = handler__screen_redraw}},
 		{BVI_CTRL('Y'), "Ctrl-Y", "", 1, BVI_HANDLER_INTERNAL,
 		 {.func = handler__linescroll_up}},
+		{BVI_CTRL('R'), "Ctrl-R", "", 1, BVI_HANDLER_INTERNAL,
+		 {.func = handler__luarepl}},
 		{BVI_CTRL('S'), "Ctrl-S", "", 1, BVI_HANDLER_INTERNAL,
 		 {.func = handler__toggle_selection}},
 		{'A', "A", "", 1, BVI_HANDLER_INTERNAL,

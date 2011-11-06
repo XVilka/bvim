@@ -926,6 +926,35 @@ static int bvi_setpage(lua_State * L)
 	return 0;
 }
 
+/* ================ LUA REPL ================ */
+
+static int bvi_repl_print(lua_State *L)
+{
+	int n = lua_gettop(L);
+	int i;
+	lua_getglobal(L, "tostring");
+	for (i = 1; i <= n; i++) {
+		const char* s;
+		lua_pushvalue(L, -1); // function to be called
+		lua_pushvalue(L, i); // value to print
+		lua_call(L, 1, 1);
+		s = lua_tostring(L, -1); // get result
+		if (s == NULL)
+			//return lua_Lerror(L, LUA_QL("tostring") " must return a string to" LUA_QL("print"));
+			return -1;
+
+		// Change this to REPL output !!!
+		if (i > 1) ui__REPLWin_print("\t");
+		ui__REPLWin_print(s);
+
+		lua_pop(L, 1); // pop result
+	}
+
+	// Change this to REPL output !!!
+	ui__REPLWin_print("\n");
+	return 0;
+}
+
 /* -------------------------------------------------------------------------------------
  *
  *  Initialization of Lua scripting support and loading plugins ...
@@ -935,6 +964,11 @@ static int bvi_setpage(lua_State * L)
 
 void bvi_lua_init()
 {
+	struct luaL_reg std_methods[] = {
+		{"print", bvi_repl_print},
+		{NULL, NULL}
+	};
+
 	struct luaL_reg bvi_methods[] = {
 		{"command_add", bvi_command_add},
 		{"command_del", bvi_command_del},
@@ -983,6 +1017,7 @@ void bvi_lua_init()
 	};
 	lstate = lua_open();
 	luaL_openlibs(lstate);
+	luaL_register(lstate, "", std_methods);
 	luaL_register(lstate, "bvi", bvi_methods);
 }
 
@@ -1013,6 +1048,23 @@ int bvi_run_lua_string(char *string)
 	} else {
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);
 	}
+	return 0;
+}
+
+char* bvi_repl_init()
+{
+	char* replbuf = malloc(4096);
+	return replbuf;
+}
+
+int bvi_repl_read()
+{
+	return 0;
+}
+
+int bvi_repl_eval(char *line)
+{
+	bvi_run_lua_string(line);
 	return 0;
 }
 

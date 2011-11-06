@@ -53,8 +53,6 @@ int x, xx, y;
 int status;
 off_t size;
 
-//PTR mem = NULL;
-//core.editor.mem
 PTR curpos;
 PTR maxpos;
 /* PTR pagepos; */
@@ -389,7 +387,7 @@ int handler__nextpage()
 	return 0;
 }
 
-//case BVICTRL('G'):
+// "Ctrl-G"
 int handler__fileinfo()
 {
 	fileinfo(name);
@@ -404,7 +402,7 @@ int handler__screen_redraw()
 	return 0;
 }
 
-//case BVICTRL('Y'):
+// "Ctrl-Y" key
 int handler__linescroll_up()
 {
 	if (y < core.screen.maxy)
@@ -413,7 +411,14 @@ int handler__linescroll_up()
 	return 0;
 }
 
-// "Ctrl-S" - Toggle selection with help of cursor
+// "Ctrl-R" key - Open Lua REPL window
+int handler__luarepl()
+{
+	ui__REPL_Main();
+	return 0;
+}
+
+// "Ctrl-S" key - Toggle selection with help of cursor
 int handler__toggle_selection()
 {
 	if (state.toggle_selection == 0) {
@@ -424,7 +429,7 @@ int handler__toggle_selection()
 	return 0;
 }
 
-//case 'A':
+// "A" key
 int handler__append_mode()
 {
 	smsg("APPEND MODE");
@@ -437,29 +442,28 @@ int handler__append_mode()
 	return 0;
 }
 
-//case 'B':
-//case 'b':
+// "B" or "b" keys
 int handler__backsearch()
 {
 	setpage(backsearch(current, 'b'));
 	return 0;
 }
 
-//case 'e':
+// "e" key
 int handler__setpage()
 {
 	setpage(end_word(current));
 	return 0;
 }
 
-//case ',':
+// "," key
 int handler__doft1()
 {
 	do_ft(-1, 0);
 	return 0;
 }
 
-//case ';':
+// ";" key
 int handler__doft2()
 {
 	do_ft(0, 0);
@@ -1513,3 +1517,18 @@ off_t range(int ch)
 	beep();
 	return 0;
 }
+
+// QUIT of the BVI
+void quit()
+{
+	keys__Destroy();
+	commands__Destroy();
+	blocks__Destroy();
+	ui__Colors_Load();
+	move(core.screen.maxy, 0);
+	endwin();
+	printf("\nbvi version %s %s\n", VERSION, copyright);
+	exit(0);
+}
+
+

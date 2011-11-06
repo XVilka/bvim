@@ -3,6 +3,7 @@
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
+#include "keys.h"
 
 extern core_t core;
 extern state_t state;
@@ -79,6 +80,136 @@ void ui__MainWin_Resize(int lines_count)
 
 	ui__Screen_New();
 }
+
+/* ==================== REPL window ======================= */
+
+WINDOW *repl_win = NULL;
+
+struct repl_t repl;
+
+// TODO: Improve REPL window to make it scrollable
+
+/* Check if tools window already exist */
+short ui__REPLWin_Exist()
+{
+	if (repl_win == NULL)
+		return 0;
+	else
+		return 1;
+}
+
+/* Show tools window with <lines_count> height */
+int ui__REPLWin_Show()
+{
+	if (repl_win == NULL) {
+		refresh();
+		attron(COLOR_PAIR(C_WN + 1));
+		repl_win = newwin(LINES - 1, core.screen.maxx + 1, 0, 0);
+		box(repl_win, 0, 0);
+		wrefresh(repl_win);
+		//mvwaddch(repl_win, 2, 2, '>');
+		ui__REPL_Main();
+		attroff(COLOR_PAIR(C_WN + 1));
+		return 0;
+	} else {
+		ui__REPLWin_Hide();
+		ui__REPLWin_Show();
+		return 0;
+	}
+}
+
+/* Print string in REPL */
+int ui__REPLWin_print(char *str)
+{
+	if (repl_win != NULL) {
+		attron(COLOR_PAIR(C_WN + 1));
+		mvwaddstr(repl_win, repl.current_y, repl.current_x, str);
+		wrefresh(repl_win);
+		attroff(COLOR_PAIR(C_WN + 1));
+		return 0;
+	} else {
+		ui__ErrorMsg("print_repl_window: repl window not exist!\n");
+		return -1;
+	}
+}
+
+int ui__REPL_Main()
+{
+	int c;
+	char t[1024];
+	char* p = t;
+	*p = '\0';
+
+	signal(SIGINT, jmpproc);
+	ui__REPLWin_Show();
+	repl.current_y = 2;
+	repl.current_x = 2;
+	wmove(repl_win, repl.current_y, repl.current_x);
+	do {
+		switch(c = vgetc()) {
+			case KEY_ENTER:
+			case NL:
+			case CR:
+				// end of line - evaluate
+				*p++ = '\0';
+				if (strlen(p) != 0) 
+				{
+					repl.current_y++;
+					repl.current_x = 2;
+					wmove(repl_win, repl.current_y, repl.current_x);
+					bvi_repl_eval(p);
+				}
+				break;
+			case KEY_BACKSPACE:
+				p--;
+				wmove(repl_win, repl.current_y, 2);
+				waddch(repl_win, '>');
+				wmove(repl_win, repl.current_y, 3);
+				break;
+			case BVI_CTRL('D'):
+				break;
+			default:
+				repl.current_x++;
+				mvwaddch(repl_win, repl.current_y, repl.current_x, c);
+				*p++ = c;
+				break;
+		}
+		refresh();
+	} while (c != BVI_CTRL('D'));
+	*p = '\0';
+	ui__REPLWin_Hide();
+	signal(SIGINT, SIG_IGN);
+	return 0;
+}
+
+int ui__REPLWin_ScrollUp(int lines)
+{
+	return 0;
+}
+
+int ui__REPLWin_ScrollDown(int lines)
+{
+	return 0;
+}
+
+/* Hides tools window */
+int ui__REPLWin_Hide()
+{
+	if (repl_win != NULL) {
+		attron(COLOR_PAIR(C_WN + 1));
+		wborder(repl_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		wrefresh(repl_win);
+		delwin(repl_win);
+		attroff(COLOR_PAIR(C_WN + 1));
+		ui__Screen_Repaint();
+		repl_win = NULL;
+		return 0;
+	} else {
+		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
+		return -1;
+	}
+}
+
 
 /* ==================== Tools window ======================= */
 WINDOW *tools_win = NULL;
@@ -556,7 +687,7 @@ void ui__ErrorMsg(char* s)
 }
 
 // System error message
-void sysemsg(char* s)
+void ui__SystemErrorMsg(char* s)
 {
 	char string[256];
 
@@ -578,7 +709,7 @@ void smsg(char* s)
 	}
 }
 
-/*** display window ***/
+// Display simple message window
 void ui__MsgWin_Show(char* s, int height, int width)
 {
 	WINDOW *msg_win;
@@ -601,11 +732,11 @@ void ui__MsgWin_Show(char* s, int height, int width)
 	ui__Screen_Repaint();
 }
 
-/************* displays s on status line *****************/
-void ui__StatusMsg(char* s)
+// Display message in the status line
+void ui__StatusMsg(char* msg)
 {
 	clearstr();
-	if (outmsg(s) >= (core.screen.maxx - 25)) {	/* 25 = status */
+	if (outmsg(msg) >= (core.screen.maxx - 25)) {	/* 25 = status */
 		addch('\n');
 		wait_return(TRUE);
 	}

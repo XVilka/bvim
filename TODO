@@ -17,6 +17,8 @@ Directions
 12. Add tabs for various buffers
 13. Add tools tabs (e.g. for templates, history, etc)
 14. Implement lua console
+15. Implement network team work support (like PiratePad, Gobby/infinoted)
+16. Add terminal resizing support
 
 Simple tasks
 ============================
@@ -42,6 +44,7 @@ Simple tasks
 13. Rename project to "bvim"
 14. Add lua/plugins hooks into standard handler_* and command_*
 15. Add block and symbol annotations - show when place cursor on it
+16. Fix configuring/building on various systems: e.g. use pkg-config for lua
 
 Refactoring Tasks
 ============================

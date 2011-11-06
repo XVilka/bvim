@@ -29,8 +29,8 @@ libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
 
-OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o
-HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h
+OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o collaboration.o
+HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
 CFLAGS =  -g -O2  -Wall
@@ -87,6 +87,9 @@ uninstall:
 
 clean:
 	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
+
+deepclean:
+	rm -f core *.o *.c~ *.h~ .*.swp bvi bvi.exe bmore bmore.exe a.out
 
 distclean: clean
 	rm -f Makefile config.cache config.h config.log config.status

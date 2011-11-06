@@ -649,19 +649,6 @@ void fileinfo(char* fname)
 	ui__StatusMsg(string);
 }
 
-/********** END ************/
-void quit()
-{
-	keys__Destroy();
-	commands__Destroy();
-	blocks__Destroy();
-	ui__Colors_Load();
-	move(core.screen.maxy, 0);
-	endwin();
-	printf("\nbvi version %s %s\n", VERSION, copyright);
-	exit(0);
-}
-
 int vgetc()
 {
 	int nextc;

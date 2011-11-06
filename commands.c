@@ -365,6 +365,15 @@ int command__block(char flags, int c_argc, char **c_argv) {
 		} else if (!strncmp(c_argv[0], "save", 4)) {
 		/* :block yank */
 		} else if (!strncmp(c_argv[0], "yank", 4)) {
+		/* :block fold */
+		} else if (!strncmp(c_argv[0], "fold", 4)) {
+			if (c_argc == 1) {
+				blkblk = blocks__GetByID((unsigned int)atoi(c_argv[1])); // block id
+				if (blkblk != NULL) {
+					blkblk->folding = 1;
+					ui__Screen_Repaint();
+				}
+			}
 		} else {
 			ui__ErrorMsg("Wrong :block command format!");
 			return -1;
@@ -414,7 +423,7 @@ int command__source(char flags, int c_argc, char **c_argv) {
 	if (chk_comm(NO_ADDR | ONE_FILE))
 		return -1;
 	if (read_rc(c_argv[0]))
-		sysemsg(c_argv[0]);
+		ui__SystemErrorMsg(c_argv[0]);
 	refresh();
 	return 0;
 }
@@ -450,7 +459,7 @@ int command__cd(char flags, int c_argc, char **c_argv) {
 		c_argv[0] = string;
 	}
 	if (chdir(c_argv[0]))
-		sysemsg(c_argv[0]);
+		ui__SystemErrorMsg(c_argv[0]);
 	return 0;
 }
 
