@@ -83,7 +83,7 @@ void ui__MainWin_Resize(int lines_count)
 
 /* ==================== REPL window ======================= */
 
-WINDOW *repl_win = NULL;
+static WINDOW *repl_win = NULL;
 
 struct repl_t repl;
 
@@ -108,12 +108,11 @@ int ui__REPLWin_Show()
 		box(repl_win, 0, 0);
 		wrefresh(repl_win);
 		//mvwaddch(repl_win, 2, 2, '>');
-		ui__REPL_Main();
-		attroff(COLOR_PAIR(C_WN + 1));
+		//attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
-		ui__REPLWin_Hide();
-		ui__REPLWin_Show();
+		//ui__REPLWin_Hide();
+		//ui__REPLWin_Show();
 		return 0;
 	}
 }
@@ -122,10 +121,10 @@ int ui__REPLWin_Show()
 int ui__REPLWin_print(char *str)
 {
 	if (repl_win != NULL) {
-		attron(COLOR_PAIR(C_WN + 1));
+		//attron(COLOR_PAIR(C_WN + 1));
 		mvwaddstr(repl_win, repl.current_y, repl.current_x, str);
 		wrefresh(repl_win);
-		attroff(COLOR_PAIR(C_WN + 1));
+		//attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
 		ui__ErrorMsg("print_repl_window: repl window not exist!\n");
@@ -196,13 +195,13 @@ int ui__REPLWin_ScrollDown(int lines)
 int ui__REPLWin_Hide()
 {
 	if (repl_win != NULL) {
-		attron(COLOR_PAIR(C_WN + 1));
+		//attron(COLOR_PAIR(C_WN + 1));
 		wborder(repl_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 		wrefresh(repl_win);
 		delwin(repl_win);
+		repl_win = NULL;
 		attroff(COLOR_PAIR(C_WN + 1));
 		ui__Screen_Repaint();
-		repl_win = NULL;
 		return 0;
 	} else {
 		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
