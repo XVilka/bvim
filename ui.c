@@ -107,7 +107,6 @@ int ui__REPLWin_Show()
 		repl_win = newwin(LINES - 1, core.screen.maxx + 1, 0, 0);
 		box(repl_win, 0, 0);
 		wrefresh(repl_win);
-		//mvwaddch(repl_win, 2, 2, '>');
 		//attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
@@ -141,9 +140,10 @@ int ui__REPL_Main()
 
 	signal(SIGINT, jmpproc);
 	ui__REPLWin_Show();
-	repl.current_y = 2;
-	repl.current_x = 2;
-	wmove(repl_win, repl.current_y, repl.current_x);
+	repl.current_y = 1;
+	repl.current_x = 1;
+	mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
+	wrefresh(repl_win);
 	do {
 		switch(c = vgetc()) {
 			case KEY_ENTER:
@@ -154,16 +154,17 @@ int ui__REPL_Main()
 				if (strlen(p) != 0) 
 				{
 					repl.current_y++;
-					repl.current_x = 2;
-					wmove(repl_win, repl.current_y, repl.current_x);
+					repl.current_x = 1;
+					mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
 					bvi_repl_eval(p);
+					*p = '\0';
 				}
 				break;
 			case KEY_BACKSPACE:
 				p--;
-				wmove(repl_win, repl.current_y, 2);
+				wmove(repl_win, repl.current_y, 1);
 				waddch(repl_win, '>');
-				wmove(repl_win, repl.current_y, 3);
+				wmove(repl_win, repl.current_y, 2);
 				break;
 			case BVI_CTRL('D'):
 				break;
@@ -173,7 +174,7 @@ int ui__REPL_Main()
 				*p++ = c;
 				break;
 		}
-		refresh();
+		wrefresh(repl_win);
 	} while (c != BVI_CTRL('D'));
 	*p = '\0';
 	ui__REPLWin_Hide();

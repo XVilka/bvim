@@ -24,6 +24,10 @@ extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
 extern PTR maxpos;
 
+// TODO: handler errors in two ways: UI and REPL modes
+// TODO: Store errors in linked list
+// TODO: Store lua output in linked list
+
 /* -----------------------------------------------------------------------------
  *                       Interface for plugins API
  * -----------------------------------------------------------------------------
