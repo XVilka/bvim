@@ -61,3 +61,5 @@ void commands__Destroy();
 int commands__Cmd_Add(struct command*);
 int commands__Cmd_Del(char *name);
 
+
+void docmdline(char *);

@@ -117,7 +117,7 @@ int ui__REPLWin_Show()
 }
 
 /* Print string in REPL */
-int ui__REPLWin_print(char *str)
+int ui__REPLWin_print(const char *str)
 {
 	if (repl_win != NULL) {
 		//attron(COLOR_PAIR(C_WN + 1));
@@ -134,9 +134,10 @@ int ui__REPLWin_print(char *str)
 int ui__REPL_Main()
 {
 	int c;
-	char t[1024];
-	char* p = t;
-	*p = '\0';
+	int i = 0;
+	char p[1024];
+	p[0] = '\0';
+
 
 	signal(SIGINT, jmpproc);
 	ui__REPLWin_Show();
@@ -150,33 +151,34 @@ int ui__REPL_Main()
 			case NL:
 			case CR:
 				// end of line - evaluate
-				*p++ = '\0';
+				p[i++] = '\0';
 				if (strlen(p) != 0) 
 				{
 					repl.current_y++;
 					repl.current_x = 1;
 					mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
 					bvi_repl_eval(p);
-					*p = '\0';
+					p[0] = '\0';
+					i = 0;
 				}
 				break;
 			case KEY_BACKSPACE:
-				p--;
-				wmove(repl_win, repl.current_y, 1);
-				waddch(repl_win, '>');
-				wmove(repl_win, repl.current_y, 2);
+				i--;
+				wmove(repl_win, repl.current_y, repl.current_x--);
+				wdelch(repl_win);
+				p[i] = '\0';
 				break;
 			case BVI_CTRL('D'):
 				break;
 			default:
 				repl.current_x++;
 				mvwaddch(repl_win, repl.current_y, repl.current_x, c);
-				*p++ = c;
+				p[i++] = c;
 				break;
 		}
 		wrefresh(repl_win);
 	} while (c != BVI_CTRL('D'));
-	*p = '\0';
+	p[0] = '\0';
 	ui__REPLWin_Hide();
 	signal(SIGINT, SIG_IGN);
 	return 0;

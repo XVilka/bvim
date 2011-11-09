@@ -29,6 +29,7 @@
 
 #include "bvi.h"
 #include "blocks.h"
+#include "commands.h"
 #include "set.h"
 #include "ui.h"
 
@@ -53,7 +54,7 @@ static struct stat buf;
 static off_t block_read;
 char *terminal;
 
-/*********** Save the patched file ********************/
+/* Save the patched file */
 int save(char* fname, char* start, char* end, int flags)
 {
 	int fd;

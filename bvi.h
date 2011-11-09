@@ -120,7 +120,10 @@ struct MARKERS_ {
 	char marker;		/* Usually we use '+' character, but can be another */
 };
 
-/* CORE structure */
+/* ---------------------------------
+ * CORE structure - each for
+ * different buffers
+ * --------------------------------- */
 
 struct CORE {
 	struct {
@@ -145,8 +148,17 @@ struct CORE {
 
 typedef struct CORE core_t;
 
+/* -----------------------------------
+ * Current state of the current buffer
+ * ----------------------------------- */
+
+#define BVI_MODE_CMD	1
+#define BVI_MODE_EDIT	2
+#define BVI_MODE_VISUAL 3
+#define BVI_MODE_REPL	4
+
 struct STATE {
-	/* Command, Edit or Visual modes */
+	/* Command, Edit, Visual or REPL modes */
 	int mode;
 	/* Current positions */
 	PTR pagepos;
@@ -209,13 +221,19 @@ extern off_t block_begin, block_end, block_size;
 
 /* ================= Debug utilities ================ */
 
+void bvi_error(int mode, char* fmt, ...);
+void bvi_info(int mode, char* fmt, ...);
+void bvi_debug(int mode, char* fmt, ...);
+
+/* ================= Exports ================ */
+
 off_t alloc_buf(off_t, char **), yd_addr(void);
 off_t range(int);
 void do_dot(void), do_exit(void), do_shell(void), do_undo(void);
 void do_tilde(off_t), trunc_cur(void);
 void do_back(off_t, PTR), do_ins_chg(PTR, char *, int);
 void do_mark(int, PTR), badcmd(char *), movebyte(void);
-void docmdline(char *), do_over(PTR, off_t, PTR), do_put(PTR, off_t, PTR);
+void do_over(PTR, off_t, PTR), do_put(PTR, off_t, PTR);
 void jmpproc(int), printline(PTR, int);
 void wmsg(char *);
 int addfile(char *);

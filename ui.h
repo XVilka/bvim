@@ -36,7 +36,7 @@ short ui__ToolWin_Exist();
 int ui__REPL_Main();
 int ui__REPLWin_Show();
 int ui__REPLWin_Hide();
-int ui__REPLWin_print(char*);
+int ui__REPLWin_print(const char*);
 short ui__REPLWin_Exist();
 
 void ui__MainWin_Resize(int);

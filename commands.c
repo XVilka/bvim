@@ -85,8 +85,6 @@ extern char **files;		/* used for "next" and "rewind" */
 extern int numfiles, curfile;
 extern int errno;
 
-//extern struct BLOCK_ data_block[BLK_COUNT];
-
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
 /* =================== Commands storage ===================== */

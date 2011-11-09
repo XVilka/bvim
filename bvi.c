@@ -917,6 +917,59 @@ void record_cmd(char* cmdline)
 	fclose(hifile);
 }
 
+/* ---------------------------------------------------------------
+ *  Debugging and errors handling
+ * ---------------------------------------------------------------
+ */
+
+void bvi_error(int mode, char* fmt, ...)
+{
+	char msg[1024];
+	va_list ap;
+
+	msg[0] = '\0';
+
+	va_start(ap, fmt);
+	vsprintf(msg, fmt, ap);
+	va_end(ap);
+
+	ui__ErrorMsg(msg);
+}
+
+void bvi_info(int mode, char* fmt, ...)
+{
+	char msg[1024];
+	va_list ap;
+
+	msg[0] = '\0';
+
+	va_start(ap, fmt);
+	vsprintf(msg, fmt, ap);
+	va_end(ap);
+
+	ui__StatusMsg(msg);
+}
+
+void bvi_debug(int mode, char* fmt, ...)
+{
+	char msg[1024];
+	va_list ap;
+
+	msg[0] = '\0';
+
+	va_start(ap, fmt);
+	vsprintf(msg, fmt, ap);
+	va_end(ap);
+
+	fprintf(stderr, "%s", msg);
+
+}
+
+/* ---------------------------------------------------------------
+ * Main function
+ * ---------------------------------------------------------------
+ */
+
 void usage()
 {
 	fprintf(stderr, "Usage: %s [-R] [-c cmd | +cmd] [-f script]\n\
@@ -932,7 +985,7 @@ int main(int argc, char* argv[])
 	int i;
 	char *poi;
 
-	// Hotkeys and keymap initialization
+	/* Hotkeys and keymap initialization */
 	keys__Init();
 
 #ifdef HAVE_LOCALE_H
@@ -940,11 +993,11 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef HAVE_LUA_H
-	// Lua subsystem initialization
+	/* Lua subsystem initialization */
 	bvi_lua_init();
 #endif
 
-	// Commands parser initialization
+	/* Commands parser initialization */
 	commands__Init();
 
 	for (i = 0; i < MARK_COUNT; i++)
@@ -1065,7 +1118,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "%d files to edit\n", numfiles);
 	curfile = 0;
 
-	// UI initialization
+	/* UI initialization */
 	ui__Init();
 
 	signal(SIGINT, SIG_IGN);
@@ -1521,13 +1574,18 @@ off_t range(int ch)
 // QUIT of the BVI
 void quit()
 {
+	/* Destroy all structures/lists */
 	keys__Destroy();
 	commands__Destroy();
 	blocks__Destroy();
-	ui__Colors_Load();
+
+	/* Destroy all curses stuff, restore terminal state */
 	move(core.screen.maxy, 0);
 	endwin();
 	printf("\nbvi version %s %s\n", VERSION, copyright);
+	ui__Colors_Load();
+
+	/* just exit */
 	exit(0);
 }
 
