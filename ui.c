@@ -4,6 +4,7 @@
 #include "set.h"
 #include "ui.h"
 #include "keys.h"
+#include "bscript.h"
 
 extern core_t core;
 extern state_t state;
@@ -88,6 +89,7 @@ static WINDOW *repl_win = NULL;
 struct repl_t repl;
 
 // TODO: Improve REPL window to make it scrollable
+// TODO: Tab autocompletion and commands history in REPL window
 
 /* Check if tools window already exist */
 short ui__REPLWin_Exist()
@@ -120,15 +122,24 @@ int ui__REPLWin_Show()
 int ui__REPLWin_print(const char *str)
 {
 	if (repl_win != NULL) {
-		//attron(COLOR_PAIR(C_WN + 1));
+		repl.current_x = 1;
 		mvwaddstr(repl_win, repl.current_y, repl.current_x, str);
 		wrefresh(repl_win);
-		//attroff(COLOR_PAIR(C_WN + 1));
+		repl.current_y++;
 		return 0;
 	} else {
-		ui__ErrorMsg("print_repl_window: repl window not exist!\n");
+		ui__ErrorMsg("print_repl_window: repl window not exist!");
 		return -1;
 	}
+}
+
+int ui__REPLWin_clear()
+{
+	repl.current_y = 1;
+	repl.current_x = 1;
+	mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
+	wrefresh(repl_win);
+	return 0;
 }
 
 int ui__REPL_Main()
@@ -136,8 +147,8 @@ int ui__REPL_Main()
 	int c;
 	int i = 0;
 	char p[1024];
-	p[0] = '\0';
 
+	p[0] = '\0';
 
 	signal(SIGINT, jmpproc);
 	ui__REPLWin_Show();
@@ -156,17 +167,19 @@ int ui__REPL_Main()
 				{
 					repl.current_y++;
 					repl.current_x = 1;
-					mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
 					bvi_repl_eval(p);
-					p[0] = '\0';
-					i = 0;
+					mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
 				}
+				p[0] = '\0';
+				i = 0;
 				break;
 			case KEY_BACKSPACE:
-				i--;
-				wmove(repl_win, repl.current_y, repl.current_x--);
-				wdelch(repl_win);
-				p[i] = '\0';
+				if (repl.current_x > 1) {
+					i--;
+					wmove(repl_win, repl.current_y, repl.current_x--);
+					wdelch(repl_win);
+					p[i] = '\0';
+				}
 				break;
 			case BVI_CTRL('D'):
 				break;

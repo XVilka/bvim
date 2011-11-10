@@ -64,6 +64,8 @@ static struct stat buf;
 static int c_argc = 0;
 static char *c_argv[9];
 
+// TODO: move messages to messages.h
+
 char *nowrtmsg = "No write@since last change (:%s! overrides)";
 char *morefiles = "more files@to edit";
 char *ambigous = "Ambigous|Too many file names";

@@ -37,11 +37,13 @@ int ui__REPL_Main();
 int ui__REPLWin_Show();
 int ui__REPLWin_Hide();
 int ui__REPLWin_print(const char*);
+int ui__REPLWin_clear();
 short ui__REPLWin_Exist();
 
 void ui__MainWin_Resize(int);
 void printcolorline(int, int, int, char *);
 void ui__Line_Print();
+int ui__lineout();
 
 int ui__Color_Set(char *);
 void ui__Colors_Set();

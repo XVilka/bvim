@@ -16,47 +16,51 @@ Directions
 11. VISUAL mode
 12. Add tabs for various buffers
 13. Add tools tabs (e.g. for templates, history, etc)
-14. Implement lua console
+14. Implement lua REPL console
     -- IN PROGRESS
 15. Implement network team work support (like PiratePad, Gobby/infinoted)
 16. Add terminal resizing support
-17. Move errors handling in one function, with va_args.
 
 Simple tasks
 ============================
 
-1. Add history of commands
-2. Blocks commands:
+1. Rename project to "bvim"
+2. Add history of commands
+   -- 90% done
+3. Blocks commands:
 	a) block-save to separate file
 	b) block-reverse
-3. Add lua events:
+4. Add lua events:
 	a) cursor move back, forward, up and down
 	b) cursor on some block
-4. Add scrolling in tools window (with keys and from lua) (HIGH PRIORITY!)
-5. Add checks of terminal color mode
-6. Add normal keymapping with keys names
+5. Add scrolling in tools window (with keys and from lua) (HIGH PRIORITY!)
+6. Add checks of terminal color mode
+7. Add normal keymapping with keys names
+	-- 90% done
+8. Implement block parameter as bitfields (folding, highlighting, color, etc) (LOW PRIORITY)
+9. All operations (XOR, AND, etc) must support hexadecimal arguments
 	-- IN PROGRESS
-7. Implement block parameter as bitfields (folding, highlighting, color, etc) (LOW PRIORITY)
-8. All operations (XOR, AND, etc) must support hexadecimal arguments
-	-- IN PROGRESS
-9. Prevent blocks overlapping
-10. Add folding empty and repeating data sequences
-11. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
-12. Add C plugins api, with ability for register lua functions, events, keymaps and :commands
-13. Rename project to "bvim"
+10. Prevent blocks overlapping
+    -- 90% done
+11. Add folding empty and repeating data sequences
+12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
+13. Add C plugins api, with ability for register lua functions, events, keymaps and :commands
+    -- IN PROGRESS
 14. Add lua/plugins hooks into standard handler_* and command_*
 15. Add block and symbol annotations - show when place cursor on it
 16. Fix configuring/building on various systems: e.g. use pkg-config for lua
+17. Add possibility to :run <script> with full file path to script
 
 Refactoring Tasks
 ============================
 
 1. Split out math and logic functions in math.c (and/xor/etc)
+   -- IN PROGRESS
 2. Implement Core and Editor objects/structures
-	-- IN PROGRESS
+	-- 90% done
 3. Convert editor output to editor container (for support splitting/diff features)
 4. Eliminate DOS stuff
-	-- IN PROGRESS
+	-- 90% done
 5. Add file stream object for supporting continious and large files
 6. Split all output to another file console.c, add unified API for GUI
 	-- IN PROGRESS

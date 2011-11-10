@@ -998,7 +998,13 @@ static int bvi_repl_print(lua_State *L)
 	}
 
 	// Change this to REPL output !!!
-	ui__REPLWin_print("\n");
+	//ui__REPLWin_print("\n");
+	return 0;
+}
+
+static int bvi_repl_clear(lua_State *L)
+{
+	ui__REPLWin_clear();
 	return 0;
 }
 
@@ -1013,6 +1019,7 @@ void bvi_lua_init()
 {
 	struct luaL_reg std_methods[] = {
 		{"print", bvi_repl_print},
+		{"clear", bvi_repl_clear},
 		{NULL, NULL}
 	};
 
@@ -1064,7 +1071,8 @@ void bvi_lua_init()
 	};
 	lstate = lua_open();
 	luaL_openlibs(lstate);
-	luaL_register(lstate, "", std_methods);
+	lua_pushvalue(lstate, LUA_GLOBALSINDEX);
+	luaL_register(lstate, 0, std_methods);
 	luaL_register(lstate, "bvi", bvi_methods);
 	lua_atpanic(lstate, bvi_lua_error_handler);
 }
@@ -1079,7 +1087,7 @@ int bvi_run_lua_script(char *name)
 	strcat(filename, ".lua");
 	err = luaL_loadfile(lstate, filename);
 	if (err) {
-		ui__ErrorMsg("Error: cant open lua script file!");
+		bvi_error(BVI_MODE_EDIT, "Can't open lua script: %s", lua_tostring(lstate, -1));
 		lua_pop(lstate, 1);
 	} else {
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);
@@ -1091,7 +1099,7 @@ int bvi_run_lua_string(char *string)
 {
 	int err = luaL_loadstring(lstate, string);
 	if (err) {
-		bvi_error(BVI_MODE_EDIT, "Error in lua command: %s", lua_tostring(lstate, -1));
+		bvi_error(BVI_MODE_EDIT, "Can't run lua command: %s", lua_tostring(lstate, -1));
 		lua_pop(lstate, 1);
 	} else {
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);
@@ -1112,13 +1120,14 @@ int bvi_repl_read()
 
 int bvi_repl_eval(char *line)
 {
+	lua_pushcfunction(lstate, bvi_lua_error_handler);
 	int err = luaL_loadstring(lstate, line);
 	if (err) {
 		bvi_lua_error_raise(lstate, "Lua error: %s", lua_tostring(lstate, -1));
 		lua_pop(lstate, 1);
 	} else {
-		lua_pushcfunction(lstate, bvi_lua_error_handler);
 		lua_pcall(lstate, 0, LUA_MULTRET, 0);
+		lua_pop(lstate, 1);
 	}
 
 	return 0;
