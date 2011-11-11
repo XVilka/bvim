@@ -170,6 +170,10 @@ struct STATE {
 	int screen;
 	int scrolly;
 	int toggle_selection;
+	struct {
+		long start;
+		long end;
+	} selection;
 };
 
 typedef struct STATE state_t;
@@ -309,7 +313,10 @@ int handler__backsearch();
 int handler__setpage();
 int handler__doft1();
 int handler__doft2();
-int handler__doft3();
+int handler__doft3_F();
+int handler__doft3_f();
+int handler__doft3_t();
+int handler__doft3_T();
 int handler__goto1();
 int handler__goto2();
 int handler__search_string1();
@@ -330,4 +337,12 @@ int handler__yank();
 int handler__doz();
 int handler__exit();
 int handler__stuffin();
+int handler__insert();
+int handler__s();
+int handler__append2();
+int handler__insert2();
+int handler__paste2();
+int handler__c_or_d();
+int handler__x();
+int handler__x2();
 

@@ -445,6 +445,11 @@ int xpos()
 			core.params.COLUMNS_HEX);
 }
 
+int get_cursor_position()
+{
+	return (current - core.editor.mem);
+}
+
 /* toggle between ASCII and HEX windows positions */
 void toggle()
 {

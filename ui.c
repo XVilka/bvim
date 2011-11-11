@@ -672,6 +672,10 @@ void ui__Screen_Repaint()
 		ui__line(y, buf_address);
 	}
 	y = save_y;
+	if (repl_win != NULL)
+		wrefresh(repl_win);
+	if (tools_win != NULL)
+		wrefresh(tools_win);
 }
 
 void clearstr()

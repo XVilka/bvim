@@ -29,14 +29,14 @@ libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
 
-OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o collaboration.o
+OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o
 HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
 CFLAGS =  -g -O2  -Wall
 DEFS   =  -DHAVE_CONFIG_H
 LDFLAGS=  
-LIBS   =   -lncurses -llua -lssl
+LIBS   =   -lncurses -llua -lssl -ldl
 SHELL  =  /bin/sh
 
 

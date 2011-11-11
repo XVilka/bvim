@@ -471,13 +471,30 @@ int handler__doft2()
 }
 
 //case 'F':
-//case 'f':
-//case 't':
-//case 'T':
-int handler__doft3()
+int handler__doft3_F()
 {
-	// TODO: split handlers for each key
+	do_ft('F', 0);
+	return 0;
+}
+
+// "f" key
+int handler__doft3_f()
+{
 	do_ft('f', 0);
+	return 0;
+}
+
+// "t" key
+int handler__doft3_t()
+{
+	do_ft('t', 0);
+	return 0;
+}
+
+// "T" key
+int handler__doft3_T()
+{
+	do_ft('T', 0);
 	return 0;
 }
 
@@ -695,6 +712,30 @@ int handler__undo()
 /* "v" key */
 int handler__visual()
 {
+	struct block_item tmpblk;
+
+	if ((state.mode != BVI_MODE_VISUAL ) & (state.mode != BVI_MODE_REPL)) {
+		state.mode = BVI_MODE_VISUAL;
+		// start selection
+		state.selection.start = get_cursor_position();
+		bvi_info(state.mode, "Started selection from %ld", state.selection.start);
+		return 0;
+	}
+	if (state.mode == BVI_MODE_VISUAL) {
+		state.mode = BVI_MODE_EDIT;
+		// end selection
+		state.selection.end = get_cursor_position();
+		bvi_info(state.mode, "End of selection at %ld", state.selection.end);
+		tmpblk.pos_start = state.selection.start;
+		tmpblk.pos_end = state.selection.end;
+		tmpblk.palette = 1; // TODO: something more nice
+		tmpblk.hl_toggle = 1;
+		tmpblk.id = 200; // TODO: do something!
+		blocks__Add(tmpblk);
+		ui__BlockHighlightAdd(&tmpblk);
+		ui__Screen_Repaint();
+		return 0;
+	}
 	return 0;
 }
 
@@ -1002,6 +1043,8 @@ int main(int argc, char* argv[])
 
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
+
+	state.mode = BVI_MODE_EDIT; // default mode from start
 
 	poi = strrchr(argv[0], DELIM);
 
@@ -1571,7 +1614,7 @@ off_t range(int ch)
 	return 0;
 }
 
-// QUIT of the BVI
+// QUIT from the BVI
 void quit()
 {
 	/* Destroy all structures/lists */

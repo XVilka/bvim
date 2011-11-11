@@ -17,7 +17,7 @@ Directions
 12. Add tabs for various buffers
 13. Add tools tabs (e.g. for templates, history, etc)
 14. Implement lua REPL console
-    -- IN PROGRESS
+    -- 90% done
 15. Implement network team work support (like PiratePad, Gobby/infinoted)
 16. Add terminal resizing support
 
@@ -30,6 +30,8 @@ Simple tasks
 3. Blocks commands:
 	a) block-save to separate file
 	b) block-reverse
+	c) blocks list
+	d) blocks send to disasm
 4. Add lua events:
 	a) cursor move back, forward, up and down
 	b) cursor on some block
