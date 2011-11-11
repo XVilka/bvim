@@ -4,6 +4,11 @@
 #include "keys.h"
 #include "bscript.h"
 
+/* ----------------------------------------------------------
+ *                    Internal functions
+ * ----------------------------------------------------------
+ */
+
 static struct keys_array keymap;
 
 int KeyAdd(struct key item)
@@ -197,6 +202,11 @@ int KeyDefaults()
 	}
 	return 0;
 }
+
+/* -----------------------------------------------------
+ *              Exported functions
+ * -----------------------------------------------------
+ */
 
 void keys__Init()
 {

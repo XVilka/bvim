@@ -66,13 +66,6 @@ static char *c_argv[9];
 
 // TODO: move messages to messages.h
 
-char *nowrtmsg = "No write@since last change (:%s! overrides)";
-char *morefiles = "more files@to edit";
-char *ambigous = "Ambigous|Too many file names";
-char *ambvalue = "Ambigous|Too many values";
-char *extra = "Extra chars|Extra characters at end of command";
-char *noaddr = "No address allowed@on this command";
-char *noval = "No value@for binary operation";
 int repl_count = -1;
 int addr_flag;
 
@@ -89,7 +82,10 @@ extern int errno;
 
 static char oldbuf[CMDSZ];		/** for :!! command **/
 
-/* =================== Commands storage ===================== */
+/* -------------------------------------------------------------
+ *                Internal functions
+ * -------------------------------------------------------------
+ */
 
 static struct command_array cmdmap;
 
@@ -177,6 +173,10 @@ int CmdDefaults()
 	return 0;
 }
 
+/* ------------------------------------------------------
+ *                  Exported functions
+ * ------------------------------------------------------
+ */
 
 void commands__Init()
 {
@@ -213,13 +213,13 @@ static char* tmp_cmd;
 int command__help(char flags, int c_argc, char **c_argv) {
 	int i = 0;
 	if (c_argc == 0) {
-		ui__ErrorMsg("What?");
+		bvi_error(state.mode, "What?");
 	} else if (c_argc == 1) {
 		while (i < cmdmap.items) {
 			if (strncmp(c_argv[0], cmdmap.arr[i].name, strlen(cmdmap.arr[i].name))) {
-				ui__ErrorMsg("Command not exist!");
+				bvi_error(state.mode, "Command not exist!");
 			} else {
-				ui__StatusMsg(cmdmap.arr[i].description);
+				bvi_info(state.mode, cmdmap.arr[i].description);
 				return 0;
 			}
 			i++;
@@ -235,10 +235,10 @@ int command__map(char flags, int c_argc, char **c_argv) {
 	struct key *key_tmp;
 
 	if (c_argc == 0) {
-		ui__ErrorMsg("Error: empty mapping definition!");
+		bvi_error(state.mode, "Error: empty mapping definition!");
 	} else if (c_argc == 1) {
 		if (strncmp(c_argv[0], "all", 3)) {
-			ui__ErrorMsg("Map what?");
+			bvi_error(state.mode, "Map what?");
 		} else {
 			keys__KeyMaps_Show();
 		}
@@ -250,7 +250,7 @@ int command__map(char flags, int c_argc, char **c_argv) {
 		}
 		key_tmp = keys__KeyString_Parse(c_argv[0]);
 		if (!keys__Key_Map(key_tmp))
-			ui__ErrorMsg("Error: can't set new key mapping!");
+			bvi_error(state.mode, "Error: can't set new key mapping!");
 		return 0;
 	}
 	return -1;
@@ -261,11 +261,11 @@ int command__unmap(char flags, int c_argc, char **c_argv) {
 	struct key *key_tmp;
 
 	if (c_argc != 1) {
-		ui__ErrorMsg("Error: empty mapping definition!");
+		bvi_error(state.mode, "Error: empty mapping definition!");
 	} else {
 		key_tmp = keys__KeyString_Parse(c_argv[0]);
 		if (!keys__Key_Unmap(key_tmp))
-			ui__ErrorMsg("Error: can't remove key mapping!");
+			bvi_error(state.mode, "Error: can't remove key mapping!");
 		return 0;
 	}
 	return -1;
@@ -310,10 +310,6 @@ int command__set(char flags, int c_argc, char **c_argv) {
 int command__block(char flags, int c_argc, char **c_argv) {
 	char size[256];
 	struct block_item tmp_blk;
-	
-	// Need to be removed/cleared
-	char tmptmp[256];
-	tmptmp[0] = '\0';
 	struct block_item *blkblk;
 
 	size[0] = '\0';
@@ -341,18 +337,15 @@ int command__block(char flags, int c_argc, char **c_argv) {
 					ui__BlockHighlightAdd(&tmp_blk);
 					// this we need to remove too
 					blkblk = blocks__GetByID(tmp_blk.id);
-					sprintf(tmptmp, "Added block: start %ld end %ld", blkblk->pos_start, blkblk->pos_end);
+					bvi_info(state.mode, "Added block: start %ld end %ld", blkblk->pos_start, blkblk->pos_end);
 					
 					ui__Screen_Repaint();
-
-					// And this need to be destroyed too
-					ui__ErrorMsg(tmptmp);
 				} else {
-					ui__ErrorMsg("Wrong block start and end values!");
+					bvi_error(state.mode, "Wrong block start and end values!");
 					return -1;
 				}
 			} else {
-				ui__ErrorMsg("Wrong :block command format!");
+				bvi_error(state.mode, "Wrong :block command format!");
 				return -1;
 			}
 		/* :block del */
@@ -375,7 +368,7 @@ int command__block(char flags, int c_argc, char **c_argv) {
 				}
 			}
 		} else {
-			ui__ErrorMsg("Wrong :block command format!");
+			bvi_error(state.mode, "Wrong :block command format!");
 			return -1;
 		}
 	}
@@ -387,7 +380,7 @@ int command__lua(char flags, int c_argc, char **c_argv) {
 	int n = 0;
 
 	if (c_argc == 0) {
-		ui__ErrorMsg("Error: empty lua command!");
+		bvi_error(state.mode, "Error: empty lua command!");
 	} else {
 		luacmdbuf[0] = '\0';
 		for (n = 0; n < c_argc; n++) {
@@ -414,7 +407,7 @@ int command__args(char flags, int c_argc, char **c_argv) {
 			strcat(string, "]");
 		strcat(string, " ");
 	}
-	ui__StatusMsg(string);
+	bvi_info(state.mode, string);
 	return 0;
 }
 
@@ -431,7 +424,7 @@ int command__source(char flags, int c_argc, char **c_argv) {
 // :run
 int command__run(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
-		ui__ErrorMsg("Error: empty plugin name!");
+		bvi_error(state.mode, "Error: empty plugin name!");
 	} else {
 		bvi_run_lua_script(c_argv[0]);
 	}
@@ -448,8 +441,7 @@ int command__cd(char flags, int c_argc, char **c_argv) {
 				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
-				sprintf(string, nowrtmsg, "cd");
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, BVI_ERROR_NOWRITE, "cd");
 				return -1;
 			}
 		}
@@ -525,8 +517,7 @@ int command__next(char flags, int c_argc, char **c_argv) {
 				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
-				sprintf(string, nowrtmsg, "next");
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, BVI_ERROR_NOWRITE, "next");
 				return -1;
 			}
 		}
@@ -539,7 +530,7 @@ int command__next(char flags, int c_argc, char **c_argv) {
 		stuffin(files[++curfile]);
 		stuffin("\n");
 	} else
-		ui__ErrorMsg("No more files@to edit!");
+		bvi_error(state.mode, "No more files@to edit!");
 	return 0;
 }
 
@@ -555,8 +546,7 @@ int command__rewind(char flags, int c_argc, char **c_argv) {
 				save(name, core.editor.mem, maxpos, WRITE);
 				edits = 0;
 			} else {
-				sprintf(string, nowrtmsg, "rewind");
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, BVI_ERROR_NOWRITE, "rewind");
 				return -1;
 			}
 		}
@@ -592,11 +582,11 @@ int command__change(char flags, int c_argc, char **c_argv) {
 // :mark
 int command__mark(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
-		ui__ErrorMsg("Mark what?");
+		bvi_error(state.mode, "Mark what?");
 		return -1;
 	}
 	if (c_argc > 1 || (strlen(c_argv[0]) > 1)) {
-		ui__ErrorMsg(extra);
+		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
 	if (!addr_flag)
@@ -612,8 +602,7 @@ int command__yank(char flags, int c_argc, char **c_argv) {
 	if ((yanked = alloc_buf(yanked, &yank_buf)) == 0L)
 		return -1;
 	memcpy(yank_buf, start_addr, yanked);
-	sprintf(string, "%lu bytes", (long)yanked);
-	ui__StatusMsg(string);
+	bvi_info(state.mode, "%lu bytes", (long)yanked);
 	return 0;
 }
 
@@ -639,8 +628,7 @@ int command__undo(char flags, int c_argc, char **c_argv) {
 int command__version(char flags, int c_argc, char **c_argv) {
 	if (chk_comm(NO_ADDR | NO_ARG))
 		return -1;
-	sprintf(string, "bvi version %s %s", VERSION, copyright);
-	ui__StatusMsg(string);
+	bvi_info(state.mode, "bvi version %s %s", VERSION, copyright);
 	return 0;
 }
 
@@ -661,13 +649,11 @@ int command__quit(char flags, int c_argc, char **c_argv) {
 		return -1;
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
-			sprintf(string, nowrtmsg, "quit");
-			ui__ErrorMsg(string);
+			bvi_error(state.mode, BVI_ERROR_NOWRITE, "quit");
 			return -1;
 		} else {
 			if ((curfile + 1) < numfiles) {
-				sprintf(string, "%d %s", numfiles - curfile - 1, morefiles);
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 				return -1;
 			} else
 			quit();
@@ -689,7 +675,7 @@ int command__sleft(char flags, int c_argc, char **c_argv) {
 	} else if (c_argc == 2) {
 		do_logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -704,7 +690,7 @@ int command__sright(char flags, int c_argc, char **c_argv) {
 	} else if (c_argc == 2) {
 		do_logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -719,7 +705,7 @@ int command__rleft(char flags, int c_argc, char **c_argv) {
 	} else if (c_argc == 2) {
 		do_logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -734,7 +720,7 @@ int command__rright(char flags, int c_argc, char **c_argv) {
 	} else if (c_argc == 2) {
 		do_logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -745,12 +731,12 @@ int command__and(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
 		do_logic(AND, c_argv[0]);
 	} else if (c_argc == 0) {
-		ui__ErrorMsg(noval);
+		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
 		do_logic_block(AND, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -761,12 +747,12 @@ int command__or(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
 		do_logic(OR, c_argv[0]);
 	} else if (c_argc == 0) {
-		ui__ErrorMsg(noval);
+		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
 		do_logic_block(OR, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -777,12 +763,12 @@ int command__xor(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
 		do_logic(XOR, c_argv[0]);
 	} else if (c_argc == 0) {
-		ui__ErrorMsg(noval);
+		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
 		do_logic_block(XOR, c_argv[0], atoi(c_argv[1]));
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -791,7 +777,7 @@ int command__xor(char flags, int c_argc, char **c_argv) {
 // :neg
 int command__neg(char flags, int c_argc, char **c_argv) {
 	if (c_argc != 0) {
-		ui__ErrorMsg(extra);
+		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
 	do_logic(NEG, "255");
@@ -801,7 +787,7 @@ int command__neg(char flags, int c_argc, char **c_argv) {
 // :not
 int command__not(char flags, int c_argc, char **c_argv) {
 	if (c_argc != 0) {
-		ui__ErrorMsg(extra);
+		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
 	do_logic(NOT, "255");
@@ -871,17 +857,15 @@ void docmdline(char* cmdline)
 		}
 	}
 	SKIP_WHITE if (start_addr > (end_addr + 1)) {
-		ui__ErrorMsg("Addr1 > addr2|First address exceeds second");
+		bvi_error(state.mode, "Addr1 > addr2|First address exceeds second");
 		return;
 	}
 	if ((end_addr + 1) > maxpos) {
-		ui__ErrorMsg("Not that many bytes@in buffer");
+		bvi_error(state.mode, "Not that many bytes@in buffer");
 		return;
 	}
 	if (start_addr < core.editor.mem) {
-		sprintf(string, "Negative address@- first byte is %ld",
-			P(P_OF));
-		ui__ErrorMsg(string);
+		bvi_error(state.mode, "Negative address@- first byte is %ld", P(P_OF));
 		return;
 	}
 
@@ -897,17 +881,15 @@ void docmdline(char* cmdline)
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
-			ui__ErrorMsg
-			    ("Incomplete shell escape command@- use 'shell' to get a shell");
+			bvi_error(state.mode, "Incomplete shell escape command@- use 'shell' to get a shell");
 			return;
 		}
 		if (*(cmdbuf + 1) == '!') {
 			if (oldbuf[0] != '\0') {
 				strcpy(cmdbuf + 1, oldbuf);
-				ui__StatusMsg(oldbuf);
+				bvi_info(state.mode, oldbuf);
 			} else {
-				ui__ErrorMsg
-				    ("No previous command@to substitute for !");
+				bvi_error(state.mode, "No previous command@to substitute for !");
 				return;
 			}
 		} else
@@ -918,7 +900,7 @@ void docmdline(char* cmdline)
 			edits = 0;
 		}
 		if (edits)
-			ui__StatusMsg("[No write]|[No write since last change]");
+			bvi_info(state.mode, "[No write]|[No write since last change]");
 		savetty();
 		endwin();
 		shresult = system(cmdbuf + 1);
@@ -936,9 +918,7 @@ void docmdline(char* cmdline)
 	while (*cmd >= 'a' && *cmd <= 'z') {
 		cmdname[n++] = *cmd++;
 		if (n == MAXNAME) {
-			sprintf(string, "What?|%s: Not an editor command 1",
-				cmdbuf);
-			ui__ErrorMsg(string);
+			bvi_error(state.mode, "What?|%s: Not an editor command 1", cmdbuf);
 			return;
 		}
 	}
@@ -952,17 +932,15 @@ void docmdline(char* cmdline)
 		repl_count =
 		    do_substitution(*cmd, cmd + 1, start_addr, end_addr);
 		if (repl_count == -1) {
-			ui__ErrorMsg
-			    ("No previous substitute re|No previous substitute regular expression");
+			bvi_error(state.mode, "No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
 		}
 		ui__Screen_Repaint();
 		if (!repl_count) {
-			ui__ErrorMsg("Fail|Substitute pattern matching failed");
+			bvi_error(state.mode, "Fail|Substitute pattern matching failed");
 		} else if (repl_count > 1) {
-			sprintf(string, "%d subs|%d substitutions", repl_count,
+			bvi_info(state.mode, "%d subs|%d substitutions", repl_count,
 				repl_count);
-			ui__StatusMsg(string);
 		}
 		return;
 	} else if (!strncmp("global", cmdname, len) && CMDLNG(6, 1)) {
@@ -985,7 +963,7 @@ void docmdline(char* cmdline)
 			wait_return(TRUE);
 		} else {
 			ui__Screen_Repaint();
-			ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
+			bvi_error(state.mode, BVI_ERROR_PATNOTFOUND);
 		}
 		return;
 	} else if (cmdname[0] == 't') {
@@ -1019,7 +997,7 @@ void docmdline(char* cmdline)
 			c_argc++;
 
 		if (c_argc > 1) {
-			ui__ErrorMsg(ambigous);
+			bvi_error(state.mode, BVI_ERROR_AMBIGOUS);
 			return;
 		}
 		if (c_argc == 1) {
@@ -1027,8 +1005,7 @@ void docmdline(char* cmdline)
 			while ((p = strchr(c_argv[0], '%')) != NULL
 			       && *(p - 1) != '\\') {
 				if (name == NULL) {
-					ui__ErrorMsg
-					    ("No filename@to substitute for %");
+					bvi_error(state.mode, "No filename@to substitute for %");
 					return;
 				}
 				*p = '\0';
@@ -1049,10 +1026,7 @@ void docmdline(char* cmdline)
 		} else {
 			if (c_argc == 0) {
 				if (P(P_RO)) {
-					sprintf(string,
-						"\"%s\" File is read only",
-						name);
-					ui__ErrorMsg(string);
+					bvi_error(state.mode, "\"%s\" File is read only", name);
 					return;
 				} else
 					ok = save(name, start_addr, end_addr,
@@ -1060,10 +1034,9 @@ void docmdline(char* cmdline)
 			} else {
 				if (!stat(c_argv[0], &buf)) {
 					if (saveflag == WRITE) {
-						sprintf(string,
+						bvi_error(state.mode ,
 							"File exists@- use \"%s! %s\" to overwrite",
 							cmdname, c_argv[0]);
-						ui__ErrorMsg(string);
 						return;
 					} else {	/* APPEND */
 					/* We can only append to a regular file! */
@@ -1072,8 +1045,7 @@ void docmdline(char* cmdline)
 								filemode =
 								    REGULAR;
 						} else if (S_ISBLK(buf.st_mode)) {
-							ui__ErrorMsg
-							    ("Cannot append to a block special file");
+							bvi_error(state.mode, "Cannot append to a block special file");
 							return;
 						}
 						ok = save(c_argv[0], start_addr,
@@ -1081,7 +1053,7 @@ void docmdline(char* cmdline)
 					}
 				} else {
 					if (saveflag == APPEND) {
-						ui__ErrorMsg("No such file");
+						bvi_error(state.mode, "No such file");
 						return;
 					} else {	/* WRITE */
 					/* If we write the block of a partial file to a new file, it will
@@ -1141,8 +1113,7 @@ void docmdline(char* cmdline)
 				if ((undo_count = yd_addr()) == 0L)
 					return;
 				do_delete(undo_count, start_addr);
-				sprintf(string, "%lu bytes", (long)undo_count);
-				ui__StatusMsg(string);
+				bvi_info(state.mode, "%lu bytes", (long)undo_count);
 			} else if (!strncmp("insert", cmdname, len)
 				   && CMDLNG(6, 1)) {
 				if (chk_comm(MAX_ONE_ARG))
@@ -1208,7 +1179,7 @@ off_t yd_addr()
 			break;
 		}
 	} else {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return 0;
 	}
 	return count;
@@ -1221,8 +1192,7 @@ void do_exit()
 			return;
 	}
 	if ((curfile + 1) < numfiles) {
-		sprintf(string, "%d %s", numfiles - curfile - 1, morefiles);
-		ui__ErrorMsg(string);
+		bvi_error(state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 	} else {
 #ifdef HAVE_LUA_H
 		bvi_lua_finish();
@@ -1240,8 +1210,7 @@ int doecmd(char* arg, int flags)
 	if (*arg == '\0')
 		arg = NULL;
 	if (!(flags & FLAG_FORCE) && edits) {
-		sprintf(string, nowrtmsg, "edit");
-		ui__ErrorMsg(string);
+		bvi_error(state.mode, BVI_ERROR_NOWRITE, "edit");
 		/*
 		   if (altfile)
 		   free(altfile);
@@ -1256,8 +1225,7 @@ int doecmd(char* arg, int flags)
 		}
 		if (name != NULL && !strcmp(arg, "#")) {
 			if (altfile == NULL) {
-				ui__ErrorMsg
-				    ("No alternate filename@to substitute for #");
+				bvi_error(state.mode, "No alternate filename@to substitute for #");
 				return FALSE;
 			}
 			tmp = name;
@@ -1272,7 +1240,7 @@ int doecmd(char* arg, int flags)
 		}
 	}
 	if (name == NULL) {
-		ui__ErrorMsg("No file|No current filename");
+		bvi_error(state.mode, "No file|No current filename");
 		return FALSE;
 	}
 
@@ -1311,23 +1279,23 @@ int wait_return(int flag)
 int chk_comm(int flag)
 {
 	if ((flag & NO_ADDR) && (addr_flag > 0)) {
-		ui__ErrorMsg(noaddr);
+		bvi_error(state.mode, BVI_ERROR_NOADDR);
 		return 1;
 	}
 	if ((flag & NO_ARG) && (c_argc > 0)) {
-		ui__ErrorMsg(extra);
+		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return 1;
 	}
 	if ((flag & MAX_ONE_ARG) && (c_argc > 1)) {
-		ui__ErrorMsg(ambvalue);
+		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return 1;
 	}
 	if ((flag & ONE_FILE) && (c_argc == 0)) {
-		ui__ErrorMsg("Missing filename");
+		bvi_error(state.mode, "Missing filename");
 		return 1;
 	}
 	if ((flag & MAX_ONE_FILE) && (c_argc > 1)) {
-		ui__ErrorMsg(ambigous);
+		bvi_error(state.mode, BVI_ERROR_AMBIGOUS);
 		return 1;
 	}
 	return 0;

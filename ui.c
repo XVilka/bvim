@@ -151,6 +151,7 @@ int ui__REPL_Main()
 	p[0] = '\0';
 
 	signal(SIGINT, jmpproc);
+	state.mode = BVI_MODE_REPL;
 	ui__REPLWin_Show();
 	repl.current_y = 1;
 	repl.current_x = 1;
@@ -193,6 +194,7 @@ int ui__REPL_Main()
 	} while (c != BVI_CTRL('D'));
 	p[0] = '\0';
 	ui__REPLWin_Hide();
+	state.mode = BVI_MODE_EDIT;
 	signal(SIGINT, SIG_IGN);
 	return 0;
 }
@@ -744,7 +746,12 @@ void ui__MsgWin_Show(char* s, int height, int width)
 	wrefresh(msg_win);
 	delwin(msg_win);
 	attroff(COLOR_PAIR(C_WN + 1));
-	ui__Screen_Repaint();
+	if (state.mode != BVI_MODE_REPL)
+		ui__Screen_Repaint();
+	/*
+	else
+		wrefresh(repl_win);
+	*/
 }
 
 // Display message in the status line

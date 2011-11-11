@@ -196,7 +196,8 @@ static int bvi_block_select(lua_State * L)
 			tmp_blk.hl_toggle = 1;
 			blocks__Add(tmp_blk);
 			ui__BlockHighlightAdd(&tmp_blk);
-			ui__Screen_Repaint();
+			if (state.mode != BVI_MODE_REPL)
+				ui__Screen_Repaint();
 		} else {
 			bvi_lua_error_raise(L, "Wrong block ID! It already exist!");
 		}
@@ -219,7 +220,8 @@ static int bvi_block_fold(lua_State * L)
 		tmp_blk = blocks__GetByID(id);
 		if (tmp_blk != NULL) {
 			tmp_blk->folding = 1;
-			ui__Screen_Repaint();
+			if (state.mode != BVI_MODE_REPL)
+				ui__Screen_Repaint();
 		} else {
 			bvi_lua_error_raise(L, "Wrong block number!");
 		}
@@ -783,7 +785,7 @@ static int bvi_display_error(lua_State * L)
 	char *message;
 	if (lua_gettop(L) != 0) {
 		message = (char *)lua_tostring(L, -1);
-		ui__ErrorMsg(message);
+		bvi_error(state.mode, message);
 	}
 	return 0;
 }
@@ -795,7 +797,7 @@ static int bvi_status_line_msg(lua_State * L)
 	char *message;
 	if (lua_gettop(L) != 0) {
 		message = (char *)lua_tostring(L, -1);
-		ui__StatusMsg(message);
+		bvi_info(state.mode, message);
 	}
 	return 0;
 }
@@ -935,7 +937,8 @@ static int bvi_set_marker(lua_State * L)
 			i++;
 		markers[i].address = address;
 		markers[i].marker = '+';
-		ui__Screen_Repaint();
+		if (state.mode != BVI_MODE_REPL)
+			ui__Screen_Repaint();
 	}
 	return 0;
 }
@@ -954,7 +957,8 @@ static int bvi_unset_marker(lua_State * L)
 		if (markers[i].address == address) {
 			markers[i].address = 0;
 			markers[i].marker = ' ';
-			ui__Screen_Repaint();
+			if (state.mode != BVI_MODE_REPL)
+				ui__Screen_Repaint();
 		} else
 			bvi_lua_error_raise(L, "Cant found mark on this address!");
 	}
