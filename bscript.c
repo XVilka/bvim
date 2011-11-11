@@ -1025,6 +1025,7 @@ static int bvi_repl_clear(lua_State *L)
 
 void bvi_lua_init()
 {
+	
 	struct luaL_reg std_methods[] = {
 		{"print", bvi_repl_print},
 		{"clear", bvi_repl_clear},
@@ -1083,6 +1084,13 @@ void bvi_lua_init()
 	luaL_register(lstate, 0, std_methods);
 	luaL_register(lstate, "bvi", bvi_methods);
 	lua_atpanic(lstate, bvi_lua_error_handler);
+	
+	/* export some important constants */
+	lua_setConst(lstate, BVI_VISUAL_SELECTION_ID);
+	lua_setConst(lstate, BVI_MODE_CMD);
+	lua_setConst(lstate, BVI_MODE_EDIT);
+	lua_setConst(lstate, BVI_MODE_VISUAL);
+	lua_setConst(lstate, BVI_MODE_REPL);
 }
 
 int bvi_run_lua_script(char *name)

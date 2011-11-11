@@ -178,6 +178,8 @@ struct STATE {
 
 typedef struct STATE state_t;
 
+#define BVI_VISUAL_SELECTION_ID 1999
+
 extern char *version;
 extern char addr_form[];
 extern char pattern[];

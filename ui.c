@@ -118,14 +118,23 @@ int ui__REPLWin_Show()
 	}
 }
 
+
+// FIXME: "\n\n" - multiline print
 /* Print string in REPL */
 int ui__REPLWin_print(const char *str)
 {
+	char *saved = NULL;
+	char *sptr = NULL;
+
 	if (repl_win != NULL) {
-		repl.current_x = 1;
-		mvwaddstr(repl_win, repl.current_y, repl.current_x, str);
-		wrefresh(repl_win);
-		repl.current_y++;
+		sptr = strtok_r(str, "\n", &saved);
+		while (sptr != NULL) {
+			repl.current_x = 1;
+			mvwaddstr(repl_win, repl.current_y, repl.current_x, sptr);
+			wrefresh(repl_win);
+			repl.current_y++;
+			sptr = strtok_r(NULL, "\n", &saved);
+		}
 		return 0;
 	} else {
 		ui__ErrorMsg("print_repl_window: repl window not exist!");
@@ -133,6 +142,7 @@ int ui__REPLWin_print(const char *str)
 	}
 }
 
+// FIXME: clear repl window
 int ui__REPLWin_clear()
 {
 	repl.current_y = 1;
@@ -174,6 +184,7 @@ int ui__REPL_Main()
 				p[0] = '\0';
 				i = 0;
 				break;
+			// FIXME: fix moving border from right side when deleting character
 			case KEY_BACKSPACE:
 				if (repl.current_x > 1) {
 					i--;

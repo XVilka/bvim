@@ -1,3 +1,5 @@
+#define lua_setConst(state, name) { lua_pushnumber(state, name); lua_setglobal(state, #name ); }
+
 typedef struct lua_io *lua_io_link;
 
 struct lua_io_item {

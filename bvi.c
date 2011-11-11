@@ -725,12 +725,12 @@ int handler__visual()
 		state.mode = BVI_MODE_EDIT;
 		// end selection
 		state.selection.end = get_cursor_position();
-		bvi_info(state.mode, "End of selection at %ld", state.selection.end);
+		bvi_info(state.mode, "Selected block [%ld, %ld]", state.selection.start, state.selection.end);
 		tmpblk.pos_start = state.selection.start;
 		tmpblk.pos_end = state.selection.end;
 		tmpblk.palette = 1; // TODO: something more nice
 		tmpblk.hl_toggle = 1;
-		tmpblk.id = 200; // TODO: do something!
+		tmpblk.id = BVI_VISUAL_SELECTION_ID; // TODO: do something!
 		blocks__Add(tmpblk);
 		ui__BlockHighlightAdd(&tmpblk);
 		ui__Screen_Repaint();
