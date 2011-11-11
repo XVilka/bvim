@@ -245,7 +245,7 @@ static int bvi_block_read(lua_State * L)
 		if (tmp_blk != NULL) {
 			if (tmp_blk->pos_end > tmp_blk->pos_start) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				memcpy(blck, start_addr + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
+				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				lua_pushstring(L, blck);
 			} else {
 				bvi_lua_error_raise(L, "You need select valid block before read!");
@@ -564,7 +564,7 @@ static int bvi_sha1_hash(lua_State * L)
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			id = (unsigned int)lua_tonumber(L, 1);
 			tmp_blk = blocks__GetByID(id);
-			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_end)) {
+			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				sha1_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
@@ -601,7 +601,7 @@ static int bvi_sha256_hash(lua_State * L)
 		if (lua_type(L, 1) == LUA_TNUMBER) {
 			id = (unsigned int)lua_tonumber(L, 1);
 			tmp_blk = blocks__GetByID(id);
-			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_end)) {
+			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				sha256_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
