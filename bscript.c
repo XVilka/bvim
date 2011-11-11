@@ -60,11 +60,15 @@ static int bvi_lua_error_raise(lua_State *L, char* fmt, ...)
 	vsprintf(msg, fmt, ap);
 	va_end(ap);
 
+	/* Exits on luaL_error(), so disabled
 	if (state.mode != BVI_MODE_REPL) {
 		ui__ErrorMsg(msg);
 	} else {
 		luaL_error(L, "%s", msg);
 	}
+	*/
+	if (msg[0] != '\0') 
+		ui__ErrorMsg(msg);
 	return 0;
 }
 
