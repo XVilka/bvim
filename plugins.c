@@ -122,6 +122,19 @@ int plugin__Load(char* path)
 // Unload plugin, remove from list
 int plugin__Unload(plugin_t plg)
 {
+	char* msg = NULL;
+	int (*plugin_unregister)();
+
+	plugin_unregister = dlsym(plg.module, "plugin_unregister");
+	msg = dlerror();
+	if (msg != NULL) {
+		dlclose(plg.module);
+		bvi_error(state.mode, "plugin unload error: can't find plugin_unregister() function");
+		return -1;
+	}
+	if (plugin_unregister != NULL) {
+		plugin_unregister();
+	}
 	dlclose(plg.module);
 	PluginDel(plg);
 	return 0;

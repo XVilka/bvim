@@ -1,26 +1,3 @@
-#define FLAG_FORCE 1
-
-struct command {
-	int id;
-	char *name;
-	char *description;
-	short enabled;
-	short handler_type;
-	union {
-		char *lua_cmd;
-		char *int_cmd;
-		int (*func) (char, int, char **);
-	} handler;
-	int size1;
-	int size2;
-};
-
-struct command_array {
-	struct command *arr;
-	int items;
-	int allocated;
-};
-
 int command__help(char, int, char**);
 int command__map(char, int, char**);
 int command__unmap(char, int, char**);

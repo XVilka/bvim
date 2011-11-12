@@ -283,8 +283,9 @@ int ui__REPL_Main()
 			case KEY_BACKSPACE:
 				if (repl.current_x > 1) {
 					i--;
+					wmove(repl_win, repl.current_y, repl.current_x);
+					waddch(repl_win, ' ');
 					wmove(repl_win, repl.current_y, repl.current_x--);
-					wdelch(repl_win);
 					p[i] = '\0';
 				}
 				break;
@@ -830,4 +831,5 @@ int ui__Destroy()
 {
 	endwin();
 	ColorsLoad();
+	return 0;
 }

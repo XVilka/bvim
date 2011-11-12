@@ -35,7 +35,13 @@ struct plugin {
 /* Plugin API:
  *
  * plugin_t plugin_register() function - fill plugin info
+ * plugin_init(plugin_t plugin);
  *
+ * Import core, state, blocks, commands and keys structure.
+ *
+ * plugin_unregister() function - remove plugin info,
+ * remove previously exported handlers, keys, commands, lua 
+ * functions, etc.
  */
 
 /* ---------------------------------------------------------

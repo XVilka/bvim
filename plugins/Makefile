@@ -1,4 +1,4 @@
-IDIR = ../
+IDIR = ../include
 CC = gcc
 CFLAGS  = -I$(IDIR)
 DEPS = plugins.h

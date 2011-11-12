@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include "../plugins.h"
+#include "plugins.h"
+#include "data.h"
 
 plugin_t plugin_register()
 {
