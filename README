@@ -34,6 +34,11 @@ Subscribe to the bvi mailing for support, updates and other news:
 	subscription confirmation message. Simply reply this message and your
 	subscription will be complete. 
 
+Used code from
+==============
+
+universal_crc - CRC C code generator utility
+	Copyright (C) 2011 Danjel McGougan <danjel.mcgougan@gmail.com>
 
 ------------------------------------------------------------------------
 PLEASE send any bug reports (and fixes), code for new features,

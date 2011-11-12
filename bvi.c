@@ -1041,6 +1041,9 @@ int main(int argc, char* argv[])
 	/* Commands parser initialization */
 	commands__Init();
 
+	/* Plugins infrastructure initialization */
+	plugins__Init();
+
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
 
@@ -1621,6 +1624,7 @@ void quit()
 	keys__Destroy();
 	commands__Destroy();
 	blocks__Destroy();
+	plugins__Destroy();
 
 	/* Destroy all curses stuff, restore terminal state */
 	move(core.screen.maxy, 0);

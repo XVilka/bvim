@@ -118,8 +118,6 @@ int ui__REPLWin_Show()
 	}
 }
 
-
-// FIXME: "\n\n" - multiline print
 /* Print string in REPL */
 int ui__REPLWin_print(const char *str)
 {

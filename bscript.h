@@ -1,3 +1,5 @@
+#define LUA_DEFAULT_SCRIPT_PATH "scripts"
+
 #define lua_setConst(state, name) { lua_pushnumber(state, name); lua_setglobal(state, #name ); }
 
 typedef struct lua_io *lua_io_link;

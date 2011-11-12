@@ -669,11 +669,11 @@ int command__quit(char flags, int c_argc, char **c_argv) {
 // :sleft
 int command__sleft(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(LSHIFT, c_argv[0]);
+		math__logic(LSHIFT, c_argv[0]);
 	} else if (c_argc == 0) {
-		do_logic(LSHIFT, "1");
+		math__logic(LSHIFT, "1");
 	} else if (c_argc == 2) {
-		do_logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -684,11 +684,11 @@ int command__sleft(char flags, int c_argc, char **c_argv) {
 // :sright
 int command__sright(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(RSHIFT, c_argv[0]);
+		math__logic(RSHIFT, c_argv[0]);
 	} else if (c_argc == 0) {
-		do_logic(RSHIFT, "1");
+		math__logic(RSHIFT, "1");
 	} else if (c_argc == 2) {
-		do_logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -699,11 +699,11 @@ int command__sright(char flags, int c_argc, char **c_argv) {
 // :rleft
 int command__rleft(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(LROTATE, c_argv[0]);
+		math__logic(LROTATE, c_argv[0]);
 	} else if (c_argc == 0) {
-		do_logic(LROTATE, "1");
+		math__logic(LROTATE, "1");
 	} else if (c_argc == 2) {
-		do_logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -714,11 +714,11 @@ int command__rleft(char flags, int c_argc, char **c_argv) {
 // :rright
 int command__rright(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(RROTATE, c_argv[0]);
+		math__logic(RROTATE, c_argv[0]);
 	} else if (c_argc == 0) {
-		do_logic(RROTATE, "1");
+		math__logic(RROTATE, "1");
 	} else if (c_argc == 2) {
-		do_logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -729,12 +729,12 @@ int command__rright(char flags, int c_argc, char **c_argv) {
 // :and
 int command__and(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(AND, c_argv[0]);
+		math__logic(AND, c_argv[0]);
 	} else if (c_argc == 0) {
 		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		do_logic_block(AND, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(AND, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -745,12 +745,12 @@ int command__and(char flags, int c_argc, char **c_argv) {
 // :or
 int command__or(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(OR, c_argv[0]);
+		math__logic(OR, c_argv[0]);
 	} else if (c_argc == 0) {
 		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		do_logic_block(OR, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(OR, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -761,12 +761,12 @@ int command__or(char flags, int c_argc, char **c_argv) {
 // :xor
 int command__xor(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		do_logic(XOR, c_argv[0]);
+		math__logic(XOR, c_argv[0]);
 	} else if (c_argc == 0) {
 		bvi_error(state.mode, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		do_logic_block(XOR, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(XOR, c_argv[0], atoi(c_argv[1]));
 	} else {
 		bvi_error(state.mode, BVI_ERROR_AMBVALUE);
 		return -1;
@@ -780,7 +780,7 @@ int command__neg(char flags, int c_argc, char **c_argv) {
 		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
-	do_logic(NEG, "255");
+	math__logic(NEG, "255");
 	return 0;
 }
 
@@ -790,7 +790,7 @@ int command__not(char flags, int c_argc, char **c_argv) {
 		bvi_error(state.mode, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
-	do_logic(NOT, "255");
+	math__logic(NOT, "255");
 	return 0;
 }
 	

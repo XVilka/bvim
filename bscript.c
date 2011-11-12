@@ -184,6 +184,63 @@ static int bvi_file(lua_State * L)
 	return 1;
 }
 
+/* Load plugin */
+/* lua: plugin_load(filename) */
+static int bvi_plugin_load(lua_State * L)
+{
+	char *filename;
+	int n = lua_gettop(L);
+
+	if (n == 1) {
+		filename = (char *)lua_tostring(L, 1);
+		plugin__Load(filename);
+	} else {
+		bvi_lua_error_raise(L, "Fail to load plugin - wrong format");
+	}
+	return 0;
+}
+
+// FIXME: Plugins list stub
+static int bvi_plugin_list(lua_State *L)
+{
+	return 0;
+}
+
+static int bvi_plugin_info(lua_State *L)
+{
+	char* name;
+	char tmpstr[1024];
+	plugin_t* plg;
+	int n = lua_gettop(L);
+
+	if (n == 1) {
+		name = (char *)lua_tostring(L, 1);
+		plg = plugins__GetByName(name);
+		if (plg != NULL) {
+			if (state.mode == BVI_MODE_REPL) {
+				tmpstr[0] = '\0';
+				sprintf(tmpstr, "Name: %s", plg->name);
+				ui__REPLWin_print(tmpstr);
+				sprintf(tmpstr, "Author: %s", plg->author);
+				ui__REPLWin_print(tmpstr);
+				sprintf(tmpstr, "License: %s", plg->license);
+				ui__REPLWin_print(tmpstr);
+				sprintf(tmpstr, "Version: %d.%d", plg->version.major, plg->version.minor);
+				ui__REPLWin_print(tmpstr);
+				sprintf(tmpstr, "Description: %s", plg->description);
+				ui__REPLWin_print(tmpstr);
+			} else {
+				bvi_info(state.mode, "%s %d.%d - %s", plg->name, plg->version.major, plg->version.minor, plg->description);
+			}
+		} else {
+			bvi_lua_error_raise(L, "Haven't such plugin");
+		}
+	} else {
+		bvi_lua_error_raise(L, "Wrong format of plugin_info function");
+	}
+	return 0;
+}
+
 /* TODO: add function , which returns list of all presented blocks */
 
 /* Select block in the buffer */
@@ -272,7 +329,7 @@ static int bvi_block_and(lua_State * L)
 		id = (int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(AND, (char *)lua_tostring(L, 2), id);
+			math__logic_block(AND, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise(L, "You need select valid block before and operation!");
 		}
@@ -293,7 +350,7 @@ static int bvi_block_or(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(OR, (char *)lua_tostring(L, 2), id);
+			math__logic_block(OR, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before or operation!");
@@ -315,7 +372,7 @@ static int bvi_block_xor(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(XOR, (char *)lua_tostring(L, 2), id);
+			math__logic_block(XOR, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before xor operation!");
@@ -337,7 +394,7 @@ static int bvi_block_lshift(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(LSHIFT, (char *)lua_tostring(L, 2), id);
+			math__logic_block(LSHIFT, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before lshift operation!");
@@ -359,7 +416,7 @@ static int bvi_block_rshift(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(RSHIFT, (char *)lua_tostring(L, 2), id);
+			math__logic_block(RSHIFT, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before rshift operation!");
@@ -381,7 +438,7 @@ static int bvi_block_lrotate(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(LROTATE, (char *)lua_tostring(L, 2), id);
+			math__logic_block(LROTATE, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before lrotate operation!");
@@ -403,7 +460,7 @@ static int bvi_block_rrotate(lua_State * L)
 		id = (unsigned int)lua_tonumber(L, 1);
 		tmp_blk = blocks__GetByID(id);
 		if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
-			do_logic_block(RROTATE, (char *)lua_tostring(L, 2), id);
+			math__logic_block(RROTATE, (char *)lua_tostring(L, 2), id);
 		} else {
 			bvi_lua_error_raise
 			    (L, "You need select valid block before rrotate operation!");
@@ -497,7 +554,7 @@ static int bvi_md4_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				md4_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__md4_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -507,7 +564,7 @@ static int bvi_md4_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			md4_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__md4_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -534,7 +591,7 @@ static int bvi_md5_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				md5_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__md5_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -544,7 +601,7 @@ static int bvi_md5_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			md5_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__md5_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -571,7 +628,7 @@ static int bvi_sha1_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				sha1_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__sha1_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -581,7 +638,7 @@ static int bvi_sha1_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			sha1_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__sha1_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -608,7 +665,7 @@ static int bvi_sha256_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				sha256_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__sha256_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -618,7 +675,7 @@ static int bvi_sha256_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			sha256_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__sha256_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -646,7 +703,7 @@ static int bvi_sha512_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				sha512_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__sha512_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -656,7 +713,7 @@ static int bvi_sha512_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			sha512_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__sha512_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -684,7 +741,7 @@ static int bvi_ripemd160_hash(lua_State * L)
 			if ((tmp_blk != NULL) & (tmp_blk->pos_end > tmp_blk->pos_start)) {
 				blck = (char *)malloc(tmp_blk->pos_end - tmp_blk->pos_start + 1);
 				memcpy(blck, core.editor.mem + tmp_blk->pos_start, tmp_blk->pos_end - tmp_blk->pos_start + 1);
-				ripemd160_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
+				math__ripemd160_hash_string((unsigned char *)blck, tmp_blk->pos_end - tmp_blk->pos_start + 1, hash);
 				lua_pushstring(L, hash);
 				return 1;
 			} else {
@@ -694,7 +751,7 @@ static int bvi_ripemd160_hash(lua_State * L)
 		} else if (lua_type(L, 1) == LUA_TSTRING) {
 			blck = (char *)malloc(strlen((char *)lua_tostring(L, 1)));
 			blck = (char *)lua_tostring(L, 1);
-			ripemd160_hash_string((unsigned char *)blck, strlen(blck), hash);
+			math__ripemd160_hash_string((unsigned char *)blck, strlen(blck), hash);
 			lua_pushstring(L, hash);
 			return 1;
 		}
@@ -1039,6 +1096,9 @@ void bvi_lua_init()
 		{"load", bvi_load},
 		{"file", bvi_file},
 		{"exec", bvi_exec},
+		{"plugin_load", bvi_plugin_load},
+		{"plugin_list", bvi_plugin_list},
+		{"plugin_info", bvi_plugin_info},
 		{"block_select", bvi_block_select},
 		{"block_fold", bvi_block_fold},
 		{"block_read", bvi_block_read},
@@ -1093,12 +1153,14 @@ void bvi_lua_init()
 	lua_setConst(lstate, BVI_MODE_REPL);
 }
 
+// TODO: Add support of full path, multiple plugins directories
 int bvi_run_lua_script(char *name)
 {
 	char filename[256];
 	int err;
 	filename[0] = '\0';
-	strcat(filename, "plugins/");
+	strcat(filename, LUA_DEFAULT_SCRIPT_PATH);
+	strcat(filename, "/");
 	strcat(filename, name);
 	strcat(filename, ".lua");
 	err = luaL_loadfile(lstate, filename);
