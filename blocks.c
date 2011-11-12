@@ -4,19 +4,19 @@
 #include "blocks.h"
 #include "bscript.h"
 
-/* =============== Blocks list/buffer abstractions =============== */
+extern core_t core;
 
-block_link blocks;
+/* =============== Blocks list/buffer abstractions =============== */
 
 /* Preallocate some memory for future blocks allocation */
 int InitBlocksList(int N)
 {
 	int i = 0;
-	blocks = (block_link)malloc((N + 1)*(sizeof *blocks));
+	core.blocks = (block_link)malloc((N + 1)*(sizeof *(core.blocks)));
 	for (i = 0; i < N + 1; i++) {
-		blocks[i].next = &blocks[i + 1];
+		core.blocks[i].next = &(core.blocks[i + 1]);
 	}
-	blocks[N].next = NULL;
+	core.blocks[N].next = NULL;
 	return 0;
 }
 
@@ -26,12 +26,12 @@ int BlockAdd(struct block_item i)
 	t = (block_link)malloc(sizeof(*t));
 	if (t != NULL) {
 		t->item = i;
-		if (blocks != NULL) {
-			t->next = blocks->next;
-			blocks->next = t;
+		if (core.blocks != NULL) {
+			t->next = core.blocks->next;
+			core.blocks->next = t;
 		} else {
-			blocks = t;
-			blocks->next = NULL;
+			core.blocks = t;
+			core.blocks->next = NULL;
 		}
 	} else {
 		return -1;
@@ -41,7 +41,7 @@ int BlockAdd(struct block_item i)
 
 void BlockFree(block_link x)
 {
-	BlockInsertNext(blocks, x);
+	BlockInsertNext(core.blocks, x);
 }
 
 void BlockInsertNext(block_link x, block_link t)
@@ -78,7 +78,7 @@ struct block_item BlockGet(block_link x)
 int blocks__Iterator(int (*(func))(), int result)
 {
 	block_link t;
-	t = blocks;
+	t = core.blocks;
 	while (t != NULL)
 	{
 		if ((*(func))(&(t->item)) == result) {
@@ -107,14 +107,10 @@ int blocks__DelByName(char* name) {
 struct block_item* blocks__GetByID(unsigned int id) {
 	block_link t;
 	
-	t = blocks;
+	t = core.blocks;
 	
 	while (t != NULL)
 	{
-		FILE *fp = fopen("debugging.log", "a");
-		fprintf(fp, "blocks__GetByID(%d): t != NULL\n\t\tt->item.id = %d\n", id, id);
-		fclose(fp);
-
 		if (t->item.id == id) return &(t->item);
 		t = t->next;
 	}
@@ -124,14 +120,10 @@ struct block_item* blocks__GetByID(unsigned int id) {
 struct block_item* blocks__GetByName(char* name) {
 	block_link t;
 
-	t = blocks;
+	t = core.blocks;
 
 	while (t != NULL)
 	{
-		FILE *fp = fopen("debugging.log", "a");
-		fprintf(fp, "blocks__GetByName(%s): t != NULL\n\t\tt->item.name = %s\n", name, name);
-		fclose(fp);
-
 		if (!strcmp(t->item.name, name)) return &(t->item);
 		t = t->next;
 	}
@@ -147,7 +139,7 @@ int blocks__Init()
 int blocks__Destroy()
 {
 	block_link t;
-	t = blocks;
+	t = core.blocks;
 	while (t != NULL)
 	{
 		free(t);

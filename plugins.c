@@ -1,5 +1,8 @@
 #include <dlfcn.h>
 #include "bvi.h"
+#include "keys.h"
+#include "commands.h"
+#include "blocks.h"
 #include "plugins.h"
 
 extern core_t core;
@@ -82,11 +85,13 @@ int plugins__Destroy()
 
 int plugin__Load(char* path)
 {
+	int i = 0;
 	char *msg;
 	void *module;
 	plugin_t plg;
 
 	plugin_t (*plugin_register)();
+	int (*plugin_init)(core_t *, state_t *);
 
 	module = dlopen(path, RTLD_NOW);
 	if (!module) {
@@ -110,8 +115,41 @@ int plugin__Load(char* path)
 		plg.module = module;
 		PluginAdd(plg);
 		// Add commands, key handlers, etc to lists
-	}
-	else {
+		plugin_init = dlsym(module, "plugin_init");
+		msg = dlerror();
+		if (msg != NULL) {
+			dlclose(plg.module);
+			bvi_error(state.mode, "plugin init error: can't find plugin_init() function: %s", msg);
+			return -1;
+		}
+		if (plugin_init != NULL) {
+			plugin_init(&core, &state);
+			if (plg.exports.keys != NULL) {
+				i = 0;
+				while (plg.exports.keys[i].id != 0)
+				{
+					plg.exports.keys[i].handler.func = dlsym(plg.module, plg.exports.keys[i].handler.func_name);
+					plg.exports.keys[i].handler_type = BVI_HANDLER_INTERNAL; // was external before loading
+					keys__Key_Map(&(plg.exports.keys[i]));
+					i++;
+				}
+			}
+			if (plg.exports.cmds != NULL) {
+				i = 0;
+				while (plg.exports.cmds[i].id != 0)
+				{
+					plg.exports.cmds[i].handler.func = dlsym(plg.module, plg.exports.cmds[i].handler.func_name);
+					plg.exports.cmds[i].handler_type = BVI_HANDLER_INTERNAL; // was external before loading
+					commands__Cmd_Add(&(plg.exports.cmds[i]));
+					i++;
+				}
+			}
+		} else {
+			dlclose(module);
+			bvi_error(state.mode, "plugin init error: wrong plugin_init() function");
+			return -1;
+		}
+	} else {
 		dlclose(module);
 		bvi_error(state.mode, "plugin load error: wrong plugin_register() function");
 		return -1;

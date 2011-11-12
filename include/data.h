@@ -74,71 +74,6 @@
  * ---------------------------------------------------------
  */
 
-struct BVI {
-	char* version;
-};
-
-/* ---------------------------------
- * CORE structure - each for
- * different buffers
- * ---------------------------------
- */
-
-struct CORE {
-	struct {
-		int COLUMNS_DATA;
-		int COLUMNS_HEX;
-		int COLUMNS_ADDRESS;
-		/*
-		   struct colors {} */
-	} params;
-	struct {
-		PTR mem;
-		PTR maxpos;
-	} editor;
-	struct {
-		int maxy;
-		int maxx;
-	} screen;
-	/*
-	   struct MARKERS;
-	 */
-};
-
-typedef struct CORE core_t;
-
-/* -----------------------------------
- * Current state of the current buffer
- * ----------------------------------- 
- */
-
-#define BVI_MODE_CMD	1
-#define BVI_MODE_EDIT	2
-#define BVI_MODE_VISUAL 3
-#define BVI_MODE_REPL	4
-
-struct STATE {
-	/* Command, Edit, Visual or REPL modes */
-	int mode;
-	/* Current positions */
-	PTR pagepos;
-	PTR curpos;
-	PTR current;
-	PTR mempos;
-	int x;
-	int y;
-	int loc;
-	int screen;
-	int scrolly;
-	int toggle_selection;
-	struct {
-		long start;
-		long end;
-	} selection;
-};
-
-typedef struct STATE state_t;
-
 /* ----------------------------------------------------------
  *                   keys data types
  * ----------------------------------------------------------
@@ -147,8 +82,10 @@ typedef struct STATE state_t;
 #define BVI_CTRL(n)		(n&0x1f)
 
 #define BVI_HANDLER_INTERNAL	0
-#define BVI_HANDLER_SCRIPT		1
-#define BVI_HANDLER_LUA			2
+#define BVI_HANDLER_EXTERNAL	1
+#define BVI_HANDLER_SCRIPT		2
+#define BVI_HANDLER_LUA			3
+
 
 struct key {
 	int id;
@@ -157,9 +94,10 @@ struct key {
 	short enabled;
 	short handler_type;
 	union {
-		char *lua_cmd;
-		char *int_cmd;
-		int (*func) ();
+		char *lua_cmd; // BVI_HANDLER_LUA
+		char *int_cmd; // BVI_HANDLER_SCRIPT
+		int (*func) (); // BVI_HANDLER_INTERNAL
+		char* func_name; // BVI_HANDLER_EXTERNAL
 	} handler;
 };
 
@@ -183,9 +121,10 @@ struct command {
 	short enabled;
 	short handler_type;
 	union {
-		char *lua_cmd;
-		char *int_cmd;
-		int (*func) (char, int, char **);
+		char *lua_cmd; // BVI_HANDLER_LUA
+		char *int_cmd; // BVI_HANDLER_SCRIPT
+		int (*func) (char, int, char **); // BVI_HANDLER_INTERNAL
+		char* func_name; // BVI_HANDLER_EXTERNAL
 	} handler;
 	int size1;
 	int size2;
@@ -233,5 +172,79 @@ struct block {
 	struct block_item item;
 	block_link next;
 };
+
+struct BVI {
+	char* version;
+};
+
+/* ---------------------------------
+ * CORE structure - each for
+ * different buffers
+ * ---------------------------------
+ */
+
+struct CORE {
+	struct {
+		int COLUMNS_DATA;
+		int COLUMNS_HEX;
+		int COLUMNS_ADDRESS;
+		/*
+		   struct colors {} */
+	} params;
+	struct {
+		PTR mem;
+		PTR maxpos;
+	} editor;
+	struct {
+		int maxy;
+		int maxx;
+	} screen;
+	block_link blocks; // list of all blocks
+	struct keys_array keymap; // list of all keymaps
+	struct command_array cmdmap; // list of all commands
+
+	/*
+	   struct MARKERS;
+	 */
+
+	/* handlers */
+	void (*error)(int, char*, ...);
+	void (*info)(int, char*, ...);
+	void (*debug)(int, char*, ...);
+};
+
+typedef struct CORE core_t;
+
+/* -----------------------------------
+ * Current state of the current buffer
+ * ----------------------------------- 
+ */
+
+#define BVI_MODE_CMD	1
+#define BVI_MODE_EDIT	2
+#define BVI_MODE_VISUAL 3
+#define BVI_MODE_REPL	4
+
+struct STATE {
+	/* Command, Edit, Visual or REPL modes */
+	int mode;
+	/* Current positions */
+	PTR pagepos;
+	PTR curpos;
+	PTR current;
+	PTR mempos;
+	int x;
+	int y;
+	int loc;
+	int screen;
+	int scrolly;
+	int toggle_selection;
+	struct {
+		long start;
+		long end;
+	} selection;
+};
+
+typedef struct STATE state_t;
 
 

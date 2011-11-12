@@ -1040,6 +1040,10 @@ int main(int argc, char* argv[])
 	commands__Init();
 
 	/* Plugins infrastructure initialization */
+	core.error = bvi_error;
+	core.info = bvi_info;
+	core.debug = bvi_debug;
+
 	plugins__Init();
 
 	for (i = 0; i < MARK_COUNT; i++)

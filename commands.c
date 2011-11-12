@@ -87,38 +87,38 @@ static char oldbuf[CMDSZ];		/** for :!! command **/
  * -------------------------------------------------------------
  */
 
-static struct command_array cmdmap;
+//static struct command_array cmdmap;
 
 int CmdAdd(struct command item)
 {
-	if (cmdmap.items == cmdmap.allocated) {
-		if (cmdmap.allocated == 0)
-			cmdmap.allocated = 3;
+	if (core.cmdmap.items == core.cmdmap.allocated) {
+		if (core.cmdmap.allocated == 0)
+			core.cmdmap.allocated = 3;
 		else
-			cmdmap.allocated += 4;
+			core.cmdmap.allocated += 4;
 
 		void *_tmp =
-		    realloc(cmdmap.arr,
-			    (cmdmap.allocated * sizeof(struct command)));
+		    realloc(core.cmdmap.arr,
+			    (core.cmdmap.allocated * sizeof(struct command)));
 
 		if (!_tmp) {
 			fprintf(stderr, "ERROR: Couldn't realloc memory!\n");
 			return (-1);
 		}
-		cmdmap.arr = (struct command *)_tmp;
+		core.cmdmap.arr = (struct command *)_tmp;
 	}
-	cmdmap.arr[cmdmap.items] = item;
-	cmdmap.items++;
+	core.cmdmap.arr[core.cmdmap.items] = item;
+	core.cmdmap.items++;
 
-	return cmdmap.items;
+	return core.cmdmap.items;
 }
 
 int CmdDel(char *name)
 {
 	int i = 0;
-	while (i < cmdmap.items) {
-		if (strcmp(name, cmdmap.arr[i].name) == 0) {
-			cmdmap.arr[i].enabled = 0;
+	while (i < core.cmdmap.items) {
+		if (strcmp(name, core.cmdmap.arr[i].name) == 0) {
+			core.cmdmap.arr[i].enabled = 0;
 			return 0;
 		}
 		i++;
@@ -180,15 +180,15 @@ int CmdDefaults()
 
 void commands__Init()
 {
-	cmdmap.arr = NULL;
-	cmdmap.items = 0;
-	cmdmap.allocated = 0;
+	core.cmdmap.arr = NULL;
+	core.cmdmap.items = 0;
+	core.cmdmap.allocated = 0;
 	CmdDefaults();
 }
 
 void commands__Destroy()
 {
-	free(cmdmap.arr);
+	free(core.cmdmap.arr);
 }
 
 int commands__Cmd_Add(struct command *new_cmd)
@@ -215,11 +215,11 @@ int command__help(char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
 		bvi_error(state.mode, "What?");
 	} else if (c_argc == 1) {
-		while (i < cmdmap.items) {
-			if (strncmp(c_argv[0], cmdmap.arr[i].name, strlen(cmdmap.arr[i].name))) {
+		while (i < core.cmdmap.items) {
+			if (strncmp(c_argv[0], core.cmdmap.arr[i].name, strlen(core.cmdmap.arr[i].name))) {
 				bvi_error(state.mode, "Command not exist!");
 			} else {
-				bvi_info(state.mode, cmdmap.arr[i].description);
+				bvi_info(state.mode, core.cmdmap.arr[i].description);
 				return 0;
 			}
 			i++;
@@ -1084,20 +1084,20 @@ void docmdline(char* cmdline)
 
 	tmp_cmd = cmd; // save original command for some parsing purposes
 	j = 0;
-	while (j < cmdmap.items) {
-		if (!strncmp(cmdmap.arr[j].name, cmdname, len) && CMDLNG(cmdmap.arr[j].size1, cmdmap.arr[j].size2) &&
-			(cmdmap.arr[j].enabled == 1)) {
-			if ((cmdmap.arr[j].handler_type ==
-			     BVI_HANDLER_INTERNAL) & (cmdmap.arr[j].handler.
+	while (j < core.cmdmap.items) {
+		if (!strncmp(core.cmdmap.arr[j].name, cmdname, len) && CMDLNG(core.cmdmap.arr[j].size1, core.cmdmap.arr[j].size2) &&
+			(core.cmdmap.arr[j].enabled == 1)) {
+			if ((core.cmdmap.arr[j].handler_type ==
+			     BVI_HANDLER_INTERNAL) & (core.cmdmap.arr[j].handler.
 						      func != NULL)) {
-				(*(cmdmap.arr[j].handler.func)) (flags, c_argc, c_argv);
+				(*(core.cmdmap.arr[j].handler.func)) (flags, c_argc, c_argv);
 				cmd_recognized = 1;
 				break;
 			} else
-			    if ((cmdmap.arr[j].handler_type ==
-				 BVI_HANDLER_LUA) & (cmdmap.arr[j].handler.
+			    if ((core.cmdmap.arr[j].handler_type ==
+				 BVI_HANDLER_LUA) & (core.cmdmap.arr[j].handler.
 						     lua_cmd != NULL)) {
-				bvi_run_lua_string(cmdmap.arr[j].handler.
+				bvi_run_lua_string(core.cmdmap.arr[j].handler.
 						   lua_cmd);
 				cmd_recognized = 1;
 				break;

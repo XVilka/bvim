@@ -4,35 +4,35 @@
 #include "keys.h"
 #include "bscript.h"
 
+extern core_t core;
+
 /* ----------------------------------------------------------
  *                    Internal functions
  * ----------------------------------------------------------
  */
 
-static struct keys_array keymap;
-
 int KeyAdd(struct key item)
 {
-	if (keymap.items == keymap.allocated) {
-		if (keymap.allocated == 0)
-			keymap.allocated = 3;
+	if (core.keymap.items == core.keymap.allocated) {
+		if (core.keymap.allocated == 0)
+			core.keymap.allocated = 3;
 		else
-			keymap.allocated += 4;
+			core.keymap.allocated += 4;
 
 		void *_tmp =
-		    realloc(keymap.arr,
-			    (keymap.allocated * sizeof(struct key)));
+		    realloc(core.keymap.arr,
+			    (core.keymap.allocated * sizeof(struct key)));
 
 		if (!_tmp) {
 			fprintf(stderr, "ERROR: Couldn't realloc memory!\n");
 			return (-1);
 		}
-		keymap.arr = (struct key *)_tmp;
+		core.keymap.arr = (struct key *)_tmp;
 	}
-	keymap.arr[keymap.items] = item;
-	keymap.items++;
+	core.keymap.arr[core.keymap.items] = item;
+	core.keymap.items++;
 
-	return keymap.items;
+	return core.keymap.items;
 }
 
 int KeyDel(struct key item)
@@ -229,15 +229,15 @@ int KeyDefaults()
 
 void keys__Init()
 {
-	keymap.arr = NULL;
-	keymap.items = 0;
-	keymap.allocated = 0;
+	core.keymap.arr = NULL;
+	core.keymap.items = 0;
+	core.keymap.allocated = 0;
 	KeyDefaults();
 }
 
 void keys__Destroy()
 {
-	free(keymap.arr);
+	free(core.keymap.arr);
 }
 
 // TODO: Implement parsing key strings, like <Ctrl-K>
@@ -267,10 +267,10 @@ void keys__KeyMaps_Show(void)
 	int i = 0;
 
 	dispbuf[0] = '\0';
-	while (i < keymap.items) {
+	while (i < core.keymap.items) {
 		luacmdbuf[0] = '\0';
-		sprintf(luacmdbuf, "map %s %s\n", keymap.arr[i].name,
-			keymap.arr[i].description);
+		sprintf(luacmdbuf, "map %s %s\n", core.keymap.arr[i].name,
+			core.keymap.arr[i].description);
 		strcat(dispbuf, luacmdbuf);
 		i++;
 	}
@@ -281,18 +281,18 @@ void keys__KeyMaps_Show(void)
 int keys__Key_Pressed(int key_code)
 {
 	int j = 0;
-	while (j < keymap.items) {
-		if ((keymap.arr[j].id == key_code) & (keymap.arr[j].enabled ==
+	while (j < core.keymap.items) {
+		if ((core.keymap.arr[j].id == key_code) & (core.keymap.arr[j].enabled ==
 						      1)) {
-			if ((keymap.arr[j].handler_type ==
-			     BVI_HANDLER_INTERNAL) & (keymap.arr[j].handler.
+			if ((core.keymap.arr[j].handler_type ==
+			     BVI_HANDLER_INTERNAL) & (core.keymap.arr[j].handler.
 						      func != NULL)) {
-				(*(keymap.arr[j].handler.func)) ();
+				(*(core.keymap.arr[j].handler.func)) ();
 			} else
-			    if ((keymap.arr[j].handler_type ==
-				 BVI_HANDLER_LUA) & (keymap.arr[j].handler.
+			    if ((core.keymap.arr[j].handler_type ==
+				 BVI_HANDLER_LUA) & (core.keymap.arr[j].handler.
 						     lua_cmd != NULL)) {
-				bvi_run_lua_string(keymap.arr[j].handler.
+				bvi_run_lua_string(core.keymap.arr[j].handler.
 						   lua_cmd);
 			}
 		}

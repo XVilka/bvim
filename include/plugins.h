@@ -16,13 +16,10 @@ struct plugin_ {
 	} version;
 	char* description;
 	void* module;
-	/*
 	 struct {
-		commands_list cmd_lst;
-		keys_list key_lst;
-		lua_list lua_lst;
+		struct key *keys;
+		struct command *cmds;
 	} exports;
-	*/
 };
 
 typedef struct plugin_ plugin_t;
