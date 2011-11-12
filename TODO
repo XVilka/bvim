@@ -45,6 +45,7 @@ Simple tasks
     -- 90% done
 11. Add folding empty and repeating data sequences
 12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
+    -- 80% done
 13. Add C plugins api, with ability for register lua functions, events, keymaps and :commands
     -- IN PROGRESS
 14. Add lua/plugins hooks into standard handler_* and command_*

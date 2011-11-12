@@ -586,7 +586,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 		ch = *cmd;
 		switch (ch) {
 		case '.':	/* Current position */
-			addr = current;
+			addr = state.current;
 			cmd++;
 			break;
 		case '^':

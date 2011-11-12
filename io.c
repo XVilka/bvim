@@ -324,7 +324,7 @@ int enlarge(off_t add)
 	state.pagepos = core.editor.mem + savepag;
 	maxpos = core.editor.mem + savemax;
 	undo_start = core.editor.mem + saveundo;
-	current = curpos + 1L;
+	state.current = curpos + 1L;
 	return 0;
 }
 

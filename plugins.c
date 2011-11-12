@@ -109,6 +109,7 @@ int plugin__Load(char* path)
 		plg = plugin_register();
 		plg.module = module;
 		PluginAdd(plg);
+		// Add commands, key handlers, etc to lists
 	}
 	else {
 		dlclose(module);
@@ -125,3 +126,12 @@ int plugin__Unload(plugin_t plg)
 	PluginDel(plg);
 	return 0;
 }
+
+
+/* -----------------------------------------------------------------------------------
+ *                        Working with commands, blocks,
+ *                        lua functions, core structures, etc.
+ * -----------------------------------------------------------------------------------
+ */
+
+

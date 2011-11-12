@@ -6,6 +6,15 @@
 #include "keys.h"
 #include "bscript.h"
 
+// TODO: Implement UI object/structure and its slots, move all current implementations
+// TODO: in console.c
+/* struct ui_t {
+ *		int *(init)();
+ *		int *(destroy)();
+ * }
+ *
+ */
+
 extern core_t core;
 extern state_t state;
 
@@ -13,6 +22,11 @@ extern struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
 char linbuf[256];
+
+/* --------------------------------------------------------------------------
+ *                         Colors handling
+ * --------------------------------------------------------------------------
+ */
 
 struct color colors[] = {	/* RGB definitions and default value, if have no support of 256 colors */
 	{"background", "bg", 50, 50, 50, COLOR_BLACK},
@@ -38,13 +52,96 @@ struct {
 	short b;
 } original_colorpairs[8];
 
+void ColorsSave()
+{
+	int i;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		color_content(colors[i].short_value, &original_colors[i].r,
+			      &original_colors[i].g, &original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		pair_content(i, &original_colorpairs[i].f,
+			     &original_colorpairs[i].b);
+	}
+}
+
+void ColorsLoad()
+{
+	int i;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		init_color(colors[i].short_value, original_colors[i].r,
+			   original_colors[i].g, original_colors[i].b);
+	}
+	for (i = 1; i < 8; i++) {
+		init_pair(i, original_colorpairs[i].f,
+			  original_colorpairs[i].b);
+	}
+}
+
+void ui__Colors_Set()
+{
+	int i;
+	if (can_change_color()) {
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (init_color
+			    (colors[i].short_value, C_r(i), C_g(i),
+			     C_b(i)) == ERR)
+				fprintf(stderr, "Failed to set [%d] color!\n",
+					i);
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), C_s(0));
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), C_s(0));
+			}
+		}
+		init_pair(C_AD + 1, C_s(C_AD), COLOR_CYAN);
+	} else {		/* if have no support of changing colors */
+		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+			if (C_s(i) <= 7) {
+				init_pair(i + 1, C_s(i), C_s(0));
+			} else {
+				colors[i].short_value = COLOR_WHITE;
+				init_pair(i + 1, C_s(i), C_s(0));
+			}
+		}
+	}
+}
+
+int ui__Color_Set(char *arg)
+{
+	int i;
+	char *s;
+	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
+		s = colors[i].fullname;
+		if (strncmp(arg, s, strlen(s)) == 0)
+			break;
+		s = colors[i].shortname;
+		if (strncmp(arg, s, strlen(s)) == 0)
+			break;
+	}
+	if (i == 0) {
+		ui__ErrorMsg("Wrong color name!");
+		return -1;
+	} else {
+		colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
+		colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
+		colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
+		/*set_palette(); */
+		ui__Colors_Set();
+		ui__Screen_Repaint();
+	}
+	return 0;
+}
+
+
 void ui__Init()
 {
 	// Initialization of curses
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
-		ui__Colors_Save();
+		ColorsSave();
 		ui__Colors_Set();
 	}
 	attrset(A_NORMAL);
@@ -238,6 +335,7 @@ int ui__REPLWin_Hide()
 
 
 /* ==================== Tools window ======================= */
+
 WINDOW *tools_win = NULL;
 
 // TODO: Improve tools window to show information from 
@@ -318,90 +416,10 @@ int ui__ToolWin_Hide()
 	}
 }
 
-/* ========================== Colors handling ============================ */
-void ui__Colors_Save()
-{
-	int i;
-	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		color_content(colors[i].short_value, &original_colors[i].r,
-			      &original_colors[i].g, &original_colors[i].b);
-	}
-	for (i = 1; i < 8; i++) {
-		pair_content(i, &original_colorpairs[i].f,
-			     &original_colorpairs[i].b);
-	}
-}
-
-void ui__Colors_Load()
-{
-	int i;
-	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		init_color(colors[i].short_value, original_colors[i].r,
-			   original_colors[i].g, original_colors[i].b);
-	}
-	for (i = 1; i < 8; i++) {
-		init_pair(i, original_colorpairs[i].f,
-			  original_colorpairs[i].b);
-	}
-}
-
-void ui__Colors_Set()
-{
-	int i;
-	if (can_change_color()) {
-		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			if (init_color
-			    (colors[i].short_value, C_r(i), C_g(i),
-			     C_b(i)) == ERR)
-				fprintf(stderr, "Failed to set [%d] color!\n",
-					i);
-			if (C_s(i) <= 7) {
-				init_pair(i + 1, C_s(i), C_s(0));
-			} else {
-				colors[i].short_value = COLOR_WHITE;
-				init_pair(i + 1, C_s(i), C_s(0));
-			}
-		}
-		init_pair(C_AD + 1, C_s(C_AD), COLOR_CYAN);
-	} else {		/* if have no support of changing colors */
-		for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-			if (C_s(i) <= 7) {
-				init_pair(i + 1, C_s(i), C_s(0));
-			} else {
-				colors[i].short_value = COLOR_WHITE;
-				init_pair(i + 1, C_s(i), C_s(0));
-			}
-		}
-	}
-}
-
-int ui__Color_Set(char *arg)
-{
-	int i;
-	char *s;
-	for (i = 0; colors[i].fullname[0] != '\0'; i++) {
-		s = colors[i].fullname;
-		if (strncmp(arg, s, strlen(s)) == 0)
-			break;
-		s = colors[i].shortname;
-		if (strncmp(arg, s, strlen(s)) == 0)
-			break;
-	}
-	if (i == 0) {
-		ui__ErrorMsg("Wrong color name!");
-		return -1;
-	} else {
-		colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
-		colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
-		colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
-		/*set_palette(); */
-		ui__Colors_Set();
-		ui__Screen_Repaint();
-	}
-	return 0;
-}
-
-/* -------------------- Highlighting engine --------------------- */
+/* -----------------------------------------------------------------
+ *                    Highlighting engine 
+ * -----------------------------------------------------------------
+ */
 
 hl_link hl = NULL;
 char* tmp_mem;
@@ -806,4 +824,10 @@ int outmsg(char *s)
 		}
 	}
 	return cnt;
+}
+
+int ui__Destroy()
+{
+	endwin();
+	ColorsLoad();
 }

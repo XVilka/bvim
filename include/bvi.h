@@ -28,7 +28,7 @@
 #include <setjmp.h>
 
 #include "patchlevel.h"
-#include "config.h"
+#include "../config.h"
 
 #if HAVE_NCURSES_H
 #include <ncurses.h>
@@ -120,6 +120,10 @@ struct MARKERS_ {
 	char marker;		/* Usually we use '+' character, but can be another */
 };
 
+struct BVI {
+	char* version;
+};
+
 /* ---------------------------------
  * CORE structure - each for
  * different buffers
@@ -163,6 +167,7 @@ struct STATE {
 	/* Current positions */
 	PTR pagepos;
 	PTR curpos;
+	PTR current;
 	PTR mempos;
 	int x;
 	int y;
@@ -180,7 +185,6 @@ typedef struct STATE state_t;
 
 #define BVI_VISUAL_SELECTION_ID 1999
 
-extern char *version;
 extern char addr_form[];
 extern char pattern[];
 extern char rep_buf[];
@@ -194,7 +198,6 @@ extern PTR maxpos;
 extern PTR undo_start;
 extern PTR current_start;
 extern PTR curpos;
-extern PTR current;
 extern PTR start_addr;
 extern PTR end_addr;
 extern char *name, cmdstr[];

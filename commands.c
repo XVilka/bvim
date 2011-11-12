@@ -574,7 +574,7 @@ int command__change(char flags, int c_argc, char **c_argv) {
 	if (chk_comm(MAX_ONE_ARG))
 		return -1;
 	if (!addr_flag)
-		start_addr = current;
+		start_addr = state.current;
 	do_ins_chg(start_addr, c_argc == 1 ? c_argv[0] : "a", U_EDIT);
 	return 0;
 }
@@ -590,7 +590,7 @@ int command__mark(char flags, int c_argc, char **c_argv) {
 		return -1;
 	}
 	if (!addr_flag)
-		start_addr = current;
+		start_addr = state.current;
 	do_mark(c_argv[0][0], start_addr);
 	return 0;
 }
@@ -611,7 +611,7 @@ int command__overwrite(char flags, int c_argc, char **c_argv) {
 	if (chk_comm(NO_ARG))
 		return -1;
 	if (!addr_flag)
-		start_addr = current;
+		start_addr = state.current;
 	do_over(start_addr, yanked, yank_buf);
 	return 0;
 }
@@ -944,14 +944,14 @@ void docmdline(char* cmdline)
 		}
 		return;
 	} else if (!strncmp("global", cmdname, len) && CMDLNG(6, 1)) {
-		current = start_addr - 1;
+		state.current = start_addr - 1;
 		repl_count = 0;
 		addch('\n');
-		while ((current = searching(*cmd, cmd + 1, current,
+		while ((state.current = searching(*cmd, cmd + 1, state.current,
 					    end_addr,
 					    FALSE | S_GLOBAL)) != 0L) {
 			addch('\n');
-			ui__Line_Print(current, core.screen.maxy - 1);
+			ui__Line_Print(state.current, core.screen.maxy - 1);
 			repl_count++;
 			if (repl_count == LINES - 2) {
 				if (wait_return(FALSE))
@@ -968,7 +968,7 @@ void docmdline(char* cmdline)
 		return;
 	} else if (cmdname[0] == 't') {
 		if (!addr_flag)
-			start_addr = current;
+			start_addr = state.current;
 		cmd = cmdname + 1L;
 		SKIP_WHITE do_mark(*cmd, start_addr);
 		return;
@@ -1119,7 +1119,7 @@ void docmdline(char* cmdline)
 				if (chk_comm(MAX_ONE_ARG))
 					return;
 				if (!addr_flag)
-					start_addr = current;
+					start_addr = state.current;
 				do_ins_chg(start_addr - 1,
 					   c_argc == 1 ? c_argv[0] : "a",
 					   U_INSERT);
@@ -1128,7 +1128,7 @@ void docmdline(char* cmdline)
 				if (chk_comm(NO_ARG))
 					return;
 				if (!addr_flag)
-					start_addr = current;
+					start_addr = state.current;
 				do_put(start_addr, yanked, yank_buf);
 			} else {
 				ui__ErrorMsg(string);
@@ -1157,7 +1157,7 @@ off_t yd_addr()
 	if (c_argc == 0) {
 		switch (addr_flag) {
 		case 0:
-			start_addr = current;
+			start_addr = state.current;
 		case 1:
 			count = 1;
 			break;
@@ -1169,7 +1169,7 @@ off_t yd_addr()
 		count = atoi(c_argv[0]);
 		switch (addr_flag) {
 		case 0:
-			start_addr = current;
+			start_addr = state.current;
 		case 1:
 			end_addr = start_addr + count - 1;
 			break;
@@ -1247,7 +1247,7 @@ int doecmd(char* arg, int flags)
 	edits = 0;
 	filesize = load(name);
 	if (arg == NULL) {
-		setpage(current < maxpos ? current : maxpos - 1L);
+		setpage(state.current < maxpos ? state.current : maxpos - 1L);
 	}
 	return TRUE;
 }

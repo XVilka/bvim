@@ -54,3 +54,4 @@ void ui__Screen_Repaint(void), ui__Screen_New(void);
 
 int ui__BlockHighlightAdd(struct block_item *blk);
 
+int ui__Destroy();

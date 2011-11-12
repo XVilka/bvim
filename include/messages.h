@@ -8,5 +8,8 @@
 #define BVI_ERROR_EXTRACHARS "Extra chars|Extra characters at end of command"
 #define BVI_ERROR_NOADDR "No address allowed@on this command"
 #define BVI_ERROR_NOVAL "No value@for binary operation"
+#define BVI_ERROR_NOBYTES "No bytes@in the buffer"
+
+
 
 

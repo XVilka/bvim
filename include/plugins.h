@@ -1,3 +1,9 @@
+/* Exported types:
+ * int command__handler(char, int, char**); -  for commands handlers
+ * int handler__func() - for key handlers
+ * bvi_add_lua_function - not yet implemented
+ */
+
 typedef struct plugin *plugin_link;
 
 struct plugin_ {
@@ -10,6 +16,13 @@ struct plugin_ {
 	} version;
 	char* description;
 	void* module;
+	/*
+	 struct {
+		commands_list cmd_lst;
+		keys_list key_lst;
+		lua_list lua_lst;
+	} exports;
+	*/
 };
 
 typedef struct plugin_ plugin_t;
@@ -23,6 +36,11 @@ struct plugin {
  *
  * plugin_t plugin_register() function - fill plugin info
  *
+ */
+
+/* ---------------------------------------------------------
+ *               for using only in bvi
+ * ---------------------------------------------------------
  */
 
 int plugins__Init();

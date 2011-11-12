@@ -73,7 +73,7 @@ off_t edit(int mode)
 		mode = 'A';
 	}
 	if (mode != 'A' && mode != 'a') {
-		if (current - core.editor.mem >= filesize) {
+		if (state.current - core.editor.mem >= filesize) {
 			beep();
 			return 0L;
 		}
@@ -81,7 +81,7 @@ off_t edit(int mode)
 	if (precount < 1)
 		precount = 1;
 	len = strlen(rep_buf);
-	if (mode == 'r' && current + precount > maxpos) {
+	if (mode == 'r' && state.current + precount > maxpos) {
 		beep();
 		rep_buf[len] = '\0';
 		return 0L;
@@ -109,7 +109,7 @@ off_t edit(int mode)
 		break;
 	}
 
-	undo_start = current;
+	undo_start = state.current;
 
 	while ((ch = vgetc()) != ESC) {
 		ch &= 0xff;
@@ -127,7 +127,7 @@ off_t edit(int mode)
 					filesize--;
 					maxpos--;
 				}
-				current--;
+				state.current--;
 				cur_back();
 				setcur();
 			} else
@@ -142,7 +142,7 @@ off_t edit(int mode)
 					ch1 = vgetc() & 0xff;
 					if (ch1 == ESC) {
 						mvaddch(y, x, ' ');
-						current--;
+						state.current--;
 						cur_back();
 						goto escape;
 					}
@@ -168,9 +168,9 @@ off_t edit(int mode)
 				goto wrong;
 			}
 		}
-		curpos = current++;
+		curpos = state.current++;
 		if (mode == 'i' || mode == 'a') {
-			memmove(current, curpos, maxpos - curpos);
+			memmove(state.current, curpos, maxpos - curpos);
 		}
 		if (mode == 'A' || mode == 'i' || mode == 'a') {
 			maxpos++;
@@ -234,7 +234,7 @@ off_t edit(int mode)
 			}
 
 			if (mode == 'i' || mode == 'a') {
-				memmove(current + psize, current,
+				memmove(state.current + psize, state.current,
 					maxpos - curpos);
 			}
 
@@ -253,12 +253,12 @@ off_t edit(int mode)
 			count += psize;
 			maxpos += psize;
 			undo_count += psize;
-			current = curpos + 1L;
-			setpage(current);
+			state.current = curpos + 1L;
+			setpage(state.current);
 			ui__Screen_Repaint();
 			break;
 		case 'R':
-			if (current + count * (precount - 1) > maxpos)
+			if (state.current + count * (precount - 1) > maxpos)
 				break;
 			psize = count;
 			while (--precount) {
@@ -330,7 +330,7 @@ PTR do_ft(int ch, int flag)
 			rep_buf[n] = '\0';
 		}
 	}
-	ptr = current;
+	ptr = state.current;
 	do {
 		if (dir == FORWARD) {
 			do {
@@ -447,7 +447,7 @@ int xpos()
 
 int get_cursor_position()
 {
-	return (current - core.editor.mem);
+	return (state.current - core.editor.mem);
 }
 
 /* toggle between ASCII and HEX windows positions */
@@ -478,7 +478,7 @@ void statpos()
 
 	if (!P(P_MO))
 		return;
-	bytepos = current - core.editor.mem;
+	bytepos = state.current - core.editor.mem;
 	if (bytepos >= filesize) {
 		mvaddstr(core.screen.maxy, status,
 			 "                           ");
@@ -549,7 +549,7 @@ void setpage(PTR addr)
 int cur_forw(int check)
 {
 	if (check) {
-		if (current - core.editor.mem >= filesize) {
+		if (state.current - core.editor.mem >= filesize) {
 			beep();
 			return 1;
 		}
@@ -602,7 +602,7 @@ int cur_back()
 			x -= 3;
 			return 0;
 		} else {
-			if (current == core.editor.mem)
+			if (state.current == core.editor.mem)
 				return 0;
 			x = core.params.COLUMNS_ADDRESS +
 			    core.params.COLUMNS_HEX - 3;
@@ -740,7 +740,7 @@ void do_ins_chg(PTR start, char* arg, int mode)
 	char *tempbuf = NULL;
 	char *poi, *epoi;
 
-	if ((mode == U_EDIT) && (current - core.editor.mem >= filesize)) {
+	if ((mode == U_EDIT) && (state.current - core.editor.mem >= filesize)) {
 		beep();
 		return;
 	}
@@ -857,7 +857,7 @@ void clear_marks()
 
 void do_mark(int mark, PTR addr)
 {
-	if (mark < 'a' || mark > 'z' || current >= maxpos)
+	if (mark < 'a' || mark > 'z' || state.current >= maxpos)
 		return;
 	markbuf[mark - 'a'] = addr;
 }

@@ -26,6 +26,7 @@
 #include "ui.h"
 #include "keys.h"
 #include "commands.h"
+#include "messages.h"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -78,7 +79,6 @@ int arrnum = 0;
 char numarr[64];		/* string for collecting number */
 char rep_buf[BUFFER];
 
-PTR current;
 PTR last_motion;
 PTR current_start;
 PTR undo_start;
@@ -89,8 +89,6 @@ char *undo_buf = NULL;
 PTR markbuf[26];
 
 char addr_form[15];
-
-char *nobytes = "No bytes@in the buffer";
 
 static char progname[8];
 static char line[MAXCMD];
@@ -377,9 +375,9 @@ int handler__nextpage()
 {
 	if (maxpos >= (PTR) (state.pagepos + state.screen)) {
 		state.pagepos += state.screen;
-		current += state.screen;
-		if (current - core.editor.mem >= filesize) {
-			current = core.editor.mem + filesize;
+		state.current += state.screen;
+		if (state.current - core.editor.mem >= filesize) {
+			state.current = core.editor.mem + filesize;
 			setpage((PTR) (core.editor.mem + filesize - 1L));
 		}
 		ui__Screen_Repaint();
@@ -433,8 +431,8 @@ int handler__toggle_selection()
 int handler__append_mode()
 {
 	smsg("APPEND MODE");
-	current = (PTR) (core.editor.mem + filesize - 1L);
-	setpage(current++);
+	state.current = (PTR) (core.editor.mem + filesize - 1L);
+	setpage(state.current++);
 	cur_forw(0);
 	setcur();
 	undosize = filesize;
@@ -445,14 +443,14 @@ int handler__append_mode()
 // "B" or "b" keys
 int handler__backsearch()
 {
-	setpage(backsearch(current, 'b'));
+	setpage(backsearch(state.current, 'b'));
 	return 0;
 }
 
 // "e" key
 int handler__setpage()
 {
-	setpage(end_word(current));
+	setpage(end_word(state.current));
 	return 0;
 }
 
@@ -501,7 +499,7 @@ int handler__doft3_T()
 //case 'G':
 int handler__goto1()
 {
-	last_motion = current;
+	last_motion = state.current;
 	if (precount > -1) {
 		if ((precount < P(P_OF))
 		    || (precount - P(P_OF)) > (filesize - 1L)) {
@@ -520,7 +518,7 @@ int handler__goto2()
 {
 	off_t inaddr;
 
-	last_motion = current;
+	last_motion = state.current;
 	ui__StatusMsg("Goto Hex Address: ");
 	refresh();
 	getcmdstr(cmdstr, 19);
@@ -558,8 +556,8 @@ int handler__search_string1()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = current;
-	searching(ch, line, current, maxpos - 1, P(P_WS));
+	last_motion = state.current;
+	searching(ch, line, state.current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -573,8 +571,8 @@ int handler__search_string2()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = current;
-	searching(ch, line, current, maxpos - 1, P(P_WS));
+	last_motion = state.current;
+	searching(ch, line, state.current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -588,8 +586,8 @@ int handler__search_string3()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = current;
-	searching(ch, line, current, maxpos - 1, P(P_WS));
+	last_motion = state.current;
+	searching(ch, line, state.current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -603,8 +601,8 @@ int handler__search_string4()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = current;
-	searching(ch, line, current, maxpos - 1, P(P_WS));
+	last_motion = state.current;
+	searching(ch, line, state.current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -613,15 +611,15 @@ int handler__search_string4()
 //case 'N':
 int handler__search_next()
 {
-	last_motion = current;
-	searching('n', "", current, maxpos - 1, P(P_WS));
+	last_motion = state.current;
+	searching('n', "", state.current, maxpos - 1, P(P_WS));
 	return 0;
 }
 
 //case 'm':
 int handler__mark()
 {
-	do_mark(vgetc(), current);
+	do_mark(vgetc(), state.current);
 	return 0;
 }
 
@@ -634,7 +632,7 @@ int handler__goto_mark()
 	mark = vgetc();
 	if (mark == '`' || mark == '\'') {
 		setpage(last_motion);
-		last_motion = current;
+		last_motion = state.current;
 	} else {
 		if (mark < 'a' || mark > 'z') {
 			beep();
@@ -664,7 +662,7 @@ int handler__overwrite()
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ldo", precount);
-	do_over(current, yanked, yank_buf);
+	do_over(state.current, yanked, yank_buf);
 	return 0;
 }
 
@@ -744,7 +742,7 @@ int handler__visual()
 int handler__wordsearch()
 {
 	state.loc = ASCII;
-	setpage(wordsearch(current, 'w'));
+	setpage(wordsearch(state.current, 'w'));
 	return 0;
 }
 
@@ -759,12 +757,12 @@ int handler__yank()
 		if ((yanked = alloc_buf(count, &yank_buf)) == 0L) {
 			return -1;
 		}
-		memcpy(yank_buf, current, yanked);
+		memcpy(yank_buf, state.current, yanked);
 	} else if (count < 0) {
 		if ((yanked = alloc_buf(-count, &yank_buf)) == 0L) {
 			return -1;
 		}
-		memcpy(yank_buf, current + count, yanked);
+		memcpy(yank_buf, state.current + count, yanked);
 	} else {
 		return -1;
 	}
@@ -814,7 +812,7 @@ int handler__stuffin()
 int handler__insert()
 {
 	sprintf(rep_buf, "%ldI", precount);
-	current = core.editor.mem;
+	state.current = core.editor.mem;
 	setpage(core.editor.mem);
 	ui__Screen_Repaint();
 	undo_count = edit('i');
@@ -827,7 +825,7 @@ int handler__insert()
 int handler__s()
 {
 	sprintf(rep_buf, "%lds", precount);
-	if (do_delete((off_t) precount, current))
+	if (do_delete((off_t) precount, state.current))
 		return 0;
 	precount = 1;
 	undo_count = edit('i');
@@ -840,7 +838,7 @@ int handler__append2()
 {
 	if (cur_forw(1))
 		return 0;
-	current++;
+	state.current++;
 	return 0;
 }
 
@@ -859,7 +857,7 @@ int handler__insert2()
 int handler__paste2()
 {
 	sprintf(rep_buf, "%ldp", precount);
-	do_put(current, yanked, yank_buf);
+	do_put(state.current, yanked, yank_buf);
 	return 0;
 }	
 
@@ -871,9 +869,9 @@ int handler__c_or_d()
 	int count = range(ch);
 
 	if (count > 0)
-		do_delete((off_t) count, current);
+		do_delete((off_t) count, state.current);
 	else if (count < 0)
-		do_back(-(off_t) count, current);
+		do_back(-(off_t) count, state.current);
 	if (ch == 'c') {
 		precount = 1;
 		undo_count = edit('i');
@@ -891,7 +889,7 @@ int handler__c_or_d()
 int handler__x()
 {
 	sprintf(rep_buf, "%ldx", precount);
-	do_delete((off_t) precount, current);
+	do_delete((off_t) precount, state.current);
 	return 0;
 }
 
@@ -899,7 +897,7 @@ int handler__x()
 int handler__x2()
 {
 	sprintf(rep_buf, "%ldX", precount);
-	do_back((off_t) precount, current);
+	do_back((off_t) precount, state.current);
 	return 0;
 }
 
@@ -1184,9 +1182,7 @@ int main(int argc, char* argv[])
 	// Main loop
 	do {
 		setjmp(env);
-		current =
-		    (PTR) (state.pagepos + y * core.params.COLUMNS_DATA +
-			   xpos());
+		state.current = (PTR) (state.pagepos + y * core.params.COLUMNS_DATA + xpos());
 		if (wrstat)
 			statpos();
 		wrstat = 1;
@@ -1214,7 +1210,7 @@ int main(int argc, char* argv[])
 				switch (ch) {
 				case 'I':
 					sprintf(rep_buf, "%ldI", precount);
-					current = core.editor.mem;
+					state.current = core.editor.mem;
 					setpage(core.editor.mem);
 					ui__Screen_Repaint();
 					undo_count = edit('i');
@@ -1223,7 +1219,7 @@ int main(int argc, char* argv[])
 				case 's':
 					sprintf(rep_buf, "%lds", precount);
 					if (do_delete
-					    ((off_t) precount, current))
+					    ((off_t) precount, state.current))
 						break;
 					precount = 1;
 					undo_count = edit('i');
@@ -1232,7 +1228,7 @@ int main(int argc, char* argv[])
 				case 'a':
 					if (cur_forw(1))
 						break;
-					current++;
+					state.current++;
 				case 'i':
 					sprintf(rep_buf, "%ld%c", precount, ch);
 					undo_count = edit(ch);
@@ -1240,17 +1236,17 @@ int main(int argc, char* argv[])
 					break;
 				case 'p':
 					sprintf(rep_buf, "%ldp", precount);
-					do_put(current, yanked, yank_buf);
+					do_put(state.current, yanked, yank_buf);
 					break;
 				case 'c':
 				case 'd':
 					count = range(ch);
 					if (count > 0)
 						do_delete((off_t) count,
-							  current);
+							  state.current);
 					else if (count < 0)
 						do_back(-(off_t) count,
-							current);
+							state.current);
 					if (ch == 'c') {
 						precount = 1;
 						undo_count = edit('i');
@@ -1264,11 +1260,11 @@ int main(int argc, char* argv[])
 					break;
 				case 'x':
 					sprintf(rep_buf, "%ldx", precount);
-					do_delete((off_t) precount, current);
+					do_delete((off_t) precount, state.current);
 					break;
 				case 'X':
 					sprintf(rep_buf, "%ldX", precount);
-					do_back((off_t) precount, current);
+					do_back((off_t) precount, state.current);
 					break;
 				default:
 					flushinp();
@@ -1279,12 +1275,12 @@ int main(int argc, char* argv[])
 				case 'x':
 					if (precount < 1)
 						precount = 1;
-					if ((off_t) precount + current ==
+					if ((off_t) precount + state.current ==
 					    maxpos) {
 						sprintf(rep_buf, "%ldx",
 							precount);
 						do_delete((off_t) precount,
-							  current);
+							  state.current);
 					} else {
 						movebyte();
 						flushinp();
@@ -1339,12 +1335,12 @@ off_t calc_size(char* arg)
 void trunc_cur()
 {
 	undosize = filesize;
-	undo_count = (off_t) (maxpos - current);
-	undo_start = current;
+	undo_count = (off_t) (maxpos - state.current);
+	undo_start = state.current;
 	filesize = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA + xpos();
 	maxpos = (PTR) (core.editor.mem + filesize);
 	if (filesize == 0L) {
-		ui__ErrorMsg(nobytes);
+		bvi_error(state.mode, BVI_ERROR_NOBYTES);
 	} else
 		cur_back();
 	edits = U_TRUNC;
@@ -1371,20 +1367,20 @@ void do_tilde(off_t count)
 {
 	if (filesize == 0L)
 		return;
-	undo_start = current;
-	if (current + count > maxpos) {
+	undo_start = state.current;
+	if (state.current + count > maxpos) {
 		beep();
 		return;
 	}
 	if ((undo_count = alloc_buf(count, &undo_buf)) == 0L)
 		return;
-	memcpy(undo_buf, current, undo_count);
+	memcpy(undo_buf, state.current, undo_count);
 	while (count--) {
-		if (isupper((int)(*current)))
-			*current = tolower((int)(*current));
-		else if (islower((int)(*current)))
-			*current = toupper((int)(*current));
-		current++;
+		if (isupper((int)(*(state.current))))
+			*(state.current) = tolower((int)(*(state.current)));
+		else if (islower((int)(*(state.current))))
+			*(state.current) = toupper((int)(*(state.current)));
+		state.current++;
 		cur_forw(0);
 	}
 	edits = U_TILDE;
@@ -1456,7 +1452,7 @@ void do_undo()
 void do_over(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
-		ui__ErrorMsg(nobytes);
+		bvi_error(state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc + n > maxpos) {
@@ -1476,7 +1472,7 @@ void do_over(PTR loc, off_t n, PTR buf)
 void do_put(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
-		ui__ErrorMsg(nobytes);
+		bvi_error(state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc > maxpos) {
@@ -1536,12 +1532,12 @@ off_t range(int ch)
 		refresh();
 		if (getcmdstr(line, 1))
 			break;
-		end_addr = searching(ch1, line, current, maxpos - 1, FALSE);
+		end_addr = searching(ch1, line, state.current, maxpos - 1, FALSE);
 		if (!end_addr) {
 			beep();
 			return 0;
 		}
-		return (end_addr - current);
+		return (end_addr - state.current);
 	case '?':
 	case '#':
 		strcat(rep_buf, "\n");
@@ -1550,12 +1546,12 @@ off_t range(int ch)
 		refresh();
 		if (getcmdstr(line, 1))
 			break;
-		start_addr = searching(ch1, line, current, maxpos - 1, FALSE);
+		start_addr = searching(ch1, line, state.current, maxpos - 1, FALSE);
 		if (!start_addr) {
 			beep();
 			return 0;
 		}
-		return (start_addr - current);
+		return (start_addr - state.current);
 	case 'f':
 	case 't':
 		precount = count;
@@ -1564,7 +1560,7 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		return (end_addr + 1 - current);
+		return (end_addr + 1 - state.current);
 	case 'F':
 	case 'T':
 		precount = count;
@@ -1573,7 +1569,7 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		return (start_addr - current);
+		return (start_addr - state.current);
 	case '$':
 		trunc_cur();
 		return 0;
@@ -1587,10 +1583,10 @@ off_t range(int ch)
 			beep();
 			return 0;
 		} else {
-			if (core.editor.mem + count < current) {
-				return (core.editor.mem + count - current);
+			if (core.editor.mem + count < state.current) {
+				return (core.editor.mem + count - state.current);
 			} else {
-				return (count - (current - core.editor.mem));
+				return (count - (state.current - core.editor.mem));
 			}
 		}
 	case ' ':
@@ -1607,10 +1603,10 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		if (end_addr < current) {
-			return (end_addr - current);
+		if (end_addr < state.current) {
+			return (end_addr - state.current);
 		} else {
-			return (end_addr - current + 1);
+			return (end_addr - state.current + 1);
 		}
 	}
 	beep();
@@ -1628,9 +1624,8 @@ void quit()
 
 	/* Destroy all curses stuff, restore terminal state */
 	move(core.screen.maxy, 0);
-	endwin();
-	printf("\nbvi version %s %s\n", VERSION, copyright);
-	ui__Colors_Load();
+	ui__Destroy();
+	printf("bvi version %s %s\n", VERSION, copyright);
 
 	/* just exit */
 	exit(0);

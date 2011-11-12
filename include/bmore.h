@@ -45,7 +45,7 @@
 #	include <bios.h>
 #else
 #	include "patchlevel.h"
-#	include "config.h"
+#	include "../config.h"
 #	include <unistd.h>
 #if HAVE_NCURSES_H
 #include <ncurses.h>
