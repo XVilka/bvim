@@ -1,0 +1,22 @@
+diff U5 lua-5.1.4/src/lobject.c lua-5.1.4jh/src/lobject.c
+--- lua-5.1.4/src/lobject.c	Thu Dec 27 13:02:24 2007
++++ lua-5.1.4jh/src/lobject.c	Thu Jan 14 15:34:36 2010
+@@ -91,10 +91,18 @@
+   char *endptr;
+   *result = lua_str2number(s, &endptr);
+   if (endptr == s) return 0;  /* conversion failed */
+   if (*endptr == 'x' || *endptr == 'X')  /* maybe an hexadecimal constant? */
+     *result = cast_num(strtoul(s, &endptr, 16));
++
++#if defined(JH_LUA_BINOCTAL)
++  if ((*endptr == 'o' || *endptr == 'O') && (*(endptr+1) != '\0'))
++	*result = cast_num(strtoul(endptr+1, &endptr, 8));
++  if ((*endptr == 'b' || *endptr == 'B') && (*(endptr+1) != '\0'))
++    *result = cast_num(strtoul(endptr+1, &endptr, 2));
++#endif
++
+   if (*endptr == '\0') return 1;  /* most common case */
+   while (isspace(cast(unsigned char, *endptr))) endptr++;
+   if (*endptr != '\0') return 0;  /* invalid trailing characters? */
+   return 1;
+ }

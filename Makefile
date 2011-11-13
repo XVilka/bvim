@@ -30,13 +30,13 @@ libdir = $(DESTDIR)${exec_prefix}/lib
 man1dir = $(mandir)/man1
 
 OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o
-HEADER =  bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
+HEADER =  data.h bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
 BMOBJ  =  bmore.o bm_unix.o recomp.o
 CC     =  gcc
-CFLAGS =  -g -O2  -Wall -Iinclude
+CFLAGS =  -g -O2  -Wall -Iinclude -I./lua/include
 DEFS   =  -DHAVE_CONFIG_H
 LDFLAGS=  
-LIBS   =   -lncurses -llua -lssl -ldl
+LIBS   =   -lm -lncurses -lssl -ldl -L./lua/lib -llua
 SHELL  =  /bin/sh
 
 
@@ -46,7 +46,11 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 
 
-all: bvi bmore
+all: blua bvi bmore
+
+blua:
+	cd lua
+	make lua
 
 bvi: $(OBJS)
 	$(CC) $(LDFLAGS) -o bvi $(OBJS) $(LIBS)
@@ -89,7 +93,9 @@ clean:
 	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
 
 deepclean:
+	cd lua
+	make clean
 	rm -f core *.o *.c~ *.h~ .*.swp bvi bvi.exe bmore bmore.exe a.out
 
-distclean: clean
+distclean: deepclean
 	rm -f Makefile config.cache config.h config.log config.status

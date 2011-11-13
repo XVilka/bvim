@@ -71,27 +71,6 @@ AC_CHECK_HEADER(ncurses.h,[
 			AC_MSG_ERROR([bvi requires the curses library])])],[
 		AC_MSG_ERROR([bvi requires the curses library])])])
 
-dnl Check if lua requested
-AC_ARG_WITH(lua,
-[  --with-lua[=DIR]    path to lua],[
-	if test "$withval" != "no"; then
-		CPPFLAGS="${CPPFLAGS} -I$withval/include"
-		LDFLAGS="${LDFLAGS} -L$withval/lib"
-	fi
-])
-
-AC_CHECK_HEADER(lua5.1/lua.h,[
-	AC_CHECK_LIB([lua5.1], [lua_pcall],[
-		AC_DEFINE([HAVE_LUA_H],[1],[Lua header file existance]) LIBS="${LIBS} -llua5.1"],[
-		AC_MSG_ERROR([bvi requires lua])])],[
-	AC_CHECK_HEADER(lua.h,[
-		AC_CHECK_LIB([lua], [lua_pcall],[
-			AC_DEFINE([HAVE_LUA_H],[1],[Lua header file existance]) LIBS="${LIBS} -llua"],[
-			AC_MSG_ERROR([bvi requires lua])])],[
-		AC_MSG_ERROR([bvi requires lua])])],[
-	AC_MSG_ERROR([bvi requires lua])])
-
-
 dnl Check if openssl requested
 AC_ARG_WITH(openssl,
 [ --with-openssl[=DIR]   path to openssl],[

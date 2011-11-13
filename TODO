@@ -50,8 +50,7 @@ Simple tasks
     -- IN PROGRESS
 14. Add lua/plugins hooks into standard handler_* and command_*
 15. Add block and symbol annotations - show when place cursor on it
-16. Fix configuring/building on various systems: e.g. use pkg-config for lua
-17. Add possibility to :run <script> with full file path to script
+16. Add possibility to :run <script> with full file path to script
 
 Refactoring Tasks
 ============================
