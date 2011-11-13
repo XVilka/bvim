@@ -1,5 +1,23 @@
-# TODO: determine platform
+OS_ARCH ?= $(shell uname)
+ifeq ($(OS_ARCH), Darwin)
+PLATFORM=macosx
+endif
+ifeq ($(OS_ARCH), FreeBSD)
+PLATFORM=freebsd
+endif
+ifeq ($(OS_ARCH), Linux)
 PLATFORM=linux
+endif
+ifeq ($(OS_ARCH), SunOS)
+PLATFORM=solaris
+endif
+ifeq ($(OS_ARCH), OpenBSD)
+PLATFORM=bsd
+endif
+ifeq ($(OS_ARCH), NetBSD)
+PLATFORM=bsd
+endif
+
 VERSION=5.1.4
 
 lua: compile install
