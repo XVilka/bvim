@@ -64,6 +64,9 @@ bmore: $(BMOBJ)
 bmore.o: bmore.c
 	$(CC) $(CFLAGS) $(DEFS) -DHELPFILE=\"$(libdir)/bmore.help\" -c $<
 
+plugins:
+	cd plugins
+	make plugins
 
 install: all installdirs
 	@echo "Installing bvi"

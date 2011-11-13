@@ -4,6 +4,8 @@ CFLAGS  = -I$(IDIR)
 DEPS = plugins.h
 OBJ = test.o
 
+plugins: test.so
+
 %.o: %.c $(DEPS)
 	$(CC) -c -fPIC -o $@ $< $(CFLAGS)
 

@@ -2,19 +2,26 @@
 #include "plugins.h"
 #include "data.h"
 
-/*
- * load error handler from core.error
- * load info handler from core.info
- * load debug handler from core.debug
- */
+core_t *core;
+state_t *state;
+
+void (*plugin_error)(int, char*, ...);
+void (*plugin_info)(int, char*, ...);
+void (*plugin_debug)(int, char*, ...);
+
+struct command cmds[] = {
+	{ 35, "test", "do nothing", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_command_test" }, 4, 1},
+	{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0}
+};
+
+struct key keys[] = {
+	{ BVI_CTRL('P'), "Ctrl-P", "", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_key_test" }},
+	{ 0, NULL, NULL, 0, 0, { NULL }}
+};
 
 plugin_t plugin_register()
 {
 	plugin_t plg;
-	struct command cmds[] = {
-		{ 35, "test", "do nothing", 1, BVI_HANDLER_EXTERNAL, { .func_name="plg_command_test" }, 4, 1},
-		{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0}
-	};
 
 	plg.name = "test";
 	plg.author = "Anton Kochkov";
@@ -23,13 +30,18 @@ plugin_t plugin_register()
 	plg.version.minor = 1;
 	plg.description = "Just test plugin, for example purposes";
 	plg.module = NULL;
-	plg.exports.keys = NULL;
+	plg.exports.keys = keys;
 	plg.exports.cmds = cmds;
 	return plg;
 }
 
-int plugin_init(core_t *core, state_t *state)
+int plugin_init(core_t *bvi_core, state_t *bvi_state)
 {
+	plugin_error = bvi_core->error;
+	plugin_info = bvi_core->info;
+	plugin_debug = bvi_core->debug;
+	core = bvi_core;
+	state = bvi_state;
 	return 0;
 }
 
@@ -40,6 +52,12 @@ int plugin_init(core_t *core, state_t *state)
 
 int plg_command_test(char flags, int c_argc, char** c_argv)
 {
-	// do nothing
+	plugin_info(state->mode, "Command from \"%s\" plugin successfully executed!", "test");
+	return 0;
+}
+
+int plg_key_test()
+{
+	plugin_info(state->mode, "Key, defined in \"%s\" plugin, pressed!", "test");
 	return 0;
 }
