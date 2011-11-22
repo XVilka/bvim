@@ -6,9 +6,11 @@ OBJ = test.o
 
 plugins: test.so
 
-%.o: %.c $(DEPS)
+test.so: test.o
+	gcc -shared -fPIC -o $@ $^ $(CFLAGS) -lc
+
+test.o: test.c
 	$(CC) -c -fPIC -o $@ $< $(CFLAGS)
 
-test.so: test.o
-	gcc -shared -o $@ $^ $(CFLAGS) -lc
-
+clean:
+	rm *.o test.so

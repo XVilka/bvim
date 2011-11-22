@@ -19,6 +19,7 @@ struct plugin_ {
 	 struct {
 		struct key *keys;
 		struct command *cmds;
+		struct luaF_item *luaF_list;
 	} exports;
 };
 
@@ -40,6 +41,9 @@ struct plugin {
  * remove previously exported handlers, keys, commands, lua 
  * functions, etc.
  */
+
+// TODO: Export all data as set of objects
+// TODO: and export iterator functions on these sets
 
 /* ---------------------------------------------------------
  *               for using only in bvi

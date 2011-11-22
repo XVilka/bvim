@@ -29,6 +29,9 @@ extern int precount;
 extern core_t core;
 extern state_t state;
 
+// TODO: Store all edits in the tree (in linked list, for simple cases
+// TODO: Implement simple versioning system
+
 char contrd[][4] = { "NUL", " ^A", " ^B", " ^C", " ^D", " ^E", " ^F", "BEL",
 	" BS", "TAB", " NL", "HOM", "CLR", " CR", " ^N", " ^O",
 	" ^P", " ^Q", " ^R", " ^S", " ^T", " ^U", " ^V", " ^W",
@@ -864,5 +867,5 @@ void do_mark(int mark, PTR addr)
 
 void movebyte()
 {
-	ui__ErrorMsg("Command disabled@- use ':set memmove' to enable ");
+	bvi_error(state.mode, "Command disabled@- use ':set memmove' to enable ");
 }

@@ -51,6 +51,7 @@ Simple tasks
 14. Add lua/plugins hooks into standard handler_* and command_*
 15. Add block and symbol annotations - show when place cursor on it
 16. Add possibility to :run <script> with full file path to script
+17. Move functions from bvi.* lua module to dynamic list
 
 Refactoring Tasks
 ============================

@@ -243,8 +243,53 @@ void keys__Destroy()
 // TODO: Implement parsing key strings, like <Ctrl-K>
 struct key *keys__KeyString_Parse(char *key_string)
 {
+	/*
+	 * Use strtok with "-" delimeter, then compare
+	 */
+	char* saved = NULL;
+	char* stok = NULL;
+
+	short ctrl_flag = 0;
 	struct key *k;
+
 	k = (struct key *)malloc(sizeof(struct key *));
+	/*
+	stok = strtok_r(key_string, "-", &saved);
+	while (stok != NULL) {
+		switch (stok) {
+			case "Ctrl":
+				if (ctrl_flag != 0) {
+					//error
+				} else {
+					ctrl_flag = 1;
+				}
+			case "Tab":
+				key = '\t';
+			case "Home":
+			case "End":
+			case "Left":
+			case "Right":
+			case "Up":
+			case "Down":
+			case "PgUp":
+			case "PgDown":
+			case "Ins":
+			case "Shift":
+			case "Alt":
+			case "Bcksp":
+				break;
+			default:
+				break;
+		}
+		k->id = ; // key integer value
+		k->name = key_string;
+		k->description = "";
+		k->enabled = 1;
+		k->handler_type = BVI_HANDLER_SCRIPT;
+		k->handler.int_cmd = ;// do string
+		stok = strtok_r(NULL, "-", &saved);
+	}
+	*/
 	return k;
 }
 

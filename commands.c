@@ -981,11 +981,11 @@ void docmdline(char* cmdline)
 				cmd++;
 				saveflag = APPEND;
 			} else {
-				ui__ErrorMsg("Write forms are 'w' and 'w>>'");
+				bvi_error(state.mode, "Write forms are 'w' and 'w>>'");
 				return;
 			}
 		} else if (*cmd == '!') {
-			ui__ErrorMsg("Not yet implemented");
+			bvi_error(state.mode, "Not yet implemented");
 			return;
 		} else {
 			saveflag = WRITE;
@@ -1131,7 +1131,7 @@ void docmdline(char* cmdline)
 					start_addr = state.current;
 				do_put(start_addr, yanked, yank_buf);
 			} else {
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, string);
 			}
 		} else {
 			if (!strncmp("delete", cmdname, len) && CMDLNG(6, 1)) {
@@ -1143,7 +1143,7 @@ void docmdline(char* cmdline)
 				   && CMDLNG(3, 2)) {
 				movebyte();
 			} else {
-				ui__ErrorMsg(string);
+				bvi_error(state.mode, string);
 			}
 		}
 	}
@@ -1199,6 +1199,8 @@ void do_exit()
 #endif
 		keys__Destroy();
 		commands__Destroy();
+		blocks__Destroy();
+		plugins__Destroy();
 		quit();
 	}
 }

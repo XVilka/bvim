@@ -173,6 +173,33 @@ struct block {
 	block_link next;
 };
 
+/* ----------------------------------------------------------
+ *                Lua functions data types
+ * ----------------------------------------------------------
+ */
+
+typedef struct luaF *luaF_link;
+
+struct luaF_item {
+	unsigned int id; /* unique id */
+	char *name;
+	char *description;
+	int handler_type; // BVI_HANDLER_INTERNAL or BVI_HANDLER_LUA
+	union {
+		char *lua_cmd; // BVI_HANDLER_LUA
+		char *int_cmd; // BVI_HANDLER_SCRIPT
+		int (*func)(); // BVI_HANDLER_INTERNAL
+		char *func_name; // BVI_HANDLER_EXTERNAL
+	} handler;
+};
+
+struct luaF { 
+	struct luaF_item item;
+	luaF_link next;
+};
+
+/* --------------------------------------------------------- */
+
 struct BVI {
 	char* version;
 };
@@ -202,6 +229,7 @@ struct CORE {
 	block_link blocks; // list of all blocks
 	struct keys_array keymap; // list of all keymaps
 	struct command_array cmdmap; // list of all commands
+	luaF_link luaF_list;
 
 	/*
 	   struct MARKERS;

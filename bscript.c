@@ -1080,6 +1080,148 @@ static int bvi_repl_clear(lua_State *L)
  * -------------------------------------------------------------------------------------
  */
 
+/* =============== Lua functions list/buffer abstractions =============== */
+
+/* Preallocate some memory for future blocks allocation */
+int InitLuaFunctionsList(int N)
+{
+	int i = 0;
+	core.luaF_list = (luaF_link)malloc((N + 1)*(sizeof *(core.luaF_list)));
+	for (i = 0; i < N + 1; i++) {
+		core.luaF_list[i].next = &(core.luaF_list[i + 1]);
+	}
+	core.luaF_list[N].next = NULL;
+	return 0;
+}
+
+int LuaFunctionAdd(struct luaF_item i)
+{
+	luaF_link t = NULL;
+	t = (luaF_link)malloc(sizeof(*t));
+	if (t != NULL) {
+		t->item = i;
+		if (core.luaF_list != NULL) {
+			t->next = core.luaF_list->next;
+			core.luaF_list->next = t;
+		} else {
+			core.luaF_list = t;
+			core.luaF_list->next = NULL;
+		}
+	} else {
+		return -1;
+	}
+	return 0;
+}
+
+void LuaFunctionFree(luaF_link x)
+{
+	LuaFunctionInsertNext(core.luaF_list, x);
+}
+
+void LuaFunctionInsertNext(luaF_link x, luaF_link t)
+{
+	t->next = x->next;
+	x->next = t;
+}
+
+luaF_link LuaFunctionDeleteNext(luaF_link x)
+{
+	luaF_link t =  NULL;
+	if (x != NULL) {
+		t = x->next;
+		x->next = t->next;
+	}
+	return t;
+}
+
+luaF_link LuaFunctionNext(luaF_link x)
+{
+	return x->next;
+}
+
+struct luaF_item LuaFunctionGet(luaF_link x)
+{
+	return x->item;
+}
+
+/* ============= Blocks interface/handlers ================ */
+
+/* Iterator of any functions on blocks list,
+ * where result - expected result for function
+ * All blocks are unique */
+int luaF_Iterator(int (*(func))(), int result)
+{
+	luaF_link t;
+	t = core.luaF_list;
+	while (t != NULL)
+	{
+		if ((*(func))(&(t->item)) == result) {
+			return 0;
+		}
+		t = t->next;
+	}
+	return -1;
+}
+
+int luaF_Add(struct luaF_item b) {
+	
+	LuaFunctionAdd(b);
+	lua_register(lstate, b.name, b.handler.func);
+	return 0;
+}
+
+int luaF_DelByID(int id) {
+	return 0;
+}
+
+int luaF_DelByName(char* name) {
+	return 0;
+}
+
+struct luaF_item* luaF_GetByID(unsigned int id) {
+	luaF_link t;
+	
+	t = core.luaF_list;
+	
+	while (t != NULL)
+	{
+		if (t->item.id == id) return &(t->item);
+		t = t->next;
+	}
+	return NULL;
+}
+
+struct luaF_item* luaF_GetByName(char* name) {
+	luaF_link t;
+
+	t = core.luaF_list;
+
+	while (t != NULL)
+	{
+		if (!strcmp(t->item.name, name)) return &(t->item);
+		t = t->next;
+	}
+	return NULL;
+}
+
+int luaF_Init()
+{
+	//InitBlocksList(10);
+	return 0;
+}
+
+int luaF_Destroy()
+{
+	luaF_link t;
+	t = core.luaF_list;
+	while (t != NULL)
+	{
+		free(t);
+		t = t->next;
+	}
+	return 0;
+}
+
 void bvi_lua_init()
 {
 	
@@ -1151,6 +1293,7 @@ void bvi_lua_init()
 	lua_setConst(lstate, BVI_MODE_EDIT);
 	lua_setConst(lstate, BVI_MODE_VISUAL);
 	lua_setConst(lstate, BVI_MODE_REPL);
+	luaF_Init();
 }
 
 // TODO: Add support of full path, multiple plugins directories
@@ -1213,5 +1356,6 @@ int bvi_repl_eval(char *line)
 
 void bvi_lua_finish()
 {
+	luaF_Destroy();
 	lua_close(lstate);
 }

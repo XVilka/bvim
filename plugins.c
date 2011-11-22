@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <dlfcn.h>
 #include "bvi.h"
 #include "keys.h"
@@ -93,6 +94,11 @@ int plugin__Load(char* path)
 	plugin_t (*plugin_register)();
 	int (*plugin_init)(core_t *, state_t *);
 
+	/* Check if file exist and valid */
+	if (access(path, R_OK) != 0) {
+		bvi_error(state.mode, "Can't read/find plugin *.so file");
+		return -1;
+	}
 	module = dlopen(path, RTLD_NOW);
 	if (!module) {
 		msg = dlerror();
@@ -144,6 +150,17 @@ int plugin__Load(char* path)
 					i++;
 				}
 			}
+			if (plg.exports.luaF_list != NULL) {
+				i = 0;
+				while (plg.exports.luaF_list[i].id != 0)
+				{
+					plg.exports.luaF_list[i].handler.func = dlsym(plg.module, plg.exports.luaF_list[i].handler.func_name);
+					plg.exports.luaF_list[i].handler_type = BVI_HANDLER_INTERNAL; // was external before loading
+					luaF_Add(&(plg.exports.luaF_list[i]));
+					i++;
+				}
+			}
+
 		} else {
 			dlclose(module);
 			bvi_error(state.mode, "plugin init error: wrong plugin_init() function");

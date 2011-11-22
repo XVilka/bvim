@@ -49,8 +49,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 all: blua bvi bmore
 
 blua:
-	cd lua
-	make lua
+	make -C lua lua
 
 bvi: $(OBJS)
 	$(CC) $(LDFLAGS) -o bvi $(OBJS) $(LIBS)
@@ -65,8 +64,7 @@ bmore.o: bmore.c
 	$(CC) $(CFLAGS) $(DEFS) -DHELPFILE=\"$(libdir)/bmore.help\" -c $<
 
 plugins:
-	cd plugins
-	make plugins
+	make -C plugins plugins
 
 install: all installdirs
 	@echo "Installing bvi"
@@ -96,8 +94,8 @@ clean:
 	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
 
 deepclean:
-	cd lua
-	make clean
+	make -C lua clean
+	make -C plugins clean
 	rm -f core *.o *.c~ *.h~ .*.swp bvi bvi.exe bmore bmore.exe a.out
 
 distclean: deepclean
