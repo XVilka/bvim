@@ -150,6 +150,7 @@ int at_least(char *, char *, int);
 int vgetc(void), xpos(void), enlarge(off_t);
 int getcmdstr(char *, int), read_rc(char *);
 int wait_return(int);
+int get_cursor_position();
 char *substr(const char *, size_t, size_t);
 int read_history(char *filename);
 void record_cmd(char* cmdline);

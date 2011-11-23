@@ -14,6 +14,7 @@ typedef uint64_t crc_reg_t;
 
 int math__logic(int mode, char* str);
 int math__logic_block(int mode, char* str, int block_id);
+double math__entropy(int block_id);
 
 /* Arithmetics */
 long math__eval(int mode, char *expression);

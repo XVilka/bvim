@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include "bvi.h"
+#include "bscript.h"
 #include "keys.h"
 #include "commands.h"
 #include "blocks.h"
@@ -10,6 +11,8 @@ extern core_t core;
 extern state_t state;
 
 static plugin_link plugins;
+
+// TODO: Add plugin dependency support
 
 /* -------------------------------------------------------------------------
  *                       Internals
@@ -156,7 +159,7 @@ int plugin__Load(char* path)
 				{
 					plg.exports.luaF_list[i].handler.func = dlsym(plg.module, plg.exports.luaF_list[i].handler.func_name);
 					plg.exports.luaF_list[i].handler_type = BVI_HANDLER_INTERNAL; // was external before loading
-					luaF_Add(&(plg.exports.luaF_list[i]));
+					luaF_Add(plg.exports.luaF_list[i]);
 					i++;
 				}
 			}
@@ -187,6 +190,7 @@ int plugin__Unload(plugin_t plg)
 		bvi_error(state.mode, "plugin unload error: can't find plugin_unregister() function");
 		return -1;
 	}
+	// TODO: Remove commands, hotkeys, lua functions
 	if (plugin_unregister != NULL) {
 		plugin_unregister();
 	}

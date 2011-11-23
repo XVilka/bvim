@@ -22,7 +22,7 @@
 #include "bvi.h"
 #include "keys.h"
 #include "blocks.h"
-#include "math.h"
+#include "bmath.h"
 #include "set.h"
 #include "ui.h"
 #include "commands.h"

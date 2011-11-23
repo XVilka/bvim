@@ -52,6 +52,7 @@ Simple tasks
 15. Add block and symbol annotations - show when place cursor on it
 16. Add possibility to :run <script> with full file path to script
 17. Move functions from bvi.* lua module to dynamic list
+	-- 90% done
 
 Refactoring Tasks
 ============================

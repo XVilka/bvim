@@ -1,10 +1,13 @@
+#include <math.h>
 #include "bvi.h"
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
-#include "math.h"
+#include "bmath.h"
 
 extern struct MARKERS_ markers[MARK_COUNT];
+extern core_t core;
+extern state_t state;
 
 /* Math expressions */
 
@@ -157,7 +160,7 @@ int math__logic_block(int mode, char* str, int block_id)
 	
 	tmp_blk = blocks__GetByID(block_id);
 	if ((tmp_blk == NULL) | ((tmp_blk != NULL) & (tmp_blk->pos_start < tmp_blk->pos_end))) {
-		ui__ErrorMsg("Invalid block for bit manupulation!");
+		bvi_error(state.mode, "Invalid block %d for bit manupulation!", block_id);
 		return 1;
 	}
 
@@ -254,10 +257,50 @@ int math__logic_block(int mode, char* str, int block_id)
 	return (0);
 }
 
+double math__entropy(int block_id)
+{
+	long i = 0;
+	int j = 0;
+	long size = 0;
+	struct block_item *tmp_blk;
+	unsigned int freq[257];
+	double prob[257], entr[257];
+
+	double entropy = 0, ln2 = log(2);
+
+	for (i = 0; i <= 256; i++)
+		freq[i] = 0;
+	
+	tmp_blk = blocks__GetByID(block_id);
+	if (tmp_blk == NULL) {
+		bvi_error(state.mode, "Invalid block %d for entropy calculation!", block_id);
+		return -1;
+	}
+	size = tmp_blk->pos_end - tmp_blk->pos_start;
+	while (i < size) {
+		j = (unsigned int)core.editor.mem[tmp_blk->pos_start + i];
+		freq[j]++;
+		i++;
+	}
+
+	for (i = 0; i <= 256; i++)
+	    prob[i] = freq[i]/(double)size;
+
+	for (i = 0; i <= 256; i++) {
+		if (!freq[i]) continue;
+		entr[i] = -prob[i]*log(prob[i])/ln2;
+		entropy += entr[i];
+	}
+
+	return entropy;
+
+}
+
 /* ------------------------------------------------------------------------------------
  *                           Cyclic redundancy check
  * ------------------------------------------------------------------------------------
  */
+
 static crc_reg_t strtoreg(const char *str)
 {
     crc_reg_t v;
@@ -268,6 +311,7 @@ static crc_reg_t strtoreg(const char *str)
     }
     return v;
 }
+
 
 /*
  * Implementation of a shift register with parameterized length
@@ -346,6 +390,7 @@ struct crc_param {
  * General CRC calculation, really slow but handles all variants
  * Note: len is given in bits
  */
+
 static crc_reg_t crc_calc(const unsigned char *data,
                           size_t len,
                           const struct crc_param *param)
@@ -417,6 +462,7 @@ static crc_reg_t crc_calc(const unsigned char *data,
 
     return bit_reg_get(&reg);
 }
+
 
 /*
  * 9 bits (CRC-8)

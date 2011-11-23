@@ -74,6 +74,8 @@
  * ---------------------------------------------------------
  */
 
+#define BVI_BUFFER_REPL			11
+
 /* ----------------------------------------------------------
  *                   keys data types
  * ----------------------------------------------------------
@@ -229,7 +231,7 @@ struct CORE {
 	block_link blocks; // list of all blocks
 	struct keys_array keymap; // list of all keymaps
 	struct command_array cmdmap; // list of all commands
-	luaF_link luaF_list;
+	luaF_link luaF_list; // list of all dynamic lua functions
 
 	/*
 	   struct MARKERS;

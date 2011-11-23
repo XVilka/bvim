@@ -7,9 +7,10 @@
 
 #include "bvi.h"
 #include "set.h"
-#include "math.h"
+#include "bmath.h"
 #include "keys.h"
 #include "blocks.h"
+#include "buffers.h"
 #include "bscript.h"
 #include "commands.h"
 #include "ui.h"
@@ -74,21 +75,6 @@ static int bvi_lua_error_raise(lua_State *L, char* fmt, ...)
 
 // TODO: Store errors in linked list
 // TODO: Store lua output in linked list
-
-/* -----------------------------------------------------------------------------
- *                       Interface for plugins API
- * -----------------------------------------------------------------------------
- */
-
-static int bvi_add_lua_function()
-{
-	return 0;
-}
-
-static int bvi_remove_lua_function()
-{
-	return 0;
-}
 
 /* Add new editor command, like :command */
 /* lua: command_add(name, description, type, script) */
@@ -470,6 +456,33 @@ static int bvi_block_rrotate(lua_State * L)
 	}
 	return 0;
 }
+
+/* Calculate entropy of buffer */
+/* lua: entropy(block_number) */
+static int bvi_entropy(lua_State * L)
+{
+	unsigned int id = 0;
+	struct block_item *tmp_blk;
+	double entropy = 0;
+
+	if (lua_gettop(L) == 1) {
+		if (lua_type(L, 1) == LUA_TNUMBER) {
+			id = (unsigned int)lua_tonumber(L, 1);
+			tmp_blk = blocks__GetByID(id);
+			if (tmp_blk != NULL) {
+				entropy = math__entropy(id);
+				lua_pushnumber(L, entropy);
+				return 1;
+			}
+		} else {
+			bvi_lua_error_raise(L, "Argument must be block id!");
+		}
+	} else {
+		bvi_lua_error_raise(L, "Error in lua entropy function! Wrong format!");
+	}
+	return 0;
+}
+
 
 /* Calculate CRC16 checksum of buffer */
 /* lua: crc16(block_number) */
@@ -1040,8 +1053,13 @@ static int bvi_setpage(lua_State * L)
 
 /* ================ LUA REPL ================ */
 
+// TODO: add buffering output, store all output in buffer
+//
+// insert io__BufferAdd, io__RecordInsert, io__RecordGet
 static int bvi_repl_print(lua_State *L)
 {
+	iorecord_t rec;
+
 	int n = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");
@@ -1056,8 +1074,14 @@ static int bvi_repl_print(lua_State *L)
 			return -1;
 
 		// Change this to REPL output !!!
-		if (i > 1) ui__REPLWin_print("\t");
-		ui__REPLWin_print(s);
+		rec.input = "print(...)";
+		rec.output = s;
+		io__RecordInsert(BVI_BUFFER_REPL, rec);
+
+		if (state.mode == BVI_MODE_REPL) {
+			if (i > 1) ui__REPLWin_print("\t");
+			ui__REPLWin_print(s);
+		}
 
 		lua_pop(L, 1); // pop result
 	}
@@ -1082,7 +1106,7 @@ static int bvi_repl_clear(lua_State *L)
 
 /* =============== Lua functions list/buffer abstractions =============== */
 
-/* Preallocate some memory for future blocks allocation */
+/* Preallocate some memory for future lua functions allocation */
 int InitLuaFunctionsList(int N)
 {
 	int i = 0;
@@ -1113,15 +1137,15 @@ int LuaFunctionAdd(struct luaF_item i)
 	return 0;
 }
 
-void LuaFunctionFree(luaF_link x)
-{
-	LuaFunctionInsertNext(core.luaF_list, x);
-}
-
 void LuaFunctionInsertNext(luaF_link x, luaF_link t)
 {
 	t->next = x->next;
 	x->next = t;
+}
+
+void LuaFunctionFree(luaF_link x)
+{
+	LuaFunctionInsertNext(core.luaF_list, x);
 }
 
 luaF_link LuaFunctionDeleteNext(luaF_link x)
@@ -1144,9 +1168,9 @@ struct luaF_item LuaFunctionGet(luaF_link x)
 	return x->item;
 }
 
-/* ============= Blocks interface/handlers ================ */
+/* ============= Lua functions list interface ================ */
 
-/* Iterator of any functions on blocks list,
+/* Iterator of any functions on functions list,
  * where result - expected result for function
  * All blocks are unique */
 int luaF_Iterator(int (*(func))(), int result)
@@ -1251,14 +1275,6 @@ void bvi_lua_init()
 		{"block_rshift", bvi_block_rshift},
 		{"block_lrotate", bvi_block_lrotate},
 		{"block_rrotate", bvi_block_rrotate},
-		{"crc16", bvi_crc16},
-		{"crc32", bvi_crc32},
-		{"md4_hash", bvi_md4_hash},
-		{"md5_hash", bvi_md5_hash},
-		{"sha1_hash", bvi_sha1_hash},
-		{"sha256_hash", bvi_sha256_hash},
-		{"sha512_hash", bvi_sha512_hash},
-		{"ripemd160_hash", bvi_ripemd160_hash},
 		{"search_bytes", bvi_search_bytes},
 		{"replace_bytes", bvi_replace_bytes},
 		{"display_error", bvi_display_error},
@@ -1280,11 +1296,32 @@ void bvi_lua_init()
 		{"setpage", bvi_setpage},
 		{NULL, NULL}
 	};
+
+	struct luaL_reg hash_methods[] = {
+		{"crc16", bvi_crc16},
+		{"crc32", bvi_crc32},
+		{"md4", bvi_md4_hash},
+		{"md5", bvi_md5_hash},
+		{"sha1", bvi_sha1_hash},
+		{"sha256", bvi_sha256_hash},
+		{"sha512", bvi_sha512_hash},
+		{"ripemd160", bvi_ripemd160_hash},
+		{NULL, NULL}
+	};
+
+	struct luaL_reg stat_methods[] = {
+		{"entropy", bvi_entropy},
+		{NULL, NULL}
+	};
+
+	io__BufferAdd2(BVI_BUFFER_REPL);
 	lstate = lua_open();
 	luaL_openlibs(lstate);
 	lua_pushvalue(lstate, LUA_GLOBALSINDEX);
 	luaL_register(lstate, 0, std_methods);
 	luaL_register(lstate, "bvi", bvi_methods);
+	luaL_register(lstate, "hash", hash_methods);
+	luaL_register(lstate, "stat", stat_methods);
 	lua_atpanic(lstate, bvi_lua_error_handler);
 	
 	/* export some important constants */
@@ -1294,6 +1331,8 @@ void bvi_lua_init()
 	lua_setConst(lstate, BVI_MODE_VISUAL);
 	lua_setConst(lstate, BVI_MODE_REPL);
 	luaF_Init();
+	/* loading init.lua script */
+	bvi_run_lua_script("init");
 }
 
 // TODO: Add support of full path, multiple plugins directories
@@ -1358,4 +1397,5 @@ void bvi_lua_finish()
 {
 	luaF_Destroy();
 	lua_close(lstate);
+	io__BufferDestroy(BVI_BUFFER_REPL);
 }
