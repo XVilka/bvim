@@ -352,6 +352,18 @@ int command__block(char flags, int c_argc, char **c_argv) {
 		} else if (!strncmp(c_argv[0], "del", 3)) {
 		/* :block info */
 		} else if (!strncmp(c_argv[0], "info", 4)) {
+			if (c_argc == 2) {
+				blkblk = blocks__GetByID((unsigned int)atoi(c_argv[1])); // block id
+				if (blkblk != NULL) {
+					bvi_info(state.mode, "Block #%d [%ld, %ld], %s", blkblk->id, blkblk->pos_start, blkblk->pos_end, blkblk->annotation);
+				} else {
+					bvi_error(state.mode, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
+					return -1;
+				}
+			} else {
+				bvi_error(state.mode, "Wrong :block command format!");
+				return -1;
+			}
 		/* :block list */
 		} else if (!strncmp(c_argv[0], "list", 4)) {
 		/* :block save */
@@ -366,6 +378,20 @@ int command__block(char flags, int c_argc, char **c_argv) {
 					blkblk->folding = 1;
 					ui__Screen_Repaint();
 				}
+			}
+		/* :block annotation */
+		} else if (!strncmp(c_argv[0], "note", 4)) {
+			if (c_argc == 3) {
+				blkblk = blocks__GetByID((unsigned int)atoi(c_argv[1])); // block id
+				if (blkblk != NULL) {
+					blkblk->annotation = c_argv[2]; // FIXME: Use valid string copy function !
+				} else {
+					bvi_error(state.mode, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
+					return -1;
+				}
+			} else {
+				bvi_error(state.mode, "Wrong :block command format!");
+				return -1;
 			}
 		} else {
 			bvi_error(state.mode, "Wrong :block command format!");

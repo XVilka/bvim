@@ -2,6 +2,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <mgl/mgl_c.h>
 #include "plugins.h"
 #include "data.h"
 
@@ -18,7 +19,7 @@ void (*plugin_debug)(int, char*, ...);
  */
 
 struct command cmds[] = {
-	{ 35, "test", "do nothing", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_command_test" }, 4, 1},
+	{ 35, "gist", "show gistogram", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_command_gistogram" }, 4, 1},
 	{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0}
 };
 
@@ -29,7 +30,7 @@ struct command cmds[] = {
 
 
 struct key keys[] = {
-	{ BVI_CTRL('P'), "Ctrl-P", "", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_key_test" }},
+	{ BVI_CTRL('P'), "Ctrl-P", "", 1, BVI_HANDLER_EXTERNAL, { .func_name = "plg_key_gistogram" }},
 	{ 0, NULL, NULL, 0, 0, { NULL }}
 };
 
@@ -39,7 +40,7 @@ struct key keys[] = {
  */
 
 struct luaF_item luaF_list[] = {
-	{ 1, "bvi_test", "Do nothing, just testing purposes", BVI_HANDLER_EXTERNAL, { .func_name = "plg_lua_test" }},
+	{ 1, "gistogram", "Open gistogram window", BVI_HANDLER_EXTERNAL, { .func_name = "plg_lua_gistogram" }},
 	{ 0, NULL, NULL, 0, { NULL }}
 };
 
@@ -53,12 +54,12 @@ plugin_t plugin_register()
 {
 	plugin_t plg;
 
-	plg.name = "test";
+	plg.name = "visualisation";
 	plg.author = "Anton Kochkov";
 	plg.license = "GPLv2";
 	plg.version.major = 0;
 	plg.version.minor = 1;
-	plg.description = "Just test plugin, for example purposes";
+	plg.description = "Added MathGL visualisation features";
 	plg.module = NULL;
 	plg.exports.keys = keys;
 	plg.exports.cmds = cmds;
@@ -86,9 +87,12 @@ int plugin_init(core_t *bvi_core, state_t *bvi_state)
  * ---------------------------------------------------------------
  */
 
-int plg_command_test(char flags, int c_argc, char** c_argv)
+int plg_command_gistogram(char flags, int c_argc, char** c_argv)
 {
-	plugin_info(state->mode, "Command from \"%s\" plugin successfully executed!", "test");
+	HMGL gr = mgl_create_graph_zb(600, 400);
+	mgl_show_image(gr, "", 0);
+	mgl_delete_graph(gr);
+	//plugin_info(state->mode, "Command from \"%s\" plugin successfully executed!", "test");
 	return 0;
 }
 
@@ -97,9 +101,9 @@ int plg_command_test(char flags, int c_argc, char** c_argv)
  * ---------------------------------------------------------------
  */
 
-int plg_key_test()
+static int plg_key_gistogram()
 {
-	plugin_info(state->mode, "Key, defined in \"%s\" plugin, pressed!", "test");
+	//plugin_info(state->mode, "Key, defined in \"%s\" plugin, pressed!", "test");
 	return 0;
 }
 
@@ -108,9 +112,9 @@ int plg_key_test()
  * ---------------------------------------------------------------
  */
 
-int plg_lua_test(lua_State *L)
+static int plg_lua_gistogram(lua_State *L)
 {
-	plugin_info(state->mode, "Lua function from \"%s\" plugin successfully executed", "test");
-	lua_pushstring(L, "test function");
-	return 1;
+	//plugin_info(state->mode, "Lua function from \"%s\" plugin successfully executed", "test");
+	//lua_pushstring(L, "test function");
+	return 0;
 }
