@@ -27,7 +27,7 @@
  * See file COPYING for information on distribution conditions.
  */
 
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "commands.h"
 #include "set.h"
@@ -262,7 +262,7 @@ off_t load(char* fname)
 /* argument "dir" not used! 
  * Needed for DOS version only
  */
-void bvi_init(char* dir)
+void bvim_init(char* dir)
 {
 	char *initstr;
 	char rcpath[MAXCMD];
@@ -278,19 +278,19 @@ void bvi_init(char* dir)
 	}
 	strncpy(rcpath, getenv("HOME"), MAXCMD - 8);
 	rcpath[MAXCMD - 8] = '\0';
-	strcat(rcpath, "/.bvirc");
+	strcat(rcpath, "/.bvimrc");
 	if (stat(rcpath, &buf) == 0) {
 		if (buf.st_uid == getuid())
 			read_rc(rcpath);
 	}
 
-	strcpy(rcpath, ".bvirc");
+	strcpy(rcpath, ".bvimrc");
 	if (stat(rcpath, &buf) == 0) {
 		if (buf.st_uid == getuid())
 			read_rc(rcpath);
 	}
 
-	strcpy(rcpath, ".bvihistory");
+	strcpy(rcpath, ".bvimhistory");
 	if (stat(rcpath, &buf) == 0) {
 		if (buf.st_uid == getuid())
 			read_history(rcpath);

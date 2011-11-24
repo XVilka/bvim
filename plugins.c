@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <dlfcn.h>
-#include "bvi.h"
+#include "bvim.h"
 #include "bscript.h"
 #include "keys.h"
 #include "commands.h"
@@ -99,7 +99,7 @@ int plugin__Load(char* path)
 
 	/* Check if file exist and valid */
 	if (access(path, R_OK) != 0) {
-		bvi_error(state.mode, "Can't read/find plugin *.so file");
+		bvim_error(state.mode, "Can't read/find plugin *.so file");
 		return -1;
 	}
 	module = dlopen(path, RTLD_NOW);
@@ -107,7 +107,7 @@ int plugin__Load(char* path)
 		msg = dlerror();
 		if (msg != NULL) {
 			dlclose(module);
-			bvi_error(state.mode, "plugin load error: %s", msg);
+			bvim_error(state.mode, "plugin load error: %s", msg);
 			return -1;
 		}
 	}
@@ -116,7 +116,7 @@ int plugin__Load(char* path)
 	msg = dlerror();
 	if (msg != NULL) {
 		dlclose(module);
-		bvi_error(state.mode, "plugin load error: can't find plugin_register() function; %s", msg);
+		bvim_error(state.mode, "plugin load error: can't find plugin_register() function; %s", msg);
 		return -1;
 	}
 	if (plugin_register != NULL) {
@@ -128,7 +128,7 @@ int plugin__Load(char* path)
 		msg = dlerror();
 		if (msg != NULL) {
 			dlclose(plg.module);
-			bvi_error(state.mode, "plugin init error: can't find plugin_init() function: %s", msg);
+			bvim_error(state.mode, "plugin init error: can't find plugin_init() function: %s", msg);
 			return -1;
 		}
 		if (plugin_init != NULL) {
@@ -166,12 +166,12 @@ int plugin__Load(char* path)
 
 		} else {
 			dlclose(module);
-			bvi_error(state.mode, "plugin init error: wrong plugin_init() function");
+			bvim_error(state.mode, "plugin init error: wrong plugin_init() function");
 			return -1;
 		}
 	} else {
 		dlclose(module);
-		bvi_error(state.mode, "plugin load error: wrong plugin_register() function");
+		bvim_error(state.mode, "plugin load error: wrong plugin_register() function");
 		return -1;
 	}
 	return 0;
@@ -187,7 +187,7 @@ int plugin__Unload(plugin_t plg)
 	msg = dlerror();
 	if (msg != NULL) {
 		dlclose(plg.module);
-		bvi_error(state.mode, "plugin unload error: can't find plugin_unregister() function");
+		bvim_error(state.mode, "plugin unload error: can't find plugin_unregister() function");
 		return -1;
 	}
 	// TODO: Remove commands, hotkeys, lua functions

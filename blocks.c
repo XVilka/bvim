@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "bscript.h"
 

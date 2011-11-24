@@ -1,7 +1,7 @@
 /* Exported types:
  * int command__handler(char, int, char**); -  for commands handlers
  * int handler__func() - for key handlers
- * bvi_add_lua_function - not yet implemented
+ * bvim_add_lua_function - not yet implemented
  */
 
 typedef struct plugin *plugin_link;
@@ -46,7 +46,7 @@ struct plugin {
 // TODO: and export iterator functions on these sets
 
 /* ---------------------------------------------------------
- *               for using only in bvi
+ *               for using only in bvimm
  * ---------------------------------------------------------
  */
 

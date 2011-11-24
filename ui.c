@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
@@ -273,7 +273,7 @@ int ui__REPL_Main()
 				{
 					repl.current_y++;
 					repl.current_x = 1;
-					bvi_repl_eval(p);
+					bvim_repl_eval(p);
 					mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
 				}
 				p[0] = '\0';

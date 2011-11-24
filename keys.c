@@ -1,4 +1,4 @@
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "ui.h"
 #include "keys.h"
@@ -337,7 +337,7 @@ int keys__Key_Pressed(int key_code)
 			    if ((core.keymap.arr[j].handler_type ==
 				 BVI_HANDLER_LUA) & (core.keymap.arr[j].handler.
 						     lua_cmd != NULL)) {
-				bvi_run_lua_string(core.keymap.arr[j].handler.
+				bvim_run_lua_string(core.keymap.arr[j].handler.
 						   lua_cmd);
 			}
 		}

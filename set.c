@@ -28,7 +28,7 @@
  * See file COPYING for information on distribution conditions.
  */
 
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
@@ -117,7 +117,7 @@ int doset(char *arg)
 		}
 		if (!strcmp(params[i].fullname, "term")) {
 			ui__ErrorMsg
-			    ("Can't change type of terminal from within bvi");
+			    ("Can't change type of terminal from within bvim");
 			return 1;
 		}
 		if (params[i].flags & P_NUM) {

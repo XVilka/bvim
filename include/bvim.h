@@ -99,9 +99,9 @@ extern off_t block_begin, block_end, block_size;
 
 /* ================= Debug utilities ================ */
 
-void bvi_error(int mode, char* fmt, ...);
-void bvi_info(int mode, char* fmt, ...);
-void bvi_debug(int mode, char* fmt, ...);
+void bvim_error(int mode, char* fmt, ...);
+void bvim_info(int mode, char* fmt, ...);
+void bvim_debug(int mode, char* fmt, ...);
 
 /* ================= Exports ================ */
 
@@ -135,7 +135,7 @@ PTR do_ft(int, int);
 char *patcpy(char *, char *, char);
 void setpage(PTR), smsg(char *);
 
-void usage(void), bvi_init(char *), statpos(void), setcur(void);
+void usage(void), bvim_init(char *), statpos(void), setcur(void);
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
 void clearstr(void), clear_marks(void);

@@ -1,4 +1,4 @@
-# bvi - Binary Visual Editor Makefile
+# bvim - bvi improved Makefile
 #
 # This is the Makefile for bvi - binary visual editor. If it has the name
 # "Makefile.in" then it is a template for a Makefile;  to generate the actual
@@ -29,9 +29,8 @@ libdir = $(DESTDIR)${exec_prefix}/lib
 
 man1dir = $(mandir)/man1
 
-OBJS   =  bvi.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o
-HEADER =  data.h bvi.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
-BMOBJ  =  bmore.o bm_unix.o recomp.o
+OBJS   =  bvim.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o
+HEADER =  data.h bvim.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
 CC     =  gcc
 CFLAGS =  -g -O2  -Wall -Iinclude -I./lua/include
 DEFS   =  -DHAVE_CONFIG_H
@@ -46,36 +45,28 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 
 
-all: blua bvi bmore
+all: blua bvim
 
 blua:
 	make -C lua lua
 
-bvi: $(OBJS)
-	$(CC) $(LDFLAGS) -o bvi $(OBJS) $(LIBS)
-
-bmore: $(BMOBJ)
-	$(CC) $(LDFLAGS) -o bmore $(BMOBJ) $(LIBS)
+bvim: $(OBJS)
+	$(CC) $(LDFLAGS) -o bvim $(OBJS) $(LIBS)
 
 .c.o:
 	$(CC) $(CFLAGS) $(DEFS) -c $<
-
-bmore.o: bmore.c
-	$(CC) $(CFLAGS) $(DEFS) -DHELPFILE=\"$(libdir)/bmore.help\" -c $<
 
 plugins:
 	make -C plugins plugins
 
 install: all installdirs
 	@echo "Installing bvi"
-	@$(INSTALL_DATA) bvi.1 bmore.1 $(man1dir)
-	@$(INSTALL_PROGRAM) -s bvi $(bindir)
-	@$(INSTALL_PROGRAM) -s bmore $(bindir)
-	@$(INSTALL_DATA) bmore.help $(libdir)
+	@$(INSTALL_DATA) bvim.1  $(man1dir)
+	@$(INSTALL_PROGRAM) -s bvim $(bindir)
 	@if [ -f $(bindir)/bview ]; then rm $(bindir)/bview; fi
 	@if [ -f $(bindir)/bvedit ]; then rm $(bindir)/bvedit; fi
-	@ln $(bindir)/bvi $(bindir)/bview
-	@ln $(bindir)/bvi $(bindir)/bvedit
+	@ln $(bindir)/bvim $(bindir)/bview
+	@ln $(bindir)/bvim $(bindir)/bvedit
 
 installdirs:
 	$(SHELL) ${srcdir}/mkinstalldirs $(bindir) $(libdir) $(man1dir)
@@ -84,19 +75,16 @@ uninstall:
 	@echo "Uninstalling bvi"
 	@if [ -f $(bindir)/bview ]; then rm $(bindir)/bview; fi
 	@if [ -f $(bindir)/bvedit ]; then rm $(bindir)/bvedit; fi
-	@if [ -f $(bindir)/bvi ]; then rm $(bindir)/bvi; fi
-	@if [ -f $(bindir)/bmore ]; then rm $(bindir)/bmore; fi
-	@if [ -f $(libdir)/bmore.help ]; then rm $(libdir)/bmore.help; fi
-	@if [ -f $(man1dir)/bvi.1 ]; then rm $(man1dir)/bvi.1; fi
-	@if [ -f $(man1dir)/bmore.1 ]; then rm $(man1dir)/bmore.1; fi
+	@if [ -f $(bindir)/bvim ]; then rm $(bindir)/bvim; fi
+	@if [ -f $(man1dir)/bvim.1 ]; then rm $(man1dir)/bvim.1; fi
 
 clean:
-	rm -f core *.o *.c~ *.h~ bvi bvi.exe bmore bmore.exe a.out
+	rm -f core *.o *.c~ *.h~ bvim bvim.exe a.out
 
 deepclean:
 	make -C lua clean
 	make -C plugins clean
-	rm -f core *.o *.c~ *.h~ .*.swp bvi bvi.exe bmore bmore.exe a.out
+	rm -f core *.o *.c~ *.h~ .*.swp bvim bvim.exe a.out
 
 distclean: deepclean
 	rm -f Makefile config.cache config.h config.log config.status

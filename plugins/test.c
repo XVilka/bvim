@@ -71,13 +71,13 @@ plugin_t plugin_register()
  * ---------------------------------------------------------------
  */
 
-int plugin_init(core_t *bvi_core, state_t *bvi_state)
+int plugin_init(core_t *bvim_core, state_t *bvim_state)
 {
-	plugin_error = bvi_core->error;
-	plugin_info = bvi_core->info;
-	plugin_debug = bvi_core->debug;
-	core = bvi_core;
-	state = bvi_state;
+	plugin_error = bvim_core->error;
+	plugin_info = bvim_core->info;
+	plugin_debug = bvim_core->debug;
+	core = bvim_core;
+	state = bvim_state;
 	return 0;
 }
 

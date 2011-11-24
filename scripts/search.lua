@@ -1,3 +1,3 @@
 function search(bytes)
-	bvi.search_bytes(bytes)
+	bvim.search_bytes(bytes)
 end

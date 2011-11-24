@@ -1,4 +1,4 @@
-/* re - regular expression search for bvi
+/* re - regular expression search for bvim
  *
  * NOTE: Edit this file with tabstop=4 !
  *
@@ -29,7 +29,7 @@
  * character in a binary string !
  */
 
-#include	"bvi.h"
+#include	"bvim.h"
 #include	"blocks.h"
 #include	"set.h"
 #include	"ui.h"

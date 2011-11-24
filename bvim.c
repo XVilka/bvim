@@ -20,7 +20,7 @@
 
 #include <sys/types.h>
 
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
@@ -716,14 +716,14 @@ int handler__visual()
 		state.mode = BVI_MODE_VISUAL;
 		// start selection
 		state.selection.start = get_cursor_position();
-		bvi_info(state.mode, "Started selection from %ld", state.selection.start);
+		bvim_info(state.mode, "Started selection from %ld", state.selection.start);
 		return 0;
 	}
 	if (state.mode == BVI_MODE_VISUAL) {
 		state.mode = BVI_MODE_EDIT;
 		// end selection
 		state.selection.end = get_cursor_position();
-		bvi_info(state.mode, "Selected block [%ld, %ld]", state.selection.start, state.selection.end);
+		bvim_info(state.mode, "Selected block [%ld, %ld]", state.selection.start, state.selection.end);
 		tmpblk.pos_start = state.selection.start;
 		tmpblk.pos_end = state.selection.end;
 		tmpblk.palette = 1; // TODO: something more nice
@@ -907,7 +907,7 @@ extern int from_file;
 static FILE *ffp;
 static char fbuf[256];
 
-/* reads the init file (.bvirc) */
+/* reads the init file (.bvimrc) */
 int read_rc(char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
@@ -922,7 +922,7 @@ int read_rc(char* fn)
 	return 0;
 }
 
-/* reads the history file (.bvihistory) */
+/* reads the history file (.bvimhistory) */
 int read_history(char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
@@ -946,7 +946,7 @@ void record_cmd(char* cmdline)
 
 	rcpath[0] = '\0';
 	strcat(rcpath, getenv("HOME"));
-	strcat(rcpath, "/.bvihistory");
+	strcat(rcpath, "/.bvimhistory");
 	hifile = fopen(rcpath, "a");
 	if (!strcmp(cmdline, "q")) {
 		fprintf(hifile, "### Session quit ###\n");
@@ -961,7 +961,7 @@ void record_cmd(char* cmdline)
  * ---------------------------------------------------------------
  */
 
-void bvi_error(int mode, char* fmt, ...)
+void bvim_error(int mode, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
@@ -975,7 +975,7 @@ void bvi_error(int mode, char* fmt, ...)
 	ui__ErrorMsg(msg);
 }
 
-void bvi_info(int mode, char* fmt, ...)
+void bvim_info(int mode, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
@@ -989,7 +989,7 @@ void bvi_info(int mode, char* fmt, ...)
 	ui__StatusMsg(msg);
 }
 
-void bvi_debug(int mode, char* fmt, ...)
+void bvim_debug(int mode, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
@@ -1033,16 +1033,16 @@ int main(int argc, char* argv[])
 
 #ifdef HAVE_LUA_H
 	/* Lua subsystem initialization */
-	bvi_lua_init();
+	bvim_lua_init();
 #endif
 
 	/* Commands parser initialization */
 	commands__Init();
 
 	/* Plugins infrastructure initialization */
-	core.error = bvi_error;
-	core.info = bvi_info;
-	core.debug = bvi_debug;
+	core.error = bvim_error;
+	core.info = bvim_info;
+	core.debug = bvim_debug;
 
 	plugins__Init();
 
@@ -1059,7 +1059,7 @@ int main(int argc, char* argv[])
 		strncpy(progname, argv[0], 7);
 	strtok(progname, ".");
 
-	if (!strcasecmp(progname, "bview")) {
+	if (!strcasecmp(progname, "bvimew")) {
 		params[P_RO].flags |= P_CHANGED;
 		P(P_RO) = TRUE;
 	} else if (!strcasecmp(progname, "bvedit")) {
@@ -1172,7 +1172,7 @@ int main(int argc, char* argv[])
 	signal(SIGINT, SIG_IGN);
 	filesize = load(name);
 
-	bvi_init(argv[0]);
+	bvim_init(argv[0]);
 	params[P_TT].svalue = terminal;
 	if (block_flag && (P(P_MM) == TRUE)) {
 		P(P_MM) = FALSE;
@@ -1344,7 +1344,7 @@ void trunc_cur()
 	filesize = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA + xpos();
 	maxpos = (PTR) (core.editor.mem + filesize);
 	if (filesize == 0L) {
-		bvi_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(state.mode, BVI_ERROR_NOBYTES);
 	} else
 		cur_back();
 	edits = U_TRUNC;
@@ -1456,7 +1456,7 @@ void do_undo()
 void do_over(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
-		bvi_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc + n > maxpos) {
@@ -1476,7 +1476,7 @@ void do_over(PTR loc, off_t n, PTR buf)
 void do_put(PTR loc, off_t n, PTR buf)
 {
 	if (n < 1L) {
-		bvi_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc > maxpos) {
@@ -1629,7 +1629,7 @@ void quit()
 	/* Destroy all curses stuff, restore terminal state */
 	move(core.screen.maxy, 0);
 	ui__Destroy();
-	printf("bvi version %s %s\n", VERSION, copyright);
+	printf("bvim version %s %s\n", VERSION, copyright);
 
 	/* just exit */
 	exit(0);

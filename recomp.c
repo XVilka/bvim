@@ -26,7 +26,7 @@
  * character in a binary string !
  */
 
-#include	"bvi.h"
+#include	"bvim.h"
 #include	"blocks.h"
 #include	"set.h"
 #include	"ui.h"

@@ -70,7 +70,7 @@
 
 
 /* ---------------------------------------------------------
- *      Main data types for bvi and its plugins
+ *      Main data types for bvim and its plugins
  * ---------------------------------------------------------
  */
 

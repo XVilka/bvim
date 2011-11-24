@@ -18,7 +18,7 @@
  * See file COPYING for information on distribution conditions.
  */
 
-#include    "bvi.h"
+#include    "bvim.h"
 #include	"blocks.h"
 #include	"keys.h"
 #include	"commands.h"
@@ -867,5 +867,5 @@ void do_mark(int mark, PTR addr)
 
 void movebyte()
 {
-	bvi_error(state.mode, "Command disabled@- use ':set memmove' to enable ");
+	bvim_error(state.mode, "Command disabled@- use ':set memmove' to enable ");
 }

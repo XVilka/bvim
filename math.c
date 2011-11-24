@@ -1,5 +1,5 @@
 #include <math.h>
-#include "bvi.h"
+#include "bvim.h"
 #include "blocks.h"
 #include "set.h"
 #include "ui.h"
@@ -11,7 +11,7 @@ extern state_t state;
 
 /* Math expressions */
 
-char* bvi_substr(const char* str, size_t begin, size_t len) 
+char* bvim_substr(const char* str, size_t begin, size_t len) 
 {
 	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin+len))
 		return 0;
@@ -30,7 +30,7 @@ long math__eval(int mode, char* expression) {
 	long i = 1;
 
 	if (mode == MATH_ARITH) {
-		if (!strcmp(bvi_substr(expression, 0, 1), "+")) {
+		if (!strcmp(bvim_substr(expression, 0, 1), "+")) {
 			multiplicator = expression[strlen(expression) - 1];
 			switch (multiplicator) {
 				case 'K':
@@ -45,7 +45,7 @@ long math__eval(int mode, char* expression) {
 			}
 			return atoi(substr(expression, 1, strlen(expression) -1 )) * i;
 		}
-		else if (!strcmp(bvi_substr(expression, 0, 2), "0x")) {
+		else if (!strcmp(bvim_substr(expression, 0, 2), "0x")) {
 			
 		}
 		else {
@@ -160,7 +160,7 @@ int math__logic_block(int mode, char* str, int block_id)
 	
 	tmp_blk = blocks__GetByID(block_id);
 	if ((tmp_blk == NULL) | ((tmp_blk != NULL) & (tmp_blk->pos_start < tmp_blk->pos_end))) {
-		bvi_error(state.mode, "Invalid block %d for bit manupulation!", block_id);
+		bvim_error(state.mode, "Invalid block %d for bit manupulation!", block_id);
 		return 1;
 	}
 
@@ -273,7 +273,7 @@ double math__entropy(int block_id)
 	
 	tmp_blk = blocks__GetByID(block_id);
 	if (tmp_blk == NULL) {
-		bvi_error(state.mode, "Invalid block %d for entropy calculation!", block_id);
+		bvim_error(state.mode, "Invalid block %d for entropy calculation!", block_id);
 		return -1;
 	}
 	size = tmp_blk->pos_end - tmp_blk->pos_start;
