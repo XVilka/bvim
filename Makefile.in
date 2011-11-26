@@ -29,8 +29,8 @@ libdir = $(DESTDIR)@libdir@
 
 man1dir = $(mandir)/man1
 
-OBJS   =  bvim.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o
-HEADER =  data.h bvim.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h
+OBJS   =  bvim.o blocks.o keys.o commands.o buffers.o set.o re.o io.o edit.o recomp.o bscript.o math.o ui.o plugins.o collaboration.o signature.o
+HEADER =  data.h bvim.h blocks.h buffers.h set.h bscript.h math.h ui.h keys.h commands.h plugins.h messages.h collaboration.h signature.h
 CC     =  @CC@
 CFLAGS =  @CFLAGS@ @CPPFLAGS@ -Iinclude -I./lua/include
 DEFS   =  @DEFS@

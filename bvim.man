@@ -1,15 +1,14 @@
-BVI(1)                    User Commands                    BVI(1)
+BVIM(1)                    User Commands                    BVIM(1)
 
 
 NAME
-       bvi, bview - visual editor for binary files
+       bvim - visual editor for binary files
 
 VERSION
-       bvi-1.3.2
+       bvim-1.3.4
 
 SYNOPSIS
-       bvi   [-R] [-c cmd] [-f script] [-b begin] [-e end] [-s size] file...
-       bview [-R] [-c cmd] [-f script] [-b begin] [-e end] [-s size] file...
+       bvim   [-R] [-c cmd] [-f script] [-b begin] [-e end] [-s size] file...
 
 OPTIONS
        file...
@@ -53,14 +52,14 @@ OPTIONS
            to make several global changes in a binary file.
 
 DESCRIPTION
-       Bvi stands for "Binary VIsual editor".  Bvi is a screen
+       Bvim stands for "BVI iMproved".  Bvim is a screen
        oriented editor for binary files; its command set is based
        on that of the vi(1) text editor.  As a binary editor does
        not have the concept of "lines" there are differences from
        Vi commands wherever the latter are line orientate.
 
 COMPARISON
-       The main differences between Vi and Bvi are:
+       The main differences between Vi and Bvim are:
 
        The screen is divided in three sections or panes: The byte
        offset (extreme left), the hex pane (middle), and an ascii
@@ -128,7 +127,7 @@ COMPARISON
 
             :set memmove
 
-       BVI Modes:
+       BVIM Modes:
 
        Command Mode (Normal Mode):
 
@@ -157,12 +156,21 @@ COMPARISON
        partially typed command, type ESC to cancel the current
        command and return to command mode.
 
+	   Visual mode:
+
+	   Similar to visual mode in vim.
+
+	   REPL mode:
+
+	   Open Lua REPL window, which allow executing bvim lua
+	   functions, within embedded interpreter.
+
 ENVIRONMENT
        The editor recognizes the environment variable BVIINIT as
        a command  (or  list of commands) to run when it starts
        up. If this variable is undefined, the editor  checks  for
-       startup commands  in  the  file  ~/.bvirc  file, which you
-       must own.  However, if there is a .bvirc owned by you  in
+       startup commands  in  the  file  ~/.bvimrc  file, which you
+       must own.  However, if there is a .bvimrc owned by you  in
        the  current directory,  the  editor takes its startup
        commands from this file - overriding both the file in your
        home  directory  and the environment variable.
@@ -417,14 +425,14 @@ WWW
                       (all about Vi and its clones)
 
 FILES
-        $HOME/.bvirc          editor startup file
-        ./.bvirc              editor startup file
+        $HOME/.bvimrc          editor startup file
+        ./.bvimrc              editor startup file
 
 BUGS
-       Bvi does not update the screen when the terminal changes
+       Bvim does not update the screen when the terminal changes
        its size.
 
 SEE ALSO
        vi(1), strings(1), ascii(5)
 
-3/Jan/2004              BVI Version 1.3.2
+25/Nov/2011              BVIM Version 1.3.4

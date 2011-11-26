@@ -1,22 +1,22 @@
-BVI - Binary visual editor
-==========================
-http://bvi.sourceforge.net/
+BVIM - Bvi IMproved
+===================
+
+http://bvim.github.com/
 
 This editor for binary files was written by Gerhard Buergmann
-and is distributed under the GPL (GNU Public License).
+and Anton Kochkov and is distributed under the GPL (GNU Public License).
 
-Right now this is the fork of original project
-
+It was an improved version of original bvi editor
+(http://bvi.sourceforge.net/)
 
 How to compile
 ==============
 
-	gunzip -c bvi-1.3.2.tar.gz | tar xvf -
-	cd bvi-1.3.2
+	gunzip -c bvim-1.3.4.tar.gz | tar xvf -
+	cd bvim-1.3.4
 	./configure
 	make
 	make install
-
 
 MAC OS X
 ========
@@ -42,7 +42,7 @@ universal_crc - CRC C code generator utility
 
 ------------------------------------------------------------------------
 PLEASE send any bug reports (and fixes), code for new features,
-comments, questions, etc. (even flames) to:
+comments, questions, etc. to:
 
 Anton Kochkov
 Moscow, Russia

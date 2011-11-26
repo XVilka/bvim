@@ -1,22 +1,23 @@
-/*  BVI.H
+/* Bvim - BVi IMproved, binary analysis framework
  *
- *  NOTE: Edit this file with tabstop=4 !
+ * Copyright 1996-2004 by Gerhard Buergmann <gerhard@puon.at>
+ * Copyright 2011 by Anton Kochkov <anton.kochkov@gmail.com>
  *
- * Copyright 1996-2003 by Gerhard Buergmann gerhard@puon.at
- * Copyright 2011 by Anton Kochkov anton.kochkov@gmail.com
+ * This file is part of Bvim.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
+ * Bvim is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * Bvim is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * See file COPYING for information on distribution conditions.
- */
+ * You should have received a copy of the GNU General Public License
+ * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
 
 #include <stdio.h>
 #include <string.h>
@@ -57,7 +58,9 @@ struct MARKERS_ {
 extern char addr_form[];
 extern char pattern[];
 extern char rep_buf[];
+
 extern int x, y;
+
 extern int filemode;
 extern int edits, new;
 extern int addr_flag;
@@ -67,8 +70,10 @@ extern PTR maxpos;
 extern PTR undo_start;
 extern PTR current_start;
 extern PTR curpos;
+
 extern PTR start_addr;
 extern PTR end_addr;
+
 extern char *name, cmdstr[];
 extern off_t filesize, memsize;
 extern PTR markbuf[];
@@ -105,6 +110,8 @@ void bvim_debug(int mode, char* fmt, ...);
 
 /* ================= Exports ================ */
 
+char *bvim_substr(const char *, size_t, size_t);
+
 off_t alloc_buf(off_t, char **), yd_addr(void);
 off_t range(int);
 void do_dot(void), do_exit(void), do_shell(void), do_undo(void);
@@ -113,7 +120,7 @@ void do_back(off_t, PTR), do_ins_chg(PTR, char *, int);
 void do_mark(int, PTR), badcmd(char *), movebyte(void);
 void do_over(PTR, off_t, PTR), do_put(PTR, off_t, PTR);
 void jmpproc(int), printline(PTR, int);
-void wmsg(char *);
+
 int addfile(char *);
 int bregexec(PTR, char *);
 int chk_comm(int);
@@ -123,7 +130,7 @@ int do_delete(off_t, PTR);
 int doset(char *);
 int do_substitution(int, char *, PTR, PTR);
 int hexchar(void);
-int outmsg(char *);
+
 PTR searching(int, char *, PTR, PTR, int);
 PTR wordsearch(PTR, char);
 PTR backsearch(PTR, char);
@@ -135,12 +142,17 @@ PTR do_ft(int, int);
 char *patcpy(char *, char *, char);
 void setpage(PTR), smsg(char *);
 
-void usage(void), bvim_init(char *), statpos(void), setcur(void);
+void usage(void), bvim_init(char *), statpos(void);
+
+void setcur(void);
+
 void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
 void clearstr(void), clear_marks(void);
 
-void quit(void), sysemsg(char *), do_z(int), stuffin(char *);
+void quit(void);
+
+void do_z(int), stuffin(char *);
 off_t edit(int), load(char *);
 off_t calc_size(char *);
 int ascii_comp(char *, char *), hex_comp(char *, char *);
@@ -151,7 +163,7 @@ int vgetc(void), xpos(void), enlarge(off_t);
 int getcmdstr(char *, int), read_rc(char *);
 int wait_return(int);
 int get_cursor_position();
-char *substr(const char *, size_t, size_t);
+
 int read_history(char *filename);
 void record_cmd(char* cmdline);
 

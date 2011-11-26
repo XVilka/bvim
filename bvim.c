@@ -1,22 +1,23 @@
-/* BVI  -  Binary Visual Editor
+/* Bvim - BVi IMproved, binary analysis framework
  *
- * NOTE: Edit this file with tabstop=4 !
+ * Copyright 1996-2004 by Gerhard Buergmann <gerhard@puon.at>
+ * Copyright 2011 by Anton Kochkov <anton.kochkov@gmail.com>
  *
- * Copyright 1996-2004 by Gerhard Buergmann gerhard@puon.at
- * Copyright 2011 by Anton Kochkov anton.kochkov@gmail.com
+ * This file is part of Bvim.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
+ * Bvim is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * Bvim is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * See file COPYING for information on distribution conditions.
- */
+ * You should have received a copy of the GNU General Public License
+ * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
 
 #include <sys/types.h>
 
@@ -56,7 +57,6 @@ off_t size;
 
 PTR curpos;
 PTR maxpos;
-/* PTR pagepos; */
 PTR spos;
 char *name = NULL;
 char *shell;

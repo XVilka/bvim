@@ -1,29 +1,23 @@
-/* re - regular expression search for bvim
+/* Bvim - BVi IMproved, binary analysis framework
  *
- * NOTE: Edit this file with tabstop=4 !
+ * Copyright 1996-2004 by Gerhard Buergmann <gerhard@puon.at>
+ * Copyright 2011 by Anton Kochkov <anton.kochkov@gmail.com>
  *
- * 1996-01-06 created;
- * 1999-01-19 V 1.1.0
- * 1999-03-17 V 1.1.1
- * 1999-09-10 V 1.2.0
- * 2000-04-25 V 1.3.0 beta
- * 2000-09-29 V 1.3.0 final
+ * This file is part of Bvim.
  *
- * Copyright 1996-2003 by Gerhard Buergmann
- * gerhard@puon.at
+ * Bvim is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
+ * Bvim is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * See file COPYING for information on distribution conditions.
- */
+ * You should have received a copy of the GNU General Public License
+ * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
 
 /* You cannot use a common regexp subroutine, because \0 is a regular
  * character in a binary string !
@@ -46,7 +40,7 @@ char act_pat[MAXCMD];		/* found pattern */
 char pattern[MAXCMD + 1];
 char search_pat[BUFFER];	/* / or ? command */
 
-char *substr(const char* str, size_t begin, size_t len)
+char *bvim_substr(const char* str, size_t begin, size_t len)
 {
 	if (str == 0 || strlen(str) == 0 || strlen(str) < begin
 	    || strlen(str) < (begin + len))

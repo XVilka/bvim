@@ -1,3 +1,24 @@
+/* Bvim - BVi IMproved, binary analysis framework
+ *
+ * Copyright 1996-2004 by Gerhard Buergmann <gerhard@puon.at>
+ * Copyright 2011 by Anton Kochkov <anton.kochkov@gmail.com>
+ *
+ * This file is part of Bvim.
+ *
+ * Bvim is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Bvim is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
 #include <stdio.h>
 #include "bvim.h"
 #include "blocks.h"
@@ -22,6 +43,43 @@ extern struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
 char linbuf[256];
+
+/* ----------------------------------------------------------------------
+ *                  Some internal functions
+ * ----------------------------------------------------------------------
+ */
+
+int outmsg(char *s)
+{
+	char *poi;
+	int cnt = 0;
+
+	move(core.screen.maxy, 0);
+	poi = strchr(s, '|');
+
+	if (P(P_TE)) {
+		poi = s;
+		while (*poi != '\0' && *poi != '@' && *poi != '|') {
+			addch(*poi++);
+			cnt++;
+		}
+	} else {
+		if (poi)
+			poi++;
+		else
+			poi = s;
+		while (*poi) {
+			if (*poi == '@')
+				addch(' ');
+			else
+				addch(*poi);
+			poi++;
+			cnt++;
+		}
+	}
+	return cnt;
+}
+
 
 /* --------------------------------------------------------------------------
  *                         Colors handling
@@ -124,9 +182,9 @@ int ui__Color_Set(char *arg)
 		ui__ErrorMsg("Wrong color name!");
 		return -1;
 	} else {
-		colors[i].r = atoi(substr(arg, strlen(s) + 1, 3));
-		colors[i].g = atoi(substr(arg, strlen(s) + 5, 3));
-		colors[i].b = atoi(substr(arg, strlen(s) + 9, 3));
+		colors[i].r = atoi(bvim_substr(arg, strlen(s) + 1, 3));
+		colors[i].g = atoi(bvim_substr(arg, strlen(s) + 5, 3));
+		colors[i].b = atoi(bvim_substr(arg, strlen(s) + 9, 3));
 		/*set_palette(); */
 		ui__Colors_Set();
 		ui__Screen_Repaint();
@@ -552,7 +610,7 @@ void printcolorline_hexhl(int y, int x, int base_palette, char *string)
 	while (t != NULL) {
 		if ((t->item.hex_start < t->item.hex_end) & (t->item.toggle == 1)) {
 			attron(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + t->item.hex_start, substr(string, t->item.hex_start, t->item.hex_end - t->item.hex_start));
+			mvaddstr(y, x + t->item.hex_start, bvim_substr(string, t->item.hex_start, t->item.hex_end - t->item.hex_start));
 			attroff(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
 		}
 		t = t->next;
@@ -568,7 +626,7 @@ void printcolorline_dathl(int y, int x, int base_palette, char *string)
 	while (t != NULL) {
 		if ((t->item.dat_start < t->item.dat_end) & (t->item.toggle == 1)) {
 			attron(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
-			mvaddstr(y, x + t->item.dat_start, substr(string, t->item.dat_start, t->item.dat_end - t->item.dat_start));
+			mvaddstr(y, x + t->item.dat_start, bvim_substr(string, t->item.dat_start, t->item.dat_end - t->item.dat_start));
 			attroff(COLOR_PAIR(t->item.palette) | A_STANDOUT | A_BOLD);
 		}
 		t = t->next;
@@ -796,36 +854,6 @@ void ui__StatusMsg(char* msg)
 	}
 }
 
-int outmsg(char *s)
-{
-	char *poi;
-	int cnt = 0;
-
-	move(core.screen.maxy, 0);
-	poi = strchr(s, '|');
-
-	if (P(P_TE)) {
-		poi = s;
-		while (*poi != '\0' && *poi != '@' && *poi != '|') {
-			addch(*poi++);
-			cnt++;
-		}
-	} else {
-		if (poi)
-			poi++;
-		else
-			poi = s;
-		while (*poi) {
-			if (*poi == '@')
-				addch(' ');
-			else
-				addch(*poi);
-			poi++;
-			cnt++;
-		}
-	}
-	return cnt;
-}
 
 int ui__Destroy()
 {

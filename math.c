@@ -1,3 +1,24 @@
+/* Bvim - BVi IMproved, binary analysis framework
+ *
+ * Copyright 1996-2004 by Gerhard Buergmann <gerhard@puon.at>
+ * Copyright 2011 by Anton Kochkov <anton.kochkov@gmail.com>
+ *
+ * This file is part of Bvim.
+ *
+ * Bvim is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Bvim is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
 #include <math.h>
 #include "bvim.h"
 #include "blocks.h"
@@ -10,13 +31,6 @@ extern core_t core;
 extern state_t state;
 
 /* Math expressions */
-
-char* bvim_substr(const char* str, size_t begin, size_t len) 
-{
-	if (str == 0 || strlen(str) == 0 || strlen(str) < begin || strlen(str) < (begin+len))
-		return 0;
-	return strndup(str + begin, len);
-}
 
 long str2hex(char *str)
 {
@@ -43,7 +57,7 @@ long math__eval(int mode, char* expression) {
 					i = 1;
 					break;
 			}
-			return atoi(substr(expression, 1, strlen(expression) -1 )) * i;
+			return atoi(bvim_substr(expression, 1, strlen(expression) -1 )) * i;
 		}
 		else if (!strcmp(bvim_substr(expression, 0, 2), "0x")) {
 			
