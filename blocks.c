@@ -151,11 +151,15 @@ struct block_item* blocks__GetByName(char* name) {
 	return NULL;
 }
 
+/* Do not use this in exported API! */
+
 int blocks__Init()
 {
 	//InitBlocksList(10);
 	return 0;
 }
+
+/* Do not use this in exported API! */
 
 int blocks__Destroy()
 {

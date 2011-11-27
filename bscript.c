@@ -1080,12 +1080,12 @@ static int bvim_setpage(lua_State * L)
 static int bvim_repl_print(lua_State *L)
 {
 	iorecord_t rec;
+	const char *s;
 
 	int n = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");
 	for (i = 1; i <= n; i++) {
-		const char* s;
 		lua_pushvalue(L, -1); // function to be called
 		lua_pushvalue(L, i); // value to print
 		lua_call(L, 1, 1);

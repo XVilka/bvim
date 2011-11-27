@@ -7,6 +7,7 @@
 
 core_t *core;
 state_t *state;
+api_t *api;
 
 void (*plugin_error)(int, char*, ...);
 void (*plugin_info)(int, char*, ...);
@@ -71,13 +72,14 @@ plugin_t plugin_register()
  * ---------------------------------------------------------------
  */
 
-int plugin_init(core_t *bvim_core, state_t *bvim_state)
+int plugin_init(core_t *bvim_core, state_t *bvim_state, api_t *bvim_api)
 {
-	plugin_error = bvim_core->error;
-	plugin_info = bvim_core->info;
-	plugin_debug = bvim_core->debug;
+	plugin_error = bvim_api->error;
+	plugin_info = bvim_api->info;
+	plugin_debug = bvim_api->debug;
 	core = bvim_core;
 	state = bvim_state;
+	api = bvim_api;
 	return 0;
 }
 

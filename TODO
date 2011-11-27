@@ -20,6 +20,9 @@ Directions
 15. Implement network team work support (like PiratePad, Gobby/infinoted)
 16. Add terminal resizing support
 17. Add MathGL visualisation plugin: gistogram, file map, etc.
+18. Save project (with comments, marks, blocks list, highlights and history) 
+	into some file
+19. Implement VIRTUAL_BLOCK with id == 0, which mean whole file/buffer
 
 Simple tasks
 ============================

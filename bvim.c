@@ -50,6 +50,7 @@ jmp_buf env;			/* context for `longjmp' function   */
 
 core_t core;
 state_t state;
+api_t api;
 
 int x, xx, y;
 int status;
@@ -1040,10 +1041,6 @@ int main(int argc, char* argv[])
 	commands__Init();
 
 	/* Plugins infrastructure initialization */
-	core.error = bvim_error;
-	core.info = bvim_info;
-	core.debug = bvim_debug;
-
 	plugins__Init();
 
 	for (i = 0; i < MARK_COUNT; i++)

@@ -30,6 +30,7 @@
 
 extern core_t core;
 extern state_t state;
+extern api_t api;
 
 static plugin_link plugins;
 
@@ -75,6 +76,16 @@ int PluginDel(plugin_t i)
 
 int plugins__Init()
 {
+	api.error = bvim_error;
+	api.info = bvim_info;
+	api.debug = bvim_debug;
+	api.blk.iterator = blocks__Iterator;
+	api.blk.add = blocks__Add;
+	api.blk.del_by_id = blocks__DelByID;
+	api.blk.del_by_name = blocks__DelByName;
+	api.blk.get_by_id = blocks__GetByID;
+	api.blk.get_by_name = blocks__GetByName;
+
 	return 0;
 }
 
@@ -201,6 +212,7 @@ int plugin__Load(char* path)
 // Unload plugin, remove from list
 int plugin__Unload(plugin_t plg)
 {
+	int i = 0;
 	char* msg = NULL;
 	int (*plugin_unregister)();
 
@@ -211,9 +223,34 @@ int plugin__Unload(plugin_t plg)
 		bvim_error(state.mode, "plugin unload error: can't find plugin_unregister() function");
 		return -1;
 	}
-	// TODO: Remove commands, hotkeys, lua functions
+	/* Unregistering commands, hotkeys, lua functions */
 	if (plugin_unregister != NULL) {
 		plugin_unregister();
+		if (plg.exports.keys != NULL) {
+				i = 0;
+				while (plg.exports.keys[i].id != 0)
+				{
+					keys__Key_Unmap(&(plg.exports.keys[i]));
+					i++;
+				}
+			}
+			if (plg.exports.cmds != NULL) {
+				i = 0;
+				while (plg.exports.cmds[i].id != 0)
+				{
+					commands__Cmd_Del(plg.exports.cmds[i].name);
+					i++;
+				}
+			}
+			if (plg.exports.luaF_list != NULL) {
+				i = 0;
+				while (plg.exports.luaF_list[i].id != 0)
+				{
+					luaF_DelByID(plg.exports.luaF_list[i].id);
+					i++;
+				}
+			}
+
 	}
 	dlclose(plg.module);
 	PluginDel(plg);

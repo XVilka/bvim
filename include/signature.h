@@ -19,6 +19,18 @@
  * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
  */ 
 
+/* ---------------------------------------------------------------
+ *                     Internal abstractions
+ * ---------------------------------------------------------------
+ */
+
+struct magic {
+	int record_size;
+	int type;
+	char* signature;
+	char* comment;
+};
+
 /* Signature item */
 struct sig {
 	char* name;

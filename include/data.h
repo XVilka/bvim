@@ -88,7 +88,26 @@
 #define BLK_COUNT 32		/* number of data blocks */
 #define MARK_COUNT 64		/* number of markers */
 
+/* ----------------------------------------------------------
+ *                basic data types
+ * ----------------------------------------------------------
+ */
 
+typedef struct offs *offset_list;
+
+struct offset_item {
+	unsigned long begin;
+	unsigned long size;
+	char* name;
+	char* comment;
+};
+
+typedef struct offset_item offset_t;
+
+struct offs { 
+	offset_t off;
+	offset_list next;
+};
 
 /* ---------------------------------------------------------
  *      Main data types for bvim and its plugins
@@ -258,13 +277,40 @@ struct CORE {
 	   struct MARKERS;
 	 */
 
-	/* handlers */
-	void (*error)(int, char*, ...);
-	void (*info)(int, char*, ...);
-	void (*debug)(int, char*, ...);
 };
 
 typedef struct CORE core_t;
+
+/* -----------------------------------
+ *   Exported bvim API
+ * -----------------------------------
+ */
+
+// TODO: Add buffers handling api
+struct API {
+	void (*error)(int, char*, ...);
+	void (*info)(int, char*, ...);
+	void (*debug)(int, char*, ...);
+	/* editor functions */
+	
+	/* block functions */
+	struct {
+		int (*iterator)(int (*(func))(), int);
+		int (*add)(struct block_item);
+		int (*del_by_id)(int);
+		int (*del_by_name)(char*);
+		struct block_item* (*get_by_id)(unsigned int);
+		struct block_item* (*get_by_name)(char*);
+	} blk;
+
+	/* signature functions */
+	/* lua C api */
+	struct {
+		int (*iterator)(int (*(func))(), int);
+	} lua;
+};
+
+typedef struct API api_t;
 
 /* -----------------------------------
  * Current state of the current buffer
