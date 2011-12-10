@@ -32,6 +32,7 @@
 #include "keys.h"
 #include "blocks.h"
 #include "buffers.h"
+#include "search.h"
 #include "bscript.h"
 #include "commands.h"
 #include "ui.h"
@@ -1074,6 +1075,7 @@ static int bvim_setpage(lua_State * L)
 
 /* ================ LUA REPL ================ */
 
+// TODO: add socket server output mode, write simple client
 // TODO: add buffering output, store all output in buffer
 //
 // insert io__BufferAdd, io__RecordInsert, io__RecordGet

@@ -53,6 +53,7 @@ int command__or(char, int, char**);
 int command__xor(char, int, char**);
 int command__neg(char, int, char**);
 int command__not(char, int, char**);
+int command__fuz(char, int, char**);
 
 void commands__Init();
 void commands__Destroy();

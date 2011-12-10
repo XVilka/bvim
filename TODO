@@ -23,11 +23,15 @@ Directions
 18. Save project (with comments, marks, blocks list, highlights and history) 
 	into some file
 19. Implement VIRTUAL_BLOCK with id == 0, which mean whole file/buffer
+20. Add Unicode and other encodings support
+21. Implement lua REPL as pipe/server, to use with multimonitor configuration
+22. Add fuzzy logic
 
 Simple tasks
 ============================
 
 1. Rename project to "bvim"
+   -- 90% done
 2. Add history of commands
    -- 90% done
 3. Blocks commands:
@@ -50,13 +54,9 @@ Simple tasks
 11. Add folding empty and repeating data sequences
 12. Implement "universal" CRC poly/gen calculator, with ability setup generator poly from lua
     -- 80% done
-13. Add C plugins api, with ability for register lua functions, events, keymaps and :commands
-    -- IN PROGRESS
-14. Add lua/plugins hooks into standard handler_* and command_*
-15. Add block and symbol annotations - show when place cursor on it
-16. Add possibility to :run <script> with full file path to script
-17. Move functions from bvi.* lua module to dynamic list
-	-- 90% done
+13. Add lua/plugins hooks into standard handler_* and command_*
+14. Add block and symbol annotations - show when place cursor on it
+15. Add possibility to :run <script> with full file path to script
 
 Refactoring Tasks
 ============================

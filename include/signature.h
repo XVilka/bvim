@@ -27,8 +27,8 @@
 struct magic {
 	int record_size;
 	int type;
-	char* signature;
-	char* comment;
+	char* str;
+	char* description;
 };
 
 /* Signature item */

@@ -23,6 +23,7 @@
 #include "keys.h"
 #include "blocks.h"
 #include "bmath.h"
+#include "search.h"
 #include "set.h"
 #include "ui.h"
 #include "commands.h"
@@ -164,6 +165,7 @@ int CmdDefaults()
 		{ 32, "xor", "", 1, BVI_HANDLER_INTERNAL, { .func = command__xor }, 3, 2},
 		{ 33, "neg", "", 1, BVI_HANDLER_INTERNAL, { .func = command__neg }, 3, 2},
 		{ 34, "not", "", 1, BVI_HANDLER_INTERNAL, { .func = command__not }, 3, 2},
+		{ 35, "fuz", "fuzzy search command", 1, BVI_HANDLER_INTERNAL, { .func = command__fuz }, 3, 2},
 		{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0 }
 	};
 	while (cmds_def[i].id != 0) {
@@ -819,7 +821,26 @@ int command__not(char flags, int c_argc, char **c_argv) {
 	math__logic(NOT, "255");
 	return 0;
 }
-	
+
+// TODO: Add blocks support
+// TODO: Show matches in tools window, with scrolling
+int command__fuz(char flags, int c_argc, char **c_argv) {
+	struct found fnd;
+	int distance;
+	if (c_argc == 1) {
+		distance = 1;
+		fnd = fuzzy_search(core.editor.mem, filesize, c_argv[0], strlen(c_argv[0]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
+		bvim_info(state.mode, "Found %d matches", fnd.cnt);
+	} else if (c_argc == 2) {
+		distance = atoi(c_argv[0]);
+		fnd = fussy_search(core.editor.mem, filesize, c_argv[1], strlen(c_argv[1]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
+		bvim_info(state.mode, "Found %d matches", fnd.cnt);
+	} else {
+		bvim_error(state.mode, BVI_ERROR_EXTRACHARS);
+		return -1;
+	}
+	return 0;
+}
 
 /* =============== End of command handlers ================== */
 
