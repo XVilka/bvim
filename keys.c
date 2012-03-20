@@ -25,43 +25,43 @@
 #include "keys.h"
 #include "bscript.h"
 
-extern core_t core;
+//extern core_t core;
 
 /* ----------------------------------------------------------
  *                    Internal functions
  * ----------------------------------------------------------
  */
 
-int KeyAdd(struct key item)
+int KeyAdd(core_t *core, bkey_t *item)
 {
-	if (core.keymap.items == core.keymap.allocated) {
-		if (core.keymap.allocated == 0)
-			core.keymap.allocated = 3;
+	if (core->keymap.items == core->keymap.allocated) {
+		if (core->keymap.allocated == 0)
+			core->keymap.allocated = 3;
 		else
-			core.keymap.allocated += 4;
+			core->keymap.allocated += 4;
 
 		void *_tmp =
-		    realloc(core.keymap.arr,
-			    (core.keymap.allocated * sizeof(struct key)));
+		    realloc(core->keymap.arr,
+			    (core->keymap.allocated * sizeof(struct key)));
 
 		if (!_tmp) {
-			fprintf(stderr, "ERROR: Couldn't realloc memory!\n");
+			fprintf(stderr, "ERROR [KeyAdd]: Couldn't realloc memory!\n");
 			return (-1);
 		}
-		core.keymap.arr = (struct key *)_tmp;
+		core->keymap.arr = (struct key *)_tmp;
 	}
-	core.keymap.arr[core.keymap.items] = item;
-	core.keymap.items++;
+	core->keymap.arr[core->keymap.items] = *item;
+	core->keymap.items++;
 
-	return core.keymap.items;
+	return core->keymap.items;
 }
 
-int KeyDel(struct key item)
+int KeyDel(core_t *core, bkey_t *item)
 {
 	return 0;
 }
 
-int KeyDefaults()
+int KeyDefaults(core_t *core)
 {
 	int i = 0;
 	struct key keys_def[] = {
@@ -237,7 +237,7 @@ int KeyDefaults()
 		{0, NULL, NULL, 0, 0, {NULL}} // end marker
 	};
 	while (keys_def[i].id != 0) {
-		KeyAdd(keys_def[i]);
+		KeyAdd(core, &keys_def[i]);
 		i++;
 	}
 	return 0;
@@ -248,21 +248,21 @@ int KeyDefaults()
  * -----------------------------------------------------
  */
 
-void keys__Init()
+void keys__Init(core_t *core)
 {
-	core.keymap.arr = NULL;
-	core.keymap.items = 0;
-	core.keymap.allocated = 0;
-	KeyDefaults();
+	core->keymap.arr = NULL;
+	core->keymap.items = 0;
+	core->keymap.allocated = 0;
+	KeyDefaults(core);
 }
 
-void keys__Destroy()
+void keys__Destroy(core_t *core)
 {
-	free(core.keymap.arr);
+	free(core->keymap.arr);
 }
 
 // TODO: Implement parsing key strings, like <Ctrl-K>
-struct key *keys__KeyString_Parse(char *key_string)
+bkey_t *keys__KeyString_Parse(core_t *core, char *key_string)
 {
 	/*
 	 * Use strtok with "-" delimeter, then compare
@@ -314,29 +314,29 @@ struct key *keys__KeyString_Parse(char *key_string)
 	return k;
 }
 
-int keys__Key_Map(struct key *map_key)
+int keys__Key_Map(core_t *core, bkey_t *map_key)
 {
-	KeyAdd(*map_key);
+	KeyAdd(core, map_key);
 	return 0;
 }
 
-int keys__Key_Unmap(struct key *map_key)
+int keys__Key_Unmap(core_t *core, bkey_t *map_key)
 {
-	KeyDel(*map_key);
+	KeyDel(core, map_key);
 	return 0;
 }
 
-void keys__KeyMaps_Show(void)
+void keys__KeyMaps_Show(core_t *core)
 {
 	char dispbuf[256];
 	char luacmdbuf[256];
 	int i = 0;
 
 	dispbuf[0] = '\0';
-	while (i < core.keymap.items) {
+	while (i < core->keymap.items) {
 		luacmdbuf[0] = '\0';
-		sprintf(luacmdbuf, "map %s %s\n", core.keymap.arr[i].name,
-			core.keymap.arr[i].description);
+		sprintf(luacmdbuf, "map %s %s\n", core->keymap.arr[i].name,
+			core->keymap.arr[i].description);
 		strcat(dispbuf, luacmdbuf);
 		i++;
 	}
@@ -344,21 +344,21 @@ void keys__KeyMaps_Show(void)
 	wait_return(TRUE);
 }
 
-int keys__Key_Pressed(int key_code)
+int keys__Key_Pressed(core_t *core, int key_code)
 {
 	int j = 0;
-	while (j < core.keymap.items) {
-		if ((core.keymap.arr[j].id == key_code) & (core.keymap.arr[j].enabled ==
+	while (j < core->keymap.items) {
+		if ((core->keymap.arr[j].id == key_code) & (core->keymap.arr[j].enabled ==
 						      1)) {
-			if ((core.keymap.arr[j].handler_type ==
-			     BVI_HANDLER_INTERNAL) & (core.keymap.arr[j].handler.
+			if ((core->keymap.arr[j].handler_type ==
+			     BVI_HANDLER_INTERNAL) & (core->keymap.arr[j].handler.
 						      func != NULL)) {
-				(*(core.keymap.arr[j].handler.func)) ();
+				(*(core->keymap.arr[j].handler.func)) ();
 			} else
-			    if ((core.keymap.arr[j].handler_type ==
-				 BVI_HANDLER_LUA) & (core.keymap.arr[j].handler.
+			    if ((core->keymap.arr[j].handler_type ==
+				 BVI_HANDLER_LUA) & (core->keymap.arr[j].handler.
 						     lua_cmd != NULL)) {
-				bvim_run_lua_string(core.keymap.arr[j].handler.
+				bvim_run_lua_string(core->keymap.arr[j].handler.
 						   lua_cmd);
 			}
 		}

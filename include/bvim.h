@@ -66,10 +66,8 @@ extern int edits, new;
 extern int addr_flag;
 extern int ignore_case, magic;
 extern int screen, status;
-extern PTR maxpos;
 extern PTR undo_start;
 extern PTR current_start;
-extern PTR curpos;
 
 extern PTR start_addr;
 extern PTR end_addr;
@@ -113,19 +111,19 @@ void bvim_debug(int mode, char* fmt, ...);
 char *bvim_substr(const char *, size_t, size_t);
 
 off_t alloc_buf(off_t, char **), yd_addr(void);
-off_t range(int);
-void do_dot(void), do_exit(void), do_shell(void), do_undo(void);
-void do_tilde(off_t), trunc_cur(void);
+off_t range(core_t *, buf_t*, int);
+void do_dot(void), do_exit(core_t*), do_shell(void), do_undo(core_t *core, buf_t *buf);
+void do_tilde(core_t *core, buf_t *buf, off_t), trunc_cur(core_t *core, buf_t *buf);
 void do_back(off_t, PTR), do_ins_chg(PTR, char *, int);
 void do_mark(int, PTR), badcmd(char *), movebyte(void);
-void do_over(PTR, off_t, PTR), do_put(PTR, off_t, PTR);
+void do_over(core_t *core, buf_t *buf, PTR, off_t, PTR), do_put(core_t *, buf_t *, PTR, off_t, PTR);
 void jmpproc(int), printline(PTR, int);
 
 int addfile(char *);
 int bregexec(PTR, char *);
-int chk_comm(int);
-int doecmd(char *, int);
-int do_append(int, char *);
+int chk_comm(buf_t*, int);
+int doecmd(buf_t *buf, char *, int);
+int do_append(core_t *core, buf_t *buf, int, char *);
 int do_delete(off_t, PTR);
 int doset(char *);
 int do_substitution(int, char *, PTR, PTR);
@@ -150,7 +148,7 @@ void showparms(int), toggle(void), scrolldown(int), scrollup(int);
 void fileinfo(char *);
 void clearstr(void), clear_marks(void);
 
-void quit(void);
+void quit(core_t *, buf_t *);
 
 void do_z(int), stuffin(char *);
 off_t edit(int), load(char *);
@@ -160,12 +158,13 @@ int cur_forw(int), cur_back(void);
 int lineout(void), save(char *, PTR, PTR, int);
 int at_least(char *, char *, int);
 int vgetc(void), xpos(void), enlarge(off_t);
-int getcmdstr(char *, int), read_rc(char *);
+int getcmdstr(char *, int);
+int read_rc(core_t*, char*);
 int wait_return(int);
 int get_cursor_position();
 
-int read_history(char *filename);
-void record_cmd(char* cmdline);
+int read_history(core_t*, char*);
+void record_cmd(core_t*, char*);
 
 /* ========= Event handlers ======== */
 

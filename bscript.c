@@ -45,7 +45,6 @@ extern state_t state;
 
 extern struct MARKERS_ markers[MARK_COUNT];
 extern WINDOW *tools_win;
-extern PTR maxpos;
 
 /* -----------------------------------------------------------------------------
  *                       Lua errors handling
@@ -152,11 +151,11 @@ static int bvim_save(lua_State * L)
 	int n = lua_gettop(L);
 	if (n == 1) {
 		filename = (char*)lua_tostring(L, 1);
-		save(filename, core.editor.mem, maxpos, flags);
+		save(filename, core.editor.mem, core.editor.maxpos, flags);
 	} else if (n == 2) {
 		filename = (char*)lua_tostring(L, 1);
 		flags = (int)lua_tonumber(L, 2);
-		save(filename, core.editor.mem, maxpos, flags);
+		save(filename, core.editor.mem, core.editor.maxpos, flags);
 	}
 	return 0;
 }
@@ -814,7 +813,7 @@ static int bvim_search_bytes(lua_State * L)
 	if (lua_gettop(L) == 1) {
 		bytes = (char *)lua_tostring(L, -1);
 		result =
-		    searching('\\', bytes, start_addr, maxpos - 1,
+		    searching('\\', bytes, start_addr, core.editor.maxpos - 1,
 			      FALSE | S_GLOBAL);
 		/*
 		   sprintf(msgbuf, "Found [%s] at 0x%08x position", bytes, (long)(result - core.editor.mem));
@@ -826,10 +825,10 @@ static int bvim_search_bytes(lua_State * L)
 		bytes = (char *)lua_tostring(L, 1);
 		result = start_addr;
 		if ((int)lua_tonumber(L, 2)) {
-			while (result < maxpos) {
+			while (result < core.editor.maxpos) {
 				result =
 				    searching('\\', bytes, start_addr,
-					      maxpos - 1, FALSE | S_GLOBAL);
+					      core.editor.maxpos - 1, FALSE | S_GLOBAL);
 				lua_pushnumber(L, (long)(result - core.editor.mem));
 				i++;
 			}
@@ -856,7 +855,7 @@ static int bvim_replace_bytes(lua_State * L)
 		target = (char *)lua_tostring(L, 2);
 		sprintf(bytesbuf, "/%s/%s/", bytes, target);
 		result =
-		    do_substitution('\\', bytesbuf, start_addr, maxpos - 1);
+		    do_substitution('\\', bytesbuf, start_addr, core.editor.maxpos - 1);
 		lua_pushnumber(L, result);
 	}
 	return 1;

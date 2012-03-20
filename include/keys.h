@@ -19,11 +19,11 @@
  * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
  */ 
 
-void keys__Init();
-void keys__Destroy();
-int keys__Key_Pressed(int);
-struct key *keys__KeyString_Parse(char *);
-int keys__Key_Map(struct key *);
-int keys__Key_Unmap(struct key *);
-void keys__KeyMaps_Show();
+void keys__Init(core_t*);
+void keys__Destroy(core_t*);
+int keys__Key_Pressed(core_t*, int);
+bkey_t *keys__KeyString_Parse(core_t*, char*);
+int keys__Key_Map(core_t*, bkey_t*);
+int keys__Key_Unmap(core_t*, bkey_t*);
+void keys__KeyMaps_Show(core_t*);
 

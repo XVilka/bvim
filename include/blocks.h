@@ -31,12 +31,12 @@ struct block_item BlockGet();
 
 /* External interface */
 
-int blocks__Iterator(int (*(func))(), int result);
-int blocks__Add(struct block_item b);
-int blocks__Init();
-int blocks__Destroy();
-int blocks__DelByID(int id);
-int blocks__DelByName(char* name);
-struct block_item* blocks__GetByID(unsigned int id);
-struct block_item* blocks__GetByName(char* name);
+int blocks__Iterator(buf_t *buf, int (*(func))(), int result);
+int blocks__Add(buf_t *buf, struct block_item b);
+int blocks__Init(buf_t *buf);
+int blocks__Destroy(buf_t *buf);
+int blocks__DelByID(buf_t *buf, int id);
+int blocks__DelByName(buf_t *buf, char* name);
+struct block_item* blocks__GetByID(buf_t *buf, unsigned int id);
+struct block_item* blocks__GetByName(buf_t *buf, char* name);
 

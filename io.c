@@ -243,7 +243,7 @@ off_t load(char* fname)
 			ui__StatusMsg(string);
 	}
 	state.pagepos = core.editor.mem;
-	maxpos = core.editor.mem + filesize;
+	core.editor.maxpos = core.editor.mem + filesize;
 	state.loc = HEX;
 	x = core.params.COLUMNS_ADDRESS;
 	y = 0;
@@ -295,9 +295,9 @@ int enlarge(off_t add)
 	char *newmem;
 	off_t savecur, savepag, savemax, saveundo;
 
-	savecur = curpos - core.editor.mem;
+	savecur = core.editor.curpos - core.editor.mem;
 	savepag = state.pagepos - core.editor.mem;
-	savemax = maxpos - core.editor.mem;
+	savemax = core.editor.maxpos - core.editor.mem;
 	saveundo = undo_start - core.editor.mem;
 
 	if (core.editor.mem == NULL) {
@@ -312,11 +312,11 @@ int enlarge(off_t add)
 
 	core.editor.mem = newmem;
 	memsize += add;
-	curpos = core.editor.mem + savecur;
+	core.editor.curpos = core.editor.mem + savecur;
 	state.pagepos = core.editor.mem + savepag;
-	maxpos = core.editor.mem + savemax;
+	core.editor.maxpos = core.editor.mem + savemax;
 	undo_start = core.editor.mem + saveundo;
-	state.current = curpos + 1L;
+	state.current = core.editor.curpos + 1L;
 	return 0;
 }
 
@@ -365,7 +365,7 @@ int addfile(char* fname)
 		return 1;
 	}
 	filesize += buf.st_size;
-	maxpos = core.editor.mem + filesize;
+	core.editor.maxpos = core.editor.mem + filesize;
 	close(fd);
 	setpage(core.editor.mem + oldsize);
 	return 0;

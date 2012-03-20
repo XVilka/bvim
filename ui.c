@@ -646,7 +646,7 @@ void ui__Line_Print(PTR mempos, int scpos)
 	hl_msg[0] = '\0';
 	*linbuf = '\0';
 
-	if (mempos > maxpos) {
+	if (mempos > core.editor.maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
 		address = (long)(mempos - core.editor.mem + P(P_OF));
@@ -671,7 +671,7 @@ void ui__Line_Print(PTR mempos, int scpos)
 	mempos = tmp_mem;
 
 	for (print_pos = 0; print_pos < core.params.COLUMNS_DATA; print_pos++) {
-		if (mempos + print_pos >= maxpos) {
+		if (mempos + print_pos >= core.editor.maxpos) {
 			sprintf(tmpbuf, "   ");
 			Zeichen = ' ';
 		} else {

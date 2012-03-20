@@ -92,7 +92,7 @@ int bregexec(PTR start, char* scan)
 				scan++;
 			} else if (count > 1) {	/* characters in bracket */
 				if (*scan == '^') {
-					while (start < maxpos) {
+					while (start < core.editor.maxpos) {
 						if (bregexec
 						    (start, scan + count)) {
 							*act = '\0';
@@ -117,7 +117,7 @@ int bregexec(PTR start, char* scan)
 					scan += count;
 				}
 			} else {	/* ".*"  */
-				while (start < maxpos) {
+				while (start < core.editor.maxpos) {
 					if (bregexec(start, scan)) {
 						*act = '\0';
 						return 1;
@@ -151,7 +151,7 @@ PTR end_word(PTR start)
 	if (!isprint(*pos & 0xff))
 		return start;
 	while (isprint(*pos & 0xff))
-		if (pos++ > maxpos)
+		if (pos++ > core.editor.maxpos)
 			return start;
 	return --pos;
 }
@@ -167,15 +167,15 @@ PTR wordsearch(PTR start, char mode)
 	pos = start + 1;
 	do {
 		while (isprint(*pos & 0xff))
-			if (pos++ > maxpos)
+			if (pos++ > core.editor.maxpos)
 				return start;
 		while (!isprint(*pos & 0xff))
-			if (pos++ > maxpos)
+			if (pos++ > core.editor.maxpos)
 				return start;
 		found = pos;
 		ccount = 0;
 		while (isprint(*pos & 0xff)) {
-			if (pos++ > maxpos)
+			if (pos++ > core.editor.maxpos)
 				return start;
 			ccount++;
 		}
@@ -188,7 +188,7 @@ PTR wordsearch(PTR start, char mode)
 		} else {
 			return found;
 		}
-	} while (pos < maxpos);
+	} while (pos < core.editor.maxpos);
 	return start;
 }
 
@@ -506,7 +506,7 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 				break;
 			case ';':
 				searching(*(cmd + 1), cmd + 2, found,
-					  maxpos - 1, flag);
+					  core.editor.maxpos - 1, flag);
 			case '\0':
 				break;
 			default:
@@ -588,7 +588,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 			cmd++;
 			break;
 		case '$':
-			addr = maxpos - 1;
+			addr = core.editor.maxpos - 1;
 			cmd++;
 			break;
 		case '\'':	/* Mark */
@@ -625,7 +625,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = fsearch(core.editor.mem, maxpos - 1, search_pat);
+			addr = fsearch(core.editor.mem, core.editor.maxpos - 1, search_pat);
 			break;
 		case '#':
 		case '?':
@@ -644,7 +644,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = rsearch(maxpos - 1, core.editor.mem, search_pat);
+			addr = rsearch(core.editor.maxpos - 1, core.editor.mem, search_pat);
 			break;
 		case '0':
 			addr = core.editor.mem + strtol(cmd, &cmd, 16) - P(P_OF);

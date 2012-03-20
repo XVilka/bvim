@@ -44,21 +44,20 @@
 
 char *copyright = 
 "\nCopyright (C) 1996-2004 by Gerhard Buergmann\n\
-Copyright (C) 2011 by Anton Kochkov";
+Copyright (C) 2011-2012 by Anton Kochkov";
 
 jmp_buf env;			/* context for `longjmp' function   */
 
-core_t core;
-state_t state;
-api_t api;
+//core_t core;
+//state_t state;
+//api_t api;
 
 int x, xx, y;
 int status;
 off_t size;
 
-PTR curpos;
-PTR maxpos;
 PTR spos;
+
 char *name = NULL;
 char *shell;
 char string[MAXCMD];
@@ -103,11 +102,13 @@ extern struct MARKERS_ markers[MARK_COUNT];
 // TODO: eliminate global variables:
 int lflag;
 
-// case '^':
-int handler__goto_HEX()
+// "^" key
+int handler__goto_HEX(core_t *core, buf_t *buf)
 {
-	x = core.params.COLUMNS_ADDRESS;
-	state.loc = HEX;
+	// This line only for console ui
+	x = core->params.COLUMNS_ADDRESS;
+
+	buf->state.loc = HEX;
 	return 0;
 }
 
@@ -116,82 +117,92 @@ int handler__goto_HEX()
  * state.loc = ASCII;
  */
 
-//case '$':
-int handler__goto_ASCII()
+// "$" key
+int handler__goto_ASCII(core_t *core, buf_t *buf)
 {
-	x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
-	    core.params.COLUMNS_DATA;
-	state.loc = ASCII;
+	// This line only for console ui
+	x = core->params.COLUMNS_ADDRESS - 1 + core->params.COLUMNS_HEX + core->params.COLUMNS_DATA;
+
+	buf->state.loc = ASCII;
 	return 0;
 }
 
-//case '\t':
-int handler__toggle()
+// "Tab" key
+int handler__toggle(core_t *core, buf_t *buf)
 {
 	toggle();
 	return 0;
 }
 
-//case '~':
-int handler__tilda()
+// "~" key
+// TODO: eliminate precount use
+int handler__tilda(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ld~", precount);
-	do_tilde(precount);
+	do_tilde(core, buf, precount);
 	lflag++;
 	return 0;
 }
 
 //case KEY_HOME: /* go to the HOME */
 //case 'H':
-int handler__goto_home()
+// TODO: eliminate precount use
+int handler__goto_home(core_t *core, buf_t *buf)
 {
 	if (precount > 0) {
 		y = --precount;
-		if (y > core.screen.maxy - 1) {
-			scrolldown(y - core.screen.maxy + 1);
-			y = core.screen.maxy - 1;
+		if (y > core->screen.maxy - 1) {
+			scrolldown(y - core->screen.maxy + 1);
+			y = core->screen.maxy - 1;
 		}
 	} else
 		y = 0;
-	if (state.loc == HEX)
-		x = core.params.COLUMNS_ADDRESS;
+	
+	// These lines only for console UI
+	if (buf->state.loc == HEX)
+		x = core->params.COLUMNS_ADDRESS;
 	else
-		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		x = core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX;
 	return 0;
 }
 
 //case 'M':
-int handler__M()
+int handler__M(core_t *core, buf_t *buf)
 {
-	y = core.screen.maxy / 2;
-	if ((PTR) (state.pagepos + state.screen) > maxpos)
-		y = (int)(maxpos -
-			  state.pagepos) / core.params.COLUMNS_DATA / 2;
-	if (state.loc == HEX)
-		x = core.params.COLUMNS_ADDRESS;
+	y = core->screen.maxy / 2;
+	if ((PTR) (buf->state.pagepos + buf->state.screen) > buf->maxpos)
+		y = (int)(buf->maxpos -
+			  buf->state.pagepos) / core->params.COLUMNS_DATA / 2;
+
+	// These lines only for console UI
+	if (buf->state.loc == HEX)
+		x = core->params.COLUMNS_ADDRESS;
 	else
-		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		x = core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX;
 	return 0;
 }
 
 //case KEY_LL:
 //case 'L':
-int handler__L()
+int handler__L(core_t *core, buf_t *buf)
 {
 	int n = 0;
 	if (precount < 1)
 		precount = 1;
-	n = core.screen.maxy - 1;
-	if ((PTR) ((state.pagepos + state.screen)) > maxpos)
-		n = (int)(maxpos - state.pagepos) / core.params.COLUMNS_DATA;
+
+	n = core->screen.maxy - 1;
+	if ((PTR) ((buf->state.pagepos + buf->state.screen)) > buf->maxpos)
+		n = (int)(buf->maxpos - buf->state.pagepos) / core->params.COLUMNS_DATA;
 	if (precount < n)
 		y = n + 1 - precount;
-	if (state.loc == HEX)
-		x = core.params.COLUMNS_ADDRESS;
+	
+	// These lines only for console UI
+	if (buf->state.loc == HEX)
+		x = core->params.COLUMNS_ADDRESS;
 	else
-		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		x = core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX;
 	return 0;
 }
 
@@ -199,55 +210,56 @@ int handler__L()
 //case KEY_BACKSPACE:
 //case KEY_LEFT:
 //case 'h':
-int handler__goto_left()
+int handler__goto_left(core_t *core, buf_t *buf)
 {
 	do {
-		if (x > (core.params.COLUMNS_ADDRESS + 2)
+		if (x > (core->params.COLUMNS_ADDRESS + 2)
 		    && x <
-		    (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS + 1))
+		    (core->params.COLUMNS_HEX + core->params.COLUMNS_ADDRESS + 1))
 			x -= 3;
 		else if (x >
-			 (core.params.COLUMNS_HEX +
-			  core.params.COLUMNS_ADDRESS - 2))
+			 (core->params.COLUMNS_HEX +
+			  core->params.COLUMNS_ADDRESS - 2))
 			x--;
 	} while (--precount > 0);
-	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
-		state.loc = HEX;
+
+	// These lines only for console UI
+	if (x < core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX)
+		buf->state.loc = HEX;
 	else
-		state.loc = ASCII;
+		buf->state.loc = ASCII;
 	return 0;
 }
 
 //case ' ':
 //case KEY_RIGHT:
 //case 'l':
-int handler__goto_right()
+int handler__goto_right(core_t *core, buf_t *buf)
 {
 	do {
-		/*
-		   if (x < (COLUMNS_HEX + 6))  x += 3;
-		 */
 		if (x <
-		    (core.params.COLUMNS_HEX + core.params.COLUMNS_ADDRESS - 2))
+		    (core->params.COLUMNS_HEX + core->params.COLUMNS_ADDRESS - 2))
 			x += 3;
-		else if (x > (core.params.COLUMNS_HEX + 3)
+		else if (x > (core->params.COLUMNS_HEX + 3)
 			 && x <
-			 (core.params.COLUMNS_HEX +
-			  core.params.COLUMNS_ADDRESS - 1 +
-			  core.params.COLUMNS_DATA))
+			 (core->params.COLUMNS_HEX +
+			  core->params.COLUMNS_ADDRESS - 1 +
+			  core->params.COLUMNS_DATA))
 			x++;
 	} while (--precount > 0);
-	if (x < core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX)
-		state.loc = HEX;
+
+	// These lines only for console UI
+	if (x < core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX)
+		buf->state.loc = HEX;
 	else
-		state.loc = ASCII;
+		buf->state.loc = ASCII;
 	return 0;
 }
 
 //case '-':
 //case KEY_UP:
 //case 'k':
-int handler__goto_up()
+int handler__goto_up(core_t *core, buf_t *buf)
 {
 	do {
 		if (y > 0)
@@ -258,14 +270,14 @@ int handler__goto_up()
 	return 0;
 }
 
-//case '+':
-//case CR:
-int handler__goto_EOL()
+// "+" or "Enter" keys
+int handler__goto_EOL(core_t *core, buf_t *buf)
 {
-	if (state.loc == HEX)
-		x = core.params.COLUMNS_ADDRESS;
+	// These lines only for console UI
+	if (buf->state.loc == HEX)
+		x = core->params.COLUMNS_ADDRESS;
 	else
-		x = core.params.COLUMNS_ADDRESS + core.params.COLUMNS_HEX;
+		x = core->params.COLUMNS_ADDRESS + core->params.COLUMNS_HEX;
 	return 0;
 }
 
@@ -273,13 +285,13 @@ int handler__goto_EOL()
 //case BVICTRL('J'):
 //case BVICTRL('N'):
 //case KEY_DOWN:
-int handler__goto_down()
+int handler__goto_down(core_t *core, buf_t *buf)
 {
 	do {
-		if ((PTR) ((state.pagepos + (y + 1) * core.params.COLUMNS_DATA))
-		    > maxpos)
+		if ((PTR) ((buf->state.pagepos + (y + 1) * core->params.COLUMNS_DATA))
+		    > buf->maxpos)
 			break;
-		if (y < (core.screen.maxy - 1))
+		if (y < (core->screen.maxy - 1))
 			y++;
 		else
 			scrolldown(1);
@@ -288,27 +300,27 @@ int handler__goto_down()
 }
 
 //case '|':
-int handler__line()
+int handler__line(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		return -1;
-	if (state.loc == ASCII)
-		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
+	if (buf->state.loc == ASCII)
+		x = core->params.COLUMNS_ADDRESS - 1 + core->params.COLUMNS_HEX +
 		    precount;
 	else
 		x = 5 + 3 * precount;
 	if (x >
-	    core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
-	    core.params.COLUMNS_DATA) {
-		x = core.params.COLUMNS_ADDRESS - 1 + core.params.COLUMNS_HEX +
-		    core.params.COLUMNS_DATA;
-		state.loc = ASCII;
+	    core->params.COLUMNS_ADDRESS - 1 + core->params.COLUMNS_HEX +
+	    core->params.COLUMNS_DATA) {
+		x = core->params.COLUMNS_ADDRESS - 1 + core->params.COLUMNS_HEX +
+		    core->params.COLUMNS_DATA;
+		buf->state.loc = ASCII;
 	}
 	return 0;
 }
 
 //case 'S':
-int handler__toolwin_toggle()
+int handler__toolwin_toggle(core_t *core, buf_t *buf)
 {
 	if (!ui__ToolWin_Exist()) {
 		ui__ToolWin_Show(10);
@@ -318,8 +330,8 @@ int handler__toolwin_toggle()
 	return 0;
 }
 
-//case ':':
-int handler__cmdstring()
+// ":" key
+int handler__cmdstring(core_t *core, buf_t *buf)
 {
 	clearstr();
 	addch(':');
@@ -327,42 +339,42 @@ int handler__cmdstring()
 	/* TODO: Add <Tab> autocompletion */
 	getcmdstr(cmdstr, 1);
 	if (strlen(cmdstr))
-		docmdline(cmdstr);
+		docmdline(core, buf, cmdstr);
 	return 0;
 }
 
 //case BVICTRL('B'):
 //case KEY_PPAGE:
-int handler__previous_page()
+int handler__previous_page(core_t *core, buf_t *buf)
 {
-	if (core.editor.mem <= (PTR) (state.pagepos - state.screen))
-		state.pagepos -= state.screen;
+	if (buf->mem <= (PTR) (buf->state.pagepos - buf->state.screen))
+		buf->state.pagepos -= buf->state.screen;
 	else
-		state.pagepos = core.editor.mem;
+		buf->state.pagepos = buf->mem;
 	ui__Screen_Repaint();
 	return 0;
 }
 
 //case BVICTRL('D'):
-int handler__scrolldown()
+int handler__scrolldown(core_t *core, buf_t *buf)
 {
 	if (precount > 1)
-		state.scrolly = precount;
-	scrolldown(state.scrolly);
+		buf->state.scrolly = precount;
+	scrolldown(buf->state.scrolly);
 	return 0;
 }
 
 //case BVICTRL('U'):
-int handler__scrollup()
+int handler__scrollup(core_t *core, buf_t *buf)
 {
 	if (precount > 1)
-		state.scrolly = precount;
-	scrollup(state.scrolly);
+		buf->state.scrolly = precount;
+	scrollup(buf->state.scrolly);
 	return 0;
 }
 
 //case BVICTRL('E'):
-int handler__linescroll_down()
+int handler__linescroll_down(core_t *core, buf_t *buf)
 {
 	if (y > 0)
 		y--;
@@ -370,24 +382,24 @@ int handler__linescroll_down()
 	return 0;
 }
 
-//case BVICTRL('F'):
+// "Ctrl-F" key
 //case KEY_NPAGE:
-int handler__nextpage()
+int handler__nextpage(core_t *core, buf_t *buf)
 {
-	if (maxpos >= (PTR) (state.pagepos + state.screen)) {
-		state.pagepos += state.screen;
-		state.current += state.screen;
-		if (state.current - core.editor.mem >= filesize) {
-			state.current = core.editor.mem + filesize;
-			setpage((PTR) (core.editor.mem + filesize - 1L));
+	if (buf->maxpos >= (PTR) (buf->state.pagepos + buf->state.screen)) {
+		buf->state.pagepos += buf->state.screen;
+		buf->state.current += buf->state.screen;
+		if (buf->state.current - buf->mem >= filesize) {
+			buf->state.current = buf->mem + filesize;
+			setpage((PTR) (buf->mem + filesize - 1L));
 		}
 		ui__Screen_Repaint();
 	}
 	return 0;
 }
 
-// "Ctrl-G"
-int handler__fileinfo()
+// "Ctrl-G" key
+int handler__fileinfo(core_t *core, buf_t *buf)
 {
 	fileinfo(name);
 	wrstat = 0;
@@ -395,45 +407,45 @@ int handler__fileinfo()
 }
 
 // Redraw screen
-int handler__screen_redraw()
+int handler__screen_redraw(core_t *core, buf_t *buf)
 {
 	ui__Screen_New();
 	return 0;
 }
 
 // "Ctrl-Y" key
-int handler__linescroll_up()
+int handler__linescroll_up(core_t *core, buf_t *buf)
 {
-	if (y < core.screen.maxy)
+	if (y < core->screen.maxy)
 		y++;
 	scrollup(1);
 	return 0;
 }
 
 // "Ctrl-R" key - Open Lua REPL window
-int handler__luarepl()
+int handler__luarepl(core_t *core, buf_t *buf)
 {
 	ui__REPL_Main();
 	return 0;
 }
 
 // "Ctrl-S" key - Toggle selection with help of cursor
-int handler__toggle_selection()
+int handler__toggle_selection(core_t *core, buf_t *buf)
 {
-	if (state.toggle_selection == 0) {
-		state.toggle_selection = 1;
+	if (buf->state.toggle_selection == 0) {
+		buf->state.toggle_selection = 1;
 	} else {
-		state.toggle_selection = 0;
+		buf->state.toggle_selection = 0;
 	}
 	return 0;
 }
 
 // "A" key
-int handler__append_mode()
+int handler__append_mode(core_t *core, buf_t *buf)
 {
 	smsg("APPEND MODE");
-	state.current = (PTR) (core.editor.mem + filesize - 1L);
-	setpage(state.current++);
+	buf->state.current = (PTR) (buf->mem + filesize - 1L);
+	setpage(buf->state.current++);
 	cur_forw(0);
 	setcur();
 	undosize = filesize;
@@ -442,84 +454,84 @@ int handler__append_mode()
 }
 
 // "B" or "b" keys
-int handler__backsearch()
+int handler__backsearch(core_t *core, buf_t *buf)
 {
-	setpage(backsearch(state.current, 'b'));
+	setpage(backsearch(buf->state.current, 'b'));
 	return 0;
 }
 
 // "e" key
-int handler__setpage()
+int handler__setpage(core_t *core, buf_t *buf)
 {
-	setpage(end_word(state.current));
+	setpage(end_word(buf->state.current));
 	return 0;
 }
 
 // "," key
-int handler__doft1()
+int handler__doft1(core_t *core, buf_t *buf)
 {
 	do_ft(-1, 0);
 	return 0;
 }
 
 // ";" key
-int handler__doft2()
+int handler__doft2(core_t *core, buf_t *buf)
 {
 	do_ft(0, 0);
 	return 0;
 }
 
 //case 'F':
-int handler__doft3_F()
+int handler__doft3_F(core_t *core, buf_t *buf)
 {
 	do_ft('F', 0);
 	return 0;
 }
 
 // "f" key
-int handler__doft3_f()
+int handler__doft3_f(core_t *core, buf_t *buf)
 {
 	do_ft('f', 0);
 	return 0;
 }
 
 // "t" key
-int handler__doft3_t()
+int handler__doft3_t(core_t *core, buf_t *buf)
 {
 	do_ft('t', 0);
 	return 0;
 }
 
 // "T" key
-int handler__doft3_T()
+int handler__doft3_T(core_t *core, buf_t *buf)
 {
 	do_ft('T', 0);
 	return 0;
 }
 
 //case 'G':
-int handler__goto1()
+int handler__goto1(core_t *core, buf_t *buf)
 {
-	last_motion = state.current;
+	last_motion = buf->state.current;
 	if (precount > -1) {
 		if ((precount < P(P_OF))
 		    || (precount - P(P_OF)) > (filesize - 1L)) {
 			beep();
 		} else {
-			setpage((PTR) (core.editor.mem + precount - P(P_OF)));
+			setpage((PTR) (buf->mem + precount - P(P_OF)));
 		}
 	} else {
-		setpage((PTR) (core.editor.mem + filesize - 1L));
+		setpage((PTR) (buf->mem + filesize - 1L));
 	}
 	return 0;
 }
 
 //case 'g':
-int handler__goto2()
+int handler__goto2(core_t *core, buf_t *buf)
 {
 	off_t inaddr;
 
-	last_motion = state.current;
+	last_motion = buf->state.current;
 	ui__StatusMsg("Goto Hex Address: ");
 	refresh();
 	getcmdstr(cmdstr, 19);
@@ -536,7 +548,7 @@ int handler__goto2()
 		return -1;
 	inaddr -= P(P_OF);
 	if (inaddr < filesize) {
-		setpage(core.editor.mem + inaddr);
+		setpage(buf->mem + inaddr);
 	} else {
 		if (filesize == 0L)
 			return -1;
@@ -548,7 +560,7 @@ int handler__goto2()
 }
 
 //case '?':
-int handler__search_string1()
+int handler__search_string1(core_t *core, buf_t *buf)
 {
 	char ch = '?';
 
@@ -557,13 +569,13 @@ int handler__search_string1()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = state.current;
-	searching(ch, line, state.current, maxpos - 1, P(P_WS));
+	last_motion = buf->state.current;
+	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
 // case '/':
-int handler__search_string2()
+int handler__search_string2(core_t *core, buf_t *buf)
 {
 	char ch = '/';
 
@@ -572,13 +584,13 @@ int handler__search_string2()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = state.current;
-	searching(ch, line, state.current, maxpos - 1, P(P_WS));
+	last_motion = buf->state.current;
+	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
 // case '#':
-int handler__search_string3()
+int handler__search_string3(core_t *core, buf_t *buf)
 {
 	char ch = '#';
 
@@ -587,13 +599,13 @@ int handler__search_string3()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = state.current;
-	searching(ch, line, state.current, maxpos - 1, P(P_WS));
+	last_motion = buf->state.current;
+	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
 // case '\\':
-int handler__search_string4()
+int handler__search_string4(core_t *core, buf_t *buf)
 {
 	char ch = '\\';
 
@@ -602,38 +614,38 @@ int handler__search_string4()
 	refresh();
 	if (getcmdstr(line, 1))
 		return -1;
-	last_motion = state.current;
-	searching(ch, line, state.current, maxpos - 1, P(P_WS));
+	last_motion = buf->state.current;
+	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
 
 //case 'n':
 //case 'N':
-int handler__search_next()
+int handler__search_next(core_t *core, buf_t *buf)
 {
-	last_motion = state.current;
-	searching('n', "", state.current, maxpos - 1, P(P_WS));
+	last_motion = buf->state.current;
+	searching('n', "", buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
 //case 'm':
-int handler__mark()
+int handler__mark(core_t *core, buf_t *buf)
 {
-	do_mark(vgetc(), state.current);
+	do_mark(vgetc(), buf->state.current);
 	return 0;
 }
 
 //case '\'':
 //case '`':
-int handler__goto_mark()
+int handler__goto_mark(core_t *core, buf_t *buf)
 {
 	//if ((ch == '`' && state.loc == ASCII) || (ch == '\'' && state.loc == HEX))
 	//      toggle();
 	mark = vgetc();
 	if (mark == '`' || mark == '\'') {
 		setpage(last_motion);
-		last_motion = state.current;
+		last_motion = buf->state.current;
 	} else {
 		if (mark < 'a' || mark > 'z') {
 			beep();
@@ -648,35 +660,35 @@ int handler__goto_mark()
 }
 
 //case 'D':
-int handler__trunc()
+int handler__trunc(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ldD", precount);
-	trunc_cur();
+	trunc_cur(core, buf);
 	return 0;
 }
 
 //case 'o':
-int handler__overwrite()
+int handler__overwrite(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ldo", precount);
-	do_over(state.current, yanked, yank_buf);
+	do_over(core, buf, buf->state.current, yanked, yank_buf);
 	return 0;
 }
 
 /* Paste previously yanked buffer/byte */
 /* "P" key */
-int handler__paste()
+int handler__paste(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		precount = 1;
 	if ((undo_count = alloc_buf(yanked, &undo_buf)) == 0L)
 		return -1;
 	sprintf(rep_buf, "%ldP", precount);
-	if (do_append(yanked, yank_buf))
+	if (do_append(core, buf, yanked, yank_buf))
 		return -1;
 	/* we save it not for undo but for the dot command
 	 * memcpy(undo_buf, yank_buf, yanked);
@@ -687,7 +699,7 @@ int handler__paste()
 
 /* Redo handler */
 /* "r" and "R" keys */
-int handler__redo()
+int handler__redo(core_t *core, buf_t *buf)
 {
 	if (filesize == 0L)
 		return -1;
@@ -701,36 +713,36 @@ int handler__redo()
 
 /* Undo handler */
 /* "u" and "U" keys */
-int handler__undo()
+int handler__undo(core_t *core, buf_t *buf)
 {
-	do_undo();
+	do_undo(core, buf);
 	return 0;
 }
 
 /* VISUAL mode selection/toggle handler */
 /* "v" key */
-int handler__visual()
+int handler__visual(core_t *core, buf_t *buf)
 {
 	struct block_item tmpblk;
 
-	if ((state.mode != BVI_MODE_VISUAL ) & (state.mode != BVI_MODE_REPL)) {
-		state.mode = BVI_MODE_VISUAL;
+	if ((buf->state.mode != BVI_MODE_VISUAL ) & (buf->state.mode != BVI_MODE_REPL)) {
+		buf->state.mode = BVI_MODE_VISUAL;
 		// start selection
-		state.selection.start = get_cursor_position();
-		bvim_info(state.mode, "Started selection from %ld", state.selection.start);
+		buf->state.selection.start = get_cursor_position();
+		bvim_info(buf->state.mode, "Started selection from %ld", buf->state.selection.start);
 		return 0;
 	}
-	if (state.mode == BVI_MODE_VISUAL) {
-		state.mode = BVI_MODE_EDIT;
+	if (buf->state.mode == BVI_MODE_VISUAL) {
+		buf->state.mode = BVI_MODE_EDIT;
 		// end selection
-		state.selection.end = get_cursor_position();
-		bvim_info(state.mode, "Selected block [%ld, %ld]", state.selection.start, state.selection.end);
-		tmpblk.pos_start = state.selection.start;
-		tmpblk.pos_end = state.selection.end;
+		buf->state.selection.end = get_cursor_position();
+		bvim_info(buf->state.mode, "Selected block [%ld, %ld]", buf->state.selection.start, buf->state.selection.end);
+		tmpblk.pos_start = buf->state.selection.start;
+		tmpblk.pos_end = buf->state.selection.end;
 		tmpblk.palette = 1; // TODO: something more nice
 		tmpblk.hl_toggle = 1;
 		tmpblk.id = BVI_VISUAL_SELECTION_ID; // TODO: do something!
-		blocks__Add(tmpblk);
+		blocks__Add(buf, tmpblk);
 		ui__BlockHighlightAdd(&tmpblk);
 		ui__Screen_Repaint();
 		return 0;
@@ -740,30 +752,30 @@ int handler__visual()
 
 //case 'W':
 //case 'w':
-int handler__wordsearch()
+int handler__wordsearch(core_t *core, buf_t *buf)
 {
-	state.loc = ASCII;
-	setpage(wordsearch(state.current, 'w'));
+	buf->state.loc = ASCII;
+	setpage(wordsearch(buf->state.current, 'w'));
 	return 0;
 }
 
 /* Yanking buffer or byte */
 /* "y" key */
-int handler__yank()
+int handler__yank(core_t *core, buf_t *buf)
 {
 	long count;
 
-	count = range('y');
+	count = range(core, buf, 'y');
 	if (count > 0) {
 		if ((yanked = alloc_buf(count, &yank_buf)) == 0L) {
 			return -1;
 		}
-		memcpy(yank_buf, state.current, yanked);
+		memcpy(yank_buf, buf->state.current, yanked);
 	} else if (count < 0) {
 		if ((yanked = alloc_buf(-count, &yank_buf)) == 0L) {
 			return -1;
 		}
-		memcpy(yank_buf, state.current + count, yanked);
+		memcpy(yank_buf, buf->state.current + count, yanked);
 	} else {
 		return -1;
 	}
@@ -774,7 +786,7 @@ int handler__yank()
 }
 
 //case 'z':
-int handler__doz()
+int handler__doz(core_t *core, buf_t *buf)
 {
 	do_z(vgetc());
 	return 0;
@@ -782,17 +794,17 @@ int handler__doz()
 
 /* Exit program */
 /* "Z" key */
-int handler__exit()
+int handler__exit(core_t *core, buf_t *buf)
 {
 	if (vgetc() == 'Z')
-		do_exit();
+		do_exit(core);
 	else
 		beep();
 	return 0;
 }
 
 //case '.':
-int handler__stuffin()
+int handler__stuffin(core_t *core, buf_t *buf)
 {
 	if (!strlen(rep_buf)) {
 		beep();
@@ -810,11 +822,11 @@ int handler__stuffin()
 //					precount = 1;
 //
 //				case 'I':
-int handler__insert()
+int handler__insert(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldI", precount);
-	state.current = core.editor.mem;
-	setpage(core.editor.mem);
+	buf->state.current = buf->mem;
+	setpage(buf->mem);
 	ui__Screen_Repaint();
 	undo_count = edit('i');
 	lflag++;
@@ -823,10 +835,10 @@ int handler__insert()
 // undo does not work correctly !!!
 
 //case 's':
-int handler__s()
+int handler__s(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%lds", precount);
-	if (do_delete((off_t) precount, state.current))
+	if (do_delete((off_t) precount, buf->state.current))
 		return 0;
 	precount = 1;
 	undo_count = edit('i');
@@ -835,16 +847,16 @@ int handler__s()
 }
 
 //case 'a':
-int handler__append2()
+int handler__append2(core_t *core, buf_t *buf)
 {
 	if (cur_forw(1))
 		return 0;
-	state.current++;
+	buf->state.current++;
 	return 0;
 }
 
 //case 'i':
-int handler__insert2()
+int handler__insert2(core_t *core, buf_t *buf)
 {
 	char ch = 'i';
 
@@ -855,24 +867,24 @@ int handler__insert2()
 }
 
 //case 'p':
-int handler__paste2()
+int handler__paste2(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldp", precount);
-	do_put(state.current, yanked, yank_buf);
+	do_put(core, buf, buf->state.current, yanked, yank_buf);
 	return 0;
 }	
 
 //case 'c':
 //case 'd':
-int handler__c_or_d()
+int handler__c_or_d(core_t *core, buf_t *buf)
 {
 	char ch = 'c';
-	int count = range(ch);
+	int count = range(core, buf, ch);
 
 	if (count > 0)
-		do_delete((off_t) count, state.current);
+		do_delete((off_t) count, buf->state.current);
 	else if (count < 0)
-		do_back(-(off_t) count, state.current);
+		do_back(-(off_t) count, buf->state.current);
 	if (ch == 'c') {
 		precount = 1;
 		undo_count = edit('i');
@@ -887,18 +899,18 @@ int handler__c_or_d()
 }
 
 //case 'x':
-int handler__x()
+int handler__x(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldx", precount);
-	do_delete((off_t) precount, state.current);
+	do_delete((off_t) precount, buf->state.current);
 	return 0;
 }
 
 //case 'X':
-int handler__x2()
+int handler__x2(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldX", precount);
-	do_back((off_t) precount, state.current);
+	do_back((off_t) precount, buf->state.current);
 	return 0;
 }
 
@@ -909,14 +921,14 @@ static FILE *ffp;
 static char fbuf[256];
 
 /* reads the init file (.bvimrc) */
-int read_rc(char* fn)
+int read_rc(core_t *core, char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
 		return -1;
 	from_file = 1;
 	while (fgets(fbuf, 255, ffp) != NULL) {
 		strtok(fbuf, "\n\r");
-		docmdline(fbuf);
+		docmdline(core, core->curbuf, fbuf);
 	}
 	fclose(ffp);
 	from_file = 0;
@@ -924,7 +936,7 @@ int read_rc(char* fn)
 }
 
 /* reads the history file (.bvimhistory) */
-int read_history(char* fn)
+int read_history(core_t *core, char* fn)
 {
 	if ((ffp = fopen(fn, "r")) == NULL)
 		return -1;
@@ -938,7 +950,7 @@ int read_history(char* fn)
 }
 
 /* Record commands history */
-void record_cmd(char* cmdline)
+void record_cmd(core_t* core, char* cmdline)
 {
 // TODO: record plain commands in one file, block commands content - in files with unique name
 // this means, that it will be full-featured history with infinite undo/redo
@@ -1025,8 +1037,14 @@ int main(int argc, char* argv[])
 	int i;
 	char *poi;
 
+	core_t core;
+	buf_t buf;
+
+// FIXME: Make normal buffer allocation function
+	core.curbuf = &buf;
+
 	/* Hotkeys and keymap initialization */
-	keys__Init();
+	keys__Init(&core);
 
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_ALL, "");
@@ -1038,15 +1056,15 @@ int main(int argc, char* argv[])
 #endif
 
 	/* Commands parser initialization */
-	commands__Init();
+	commands__Init(&core);
 
 	/* Plugins infrastructure initialization */
-	plugins__Init();
+	plugins__Init(&core);
 
 	for (i = 0; i < MARK_COUNT; i++)
 		markers[i].address = 0;
 
-	state.mode = BVI_MODE_EDIT; // default mode from start
+	core.curbuf->state.mode = BVI_MODE_EDIT; // default mode from start
 
 	poi = strrchr(argv[0], DELIM);
 
@@ -1176,14 +1194,14 @@ int main(int argc, char* argv[])
 		params[P_TT].flags |= P_CHANGED;
 	}
 	if (script > -1)
-		read_rc(argv[script]);
+		read_rc(&core, argv[script]);
 	if (*cmdstr != '\0')
-		docmdline(cmdstr);
+		docmdline(&core, core.curbuf, cmdstr);
 
 	// Main loop
 	do {
 		setjmp(env);
-		state.current = (PTR) (state.pagepos + y * core.params.COLUMNS_DATA + xpos());
+		buf.state.current = (PTR) (buf.state.pagepos + y * core.params.COLUMNS_DATA + xpos());
 		if (wrstat)
 			statpos();
 		wrstat = 1;
@@ -1200,7 +1218,7 @@ int main(int argc, char* argv[])
 			precount = -1;
 		lflag = arrnum = 0;
 
-		keys__Key_Pressed(ch);
+		keys__Key_Pressed(&core, ch);
 		
 		// TODO: There are operations disabled by default
 /*
@@ -1333,62 +1351,62 @@ off_t calc_size(char* arg)
 	return (off_t) val;
 }
 
-void trunc_cur()
+void trunc_cur(core_t *core, buf_t *buf)
 {
 	undosize = filesize;
-	undo_count = (off_t) (maxpos - state.current);
-	undo_start = state.current;
-	filesize = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA + xpos();
-	maxpos = (PTR) (core.editor.mem + filesize);
+	undo_count = (off_t) (buf->maxpos - buf->state.current);
+	undo_start = buf->state.current;
+	filesize = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA + xpos();
+	buf->maxpos = (PTR) (buf->mem + filesize);
 	if (filesize == 0L) {
-		bvim_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
 	} else
 		cur_back();
 	edits = U_TRUNC;
 	ui__Screen_Repaint();
 }
 
-int do_append(int count, char* buf)
+int do_append(core_t *core, buf_t *buf, int count, char* buffer)
 {
 	if (filesize + count > memsize) {
 		if (enlarge(count + 100L))
 			return 1;
 	}
-	memcpy(core.editor.mem + filesize, buf, count);
-	undo_start = core.editor.mem + filesize - 1L;
+	memcpy(buf->mem + filesize, buffer, count);
+	undo_start = buf->mem + filesize - 1L;
 	setpage(undo_start + count);
 	edits = U_APPEND;
 	undosize = filesize;
 	filesize += count;
-	maxpos += count;
+	buf->maxpos += count;
 	return 0;
 }
 
-void do_tilde(off_t count)
+void do_tilde(core_t *core, buf_t *buf, off_t count)
 {
 	if (filesize == 0L)
 		return;
-	undo_start = state.current;
-	if (state.current + count > maxpos) {
+	undo_start = buf->state.current;
+	if (buf->state.current + count > buf->maxpos) {
 		beep();
 		return;
 	}
 	if ((undo_count = alloc_buf(count, &undo_buf)) == 0L)
 		return;
-	memcpy(undo_buf, state.current, undo_count);
+	memcpy(undo_buf, buf->state.current, undo_count);
 	while (count--) {
-		if (isupper((int)(*(state.current))))
-			*(state.current) = tolower((int)(*(state.current)));
-		else if (islower((int)(*(state.current))))
-			*(state.current) = toupper((int)(*(state.current)));
-		state.current++;
+		if (isupper((int)(*(buf->state.current))))
+			*(buf->state.current) = tolower((int)(*(buf->state.current)));
+		else if (islower((int)(*(buf->state.current))))
+			*(buf->state.current) = toupper((int)(*(buf->state.current)));
+		buf->state.current++;
 		cur_forw(0);
 	}
 	edits = U_TILDE;
 	setcur();
 }
 
-void do_undo()
+void do_undo(core_t *core, buf_t *buf)
 {
 	off_t n, tempsize;
 	char temp;
@@ -1420,26 +1438,26 @@ void do_undo()
 		tempsize = filesize;
 		filesize = undosize;
 		undosize = tempsize;
-		maxpos = (PTR) (core.editor.mem + filesize);
+		buf->maxpos = (PTR) (buf->mem + filesize);
 		if (filesize)
-			set_cursor = maxpos - 1L;
+			set_cursor = buf->maxpos - 1L;
 		else
-			set_cursor = maxpos;
+			set_cursor = buf->maxpos;
 		break;
 	case U_INSERT:
 		filesize -= undo_count;
-		maxpos -= undo_count;
+		buf->maxpos -= undo_count;
 		memcpy(undo_buf, undo_start, undo_count);
 		memmove(undo_start, undo_start + undo_count,
-			maxpos - undo_start);
+			buf->maxpos - undo_start);
 		edits = U_DELETE;
 		break;
 	case U_BACK:
 	case U_DELETE:
 		filesize += undo_count;
-		maxpos += undo_count;
+		buf->maxpos += undo_count;
 		memmove(undo_start + undo_count, undo_start,
-			maxpos - undo_start);
+			buf->maxpos - undo_start);
 		memcpy(undo_start, undo_buf, undo_count);
 		edits = U_INSERT;
 		break;
@@ -1450,13 +1468,13 @@ void do_undo()
 	ui__Screen_Repaint();
 }
 
-void do_over(PTR loc, off_t n, PTR buf)
+void do_over(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 {
 	if (n < 1L) {
-		bvim_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
-	if (loc + n > maxpos) {
+	if (loc + n > buf->maxpos) {
 		beep();
 		return;
 	}
@@ -1464,19 +1482,19 @@ void do_over(PTR loc, off_t n, PTR buf)
 		return;
 	undo_start = loc;
 	memcpy(undo_buf, loc, n);
-	memcpy(loc, buf, n);
+	memcpy(loc, bbuf, n);
 	edits = U_EDIT;
 	setpage(loc + n - 1);
 	ui__Screen_Repaint();
 }
 
-void do_put(PTR loc, off_t n, PTR buf)
+void do_put(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 {
 	if (n < 1L) {
-		bvim_error(state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
 		return;
 	}
-	if (loc > maxpos) {
+	if (loc > buf->maxpos) {
 		beep();
 		return;
 	}
@@ -1489,9 +1507,9 @@ void do_put(PTR loc, off_t n, PTR buf)
 	undo_start = loc + 1;
 	edits = U_INSERT;
 	filesize += n;
-	maxpos += n;
-	memmove(undo_start + n, undo_start, maxpos - loc);
-	memcpy(undo_start, buf, n);
+	buf->maxpos += n;
+	memmove(undo_start + n, undo_start, buf->maxpos - loc);
+	memcpy(undo_start, bbuf, n);
 	setpage(loc + n);
 	ui__Screen_Repaint();
 }
@@ -1507,7 +1525,7 @@ void jmpproc(int sig)
 	longjmp(env, 0);
 }
 
-off_t range(int ch)
+off_t range(core_t *core, buf_t *buf, int ch)
 {
 	int ch1;
 	long count;
@@ -1533,12 +1551,12 @@ off_t range(int ch)
 		refresh();
 		if (getcmdstr(line, 1))
 			break;
-		end_addr = searching(ch1, line, state.current, maxpos - 1, FALSE);
+		end_addr = searching(ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
 		if (!end_addr) {
 			beep();
 			return 0;
 		}
-		return (end_addr - state.current);
+		return (end_addr - buf->state.current);
 	case '?':
 	case '#':
 		strcat(rep_buf, "\n");
@@ -1547,12 +1565,12 @@ off_t range(int ch)
 		refresh();
 		if (getcmdstr(line, 1))
 			break;
-		start_addr = searching(ch1, line, state.current, maxpos - 1, FALSE);
+		start_addr = searching(ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
 		if (!start_addr) {
 			beep();
 			return 0;
 		}
-		return (start_addr - state.current);
+		return (start_addr - buf->state.current);
 	case 'f':
 	case 't':
 		precount = count;
@@ -1561,7 +1579,7 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		return (end_addr + 1 - state.current);
+		return (end_addr + 1 - buf->state.current);
 	case 'F':
 	case 'T':
 		precount = count;
@@ -1570,13 +1588,13 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		return (start_addr - state.current);
+		return (start_addr - buf->state.current);
 	case '$':
-		trunc_cur();
+		trunc_cur(core, buf);
 		return 0;
 	case 'G':
 		if (count == -1) {
-			trunc_cur();
+			trunc_cur(core, buf);
 			return 0;
 		} else if ((count < P(P_OF)) || (count
 						 - (off_t) P(P_OF)) >
@@ -1584,10 +1602,10 @@ off_t range(int ch)
 			beep();
 			return 0;
 		} else {
-			if (core.editor.mem + count < state.current) {
-				return (core.editor.mem + count - state.current);
+			if (buf->mem + count < buf->state.current) {
+				return (buf->mem + count - buf->state.current);
 			} else {
-				return (count - (state.current - core.editor.mem));
+				return (count - (buf->state.current - buf->mem));
 			}
 		}
 	case ' ':
@@ -1604,10 +1622,10 @@ off_t range(int ch)
 			beep();
 			return 0;
 		}
-		if (end_addr < state.current) {
-			return (end_addr - state.current);
+		if (end_addr < buf->state.current) {
+			return (end_addr - buf->state.current);
 		} else {
-			return (end_addr - state.current + 1);
+			return (end_addr - buf->state.current + 1);
 		}
 	}
 	beep();
@@ -1615,16 +1633,17 @@ off_t range(int ch)
 }
 
 // QUIT from the BVI
-void quit()
+void quit(core_t *core, buf_t *buf)
 {
 	/* Destroy all structures/lists */
-	keys__Destroy();
-	commands__Destroy();
-	blocks__Destroy();
-	plugins__Destroy();
+	keys__Destroy(core);
+	commands__Destroy(core);
+	// Implement for all buffers
+	blocks__Destroy(buf);
+	plugins__Destroy(core);
 
 	/* Destroy all curses stuff, restore terminal state */
-	move(core.screen.maxy, 0);
+	move(core->screen.maxy, 0);
 	ui__Destroy();
 	printf("bvim version %s %s\n", VERSION, copyright);
 

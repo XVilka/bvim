@@ -30,29 +30,29 @@ extern core_t core;
 /* =============== Blocks list/buffer abstractions =============== */
 
 /* Preallocate some memory for future blocks allocation */
-int InitBlocksList(int N)
+int InitBlocksList(buf_t *buf, int N)
 {
 	int i = 0;
-	core.blocks = (block_link)malloc((N + 1)*(sizeof *(core.blocks)));
+	buf->blocks = (block_link)malloc((N + 1)*(sizeof *(buf->blocks)));
 	for (i = 0; i < N + 1; i++) {
-		core.blocks[i].next = &(core.blocks[i + 1]);
+		buf->blocks[i].next = &(buf->blocks[i + 1]);
 	}
-	core.blocks[N].next = NULL;
+	buf->blocks[N].next = NULL;
 	return 0;
 }
 
-int BlockAdd(struct block_item i)
+int BlockAdd(buf_t *buf, struct block_item i)
 {
 	block_link t = NULL;
 	t = (block_link)malloc(sizeof(*t));
 	if (t != NULL) {
 		t->item = i;
-		if (core.blocks != NULL) {
-			t->next = core.blocks->next;
-			core.blocks->next = t;
+		if (buf->blocks != NULL) {
+			t->next = buf->blocks->next;
+			buf->blocks->next = t;
 		} else {
-			core.blocks = t;
-			core.blocks->next = NULL;
+			buf->blocks = t;
+			buf->blocks->next = NULL;
 		}
 	} else {
 		return -1;
@@ -60,9 +60,9 @@ int BlockAdd(struct block_item i)
 	return 0;
 }
 
-void BlockFree(block_link x)
+void BlockFree(buf_t *buf, block_link x)
 {
-	BlockInsertNext(core.blocks, x);
+	BlockInsertNext(buf->blocks, x);
 }
 
 void BlockInsertNext(block_link x, block_link t)
@@ -96,10 +96,10 @@ struct block_item BlockGet(block_link x)
 /* Iterator of any functions on blocks list,
  * where result - expected result for function
  * All blocks are unique */
-int blocks__Iterator(int (*(func))(), int result)
+int blocks__Iterator(buf_t *buf, int (*(func))(), int result)
 {
 	block_link t;
-	t = core.blocks;
+	t = buf->blocks;
 	while (t != NULL)
 	{
 		if ((*(func))(&(t->item)) == result) {
@@ -110,25 +110,25 @@ int blocks__Iterator(int (*(func))(), int result)
 	return -1;
 }
 
-int blocks__Add(struct block_item b) {
+int blocks__Add(buf_t *buf, struct block_item b) {
 	
-	BlockAdd(b);
+	BlockAdd(buf, b);
 
 	return 0;
 }
 
-int blocks__DelByID(int id) {
+int blocks__DelByID(buf_t *buf, int id) {
 	return 0;
 }
 
-int blocks__DelByName(char* name) {
+int blocks__DelByName(buf_t *buf, char* name) {
 	return 0;
 }
 
-struct block_item* blocks__GetByID(unsigned int id) {
+struct block_item* blocks__GetByID(buf_t *buf, unsigned int id) {
 	block_link t;
 	
-	t = core.blocks;
+	t = buf->blocks;
 	
 	while (t != NULL)
 	{
@@ -138,10 +138,10 @@ struct block_item* blocks__GetByID(unsigned int id) {
 	return NULL;
 }
 
-struct block_item* blocks__GetByName(char* name) {
+struct block_item* blocks__GetByName(buf_t *buf, char* name) {
 	block_link t;
 
-	t = core.blocks;
+	t = buf->blocks;
 
 	while (t != NULL)
 	{
@@ -153,18 +153,18 @@ struct block_item* blocks__GetByName(char* name) {
 
 /* Do not use this in exported API! */
 
-int blocks__Init()
+int blocks__Init(buf_t *buf)
 {
-	//InitBlocksList(10);
+	//InitBlocksList(buf, 10);
 	return 0;
 }
 
 /* Do not use this in exported API! */
 
-int blocks__Destroy()
+int blocks__Destroy(buf_t *buf)
 {
 	block_link t;
-	t = core.blocks;
+	t = buf->blocks;
 	while (t != NULL)
 	{
 		free(t);

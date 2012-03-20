@@ -43,9 +43,10 @@ int bvim_run_lua_script(char *name);
 int bvim_repl_read();
 int bvim_repl_eval(char* line);
 
-int luaF_Add(struct luaF_item b);
+int luaF_Add(core_t*, struct luaF_item b);
 int luaF_Iterator(int (*(func))(), int result);
-int luaF_DelByName(char *name);
-int luaF_DelByID(int id);
-struct luaF_item* luaF_GetByName(char* name);
-struct luaF_item* luaF_GetByID(unsigned int id);
+int luaF_DelByName(core_t*, char *);
+int luaF_DelByID(core_t*, int);
+struct luaF_item* luaF_GetByName(core_t*, char*);
+struct luaF_item* luaF_GetByID(core_t*, unsigned int);
+

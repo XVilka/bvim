@@ -19,46 +19,47 @@
  * along with Bvim.  If not, see <http://www.gnu.org/licenses/>.
  */ 
 
-int command__help(char, int, char**);
-int command__map(char, int, char**);
-int command__unmap(char, int, char**);
-int command__set(char, int, char**);
-int command__block(char, int, char**);
-int command__lua(char, int, char**);
-int command__args(char, int, char**);
-int command__source(char, int, char**);
-int command__run(char, int, char**);
-int command__cd(char, int, char**);
-int command__edit(char, int, char**);
-int command__file(char, int, char**);
-int command__read(char, int, char**);
-int command__xit(char, int, char**);
-int command__next(char, int, char**);
-int command__rewind(char, int, char**);
-int command__append(char, int, char**);
-int command__change(char, int, char**);
-int command__mark(char, int, char**);
-int command__yank(char, int, char**);
-int command__overwrite(char, int, char**);
-int command__undo(char, int, char**);
-int command__version(char, int, char**);
-int command__shell(char, int, char**);
-int command__quit(char, int, char**);
-int command__sleft(char, int, char**);
-int command__sright(char, int, char**);
-int command__rleft(char, int, char**);
-int command__rright(char, int, char**);
-int command__and(char, int, char**);
-int command__or(char, int, char**);
-int command__xor(char, int, char**);
-int command__neg(char, int, char**);
-int command__not(char, int, char**);
-int command__fuz(char, int, char**);
+int command__help(core_t*, buf_t*, char, int, char**);
+int command__map(core_t*, buf_t*, char, int, char**);
+int command__unmap(core_t*, buf_t*, char, int, char**);
+int command__set(core_t*, buf_t*, char, int, char**);
+int command__block(core_t*, buf_t*, char, int, char**);
+int command__lua(core_t*, buf_t*, char, int, char**);
+int command__args(core_t*, buf_t*, char, int, char**);
+int command__source(core_t*, buf_t*, char, int, char**);
+int command__run(core_t*, buf_t*, char, int, char**);
+int command__cd(core_t*, buf_t*, char, int, char**);
+int command__edit(core_t*, buf_t*, char, int, char**);
+int command__file(core_t*, buf_t*, char, int, char**);
+int command__read(core_t*, buf_t*, char, int, char**);
+int command__xit(core_t*, buf_t*, char, int, char**);
+int command__next(core_t*, buf_t*, char, int, char**);
+int command__rewind(core_t*, buf_t*, char, int, char**);
+int command__append(core_t*, buf_t*, char, int, char**);
+int command__change(core_t*, buf_t*, char, int, char**);
+int command__mark(core_t*, buf_t*, char, int, char**);
+int command__yank(core_t*, buf_t*, char, int, char**);
+int command__overwrite(core_t*, buf_t*, char, int, char**);
+int command__undo(core_t*, buf_t*, char, int, char**);
+int command__version(core_t*, buf_t*, char, int, char**);
+int command__shell(core_t*, buf_t*, char, int, char**);
+int command__quit(core_t*, buf_t*, char, int, char**);
+int command__sleft(core_t*, buf_t*, char, int, char**);
+int command__sright(core_t*, buf_t*, char, int, char**);
+int command__rleft(core_t*, buf_t*, char, int, char**);
+int command__rright(core_t*, buf_t*, char, int, char**);
+int command__and(core_t*, buf_t*, char, int, char**);
+int command__or(core_t*, buf_t*, char, int, char**);
+int command__xor(core_t*, buf_t*, char, int, char**);
+int command__neg(core_t*, buf_t*, char, int, char**);
+int command__not(core_t*, buf_t*, char, int, char**);
+int command__fuz(core_t*, buf_t*, char, int, char**);
 
-void commands__Init();
-void commands__Destroy();
-int commands__Cmd_Add(struct command*);
-int commands__Cmd_Del(char *name);
+void commands__Init(core_t*);
+void commands__Destroy(core_t*);
+int commands__Cmd_Add(core_t*, command_t*);
+int commands__Cmd_Del(core_t*, char*);
 
 
-void docmdline(char *);
+void docmdline(core_t*, buf_t *, char *);
+

@@ -71,9 +71,8 @@ struct plugin {
  * ---------------------------------------------------------
  */
 
-int plugins__Init();
-plugin_t* plugins__GetByName(char* name);
-int plugins__Destroy();
-
-int plugin__Load(char *path);
-int plugin__Unload(plugin_t plg);
+int plugins__Init(core_t*);
+plugin_t* plugins__GetByName(core_t*, char*);
+int plugins__Destroy(core_t*);
+int plugin__Load(core_t*, char *path);
+int plugin__Unload(core_t*, plugin_t *plg);
