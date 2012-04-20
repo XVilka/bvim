@@ -38,16 +38,16 @@
 #	include <fcntl.h>
 #endif
 
-extern core_t core;
-extern state_t state;
+//extern core_t core;
+//extern state_t state;
 
 int filemode;
-static struct stat buf;
+static struct stat sbuf;
 static off_t block_read;
 char *terminal;
 
 /* Save the patched file */
-int save(char* fname, char* start, char* end, int flags)
+int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flags)
 {
 	int fd;
 	char string[255];
@@ -58,18 +58,18 @@ int save(char* fname, char* start, char* end, int flags)
 		ui__ErrorMsg("No file|No current filename");
 		return 0;
 	}
-	if (stat(fname, &buf) == -1) {
+	if (stat(fname, &sbuf) == -1) {
 		newstr = "[New file] ";
 	} else {
-		if (S_ISDIR(buf.st_mode)) {
+		if (S_ISDIR(sbuf.st_mode)) {
 			sprintf(string, "\"%s\" Is a directory", fname);
 			ui__StatusMsg(string);
 			return 0;
-		} else if (S_ISCHR(buf.st_mode)) {
+		} else if (S_ISCHR(sbuf.st_mode)) {
 			sprintf(string, "\"%s\" Character special file", fname);
 			ui__StatusMsg(string);
 			return 0;
-		} else if (S_ISBLK(buf.st_mode)) {
+		} else if (S_ISBLK(sbuf.st_mode)) {
 			/*
 			   sprintf(string, "\"%s\" Block special file", fname);
 			   msg(string);
@@ -101,8 +101,7 @@ int save(char* fname, char* start, char* end, int flags)
 		}
 	} else {
 		filesize = end - start + 1L;
-		sprintf(string, "\"%s\" %s%lu bytes", fname, newstr,
-			(unsigned long)filesize);
+		sprintf(string, "\"%s\" %s%lu bytes", fname, newstr, (unsigned long)filesize);
 	}
 
 	if (write(fd, start, filesize) != filesize) {
@@ -117,23 +116,23 @@ int save(char* fname, char* start, char* end, int flags)
 }
 
 /* loads a file, returns the filesize */
-off_t load(char* fname)
+off_t load(core_t* core, buf_t* buf, char* fname)
 {
 	int fd = -1;
 	char string[MAXCMD];
 
-	buf.st_size = 0L;
+	sbuf.st_size = 0L;
 	if (fname != NULL) {
 		sprintf(string, "\"%s\"", fname);
 		ui__StatusMsg(string);
 		refresh();
-		if (stat(fname, &buf) == -1) {
+		if (stat(fname, &sbuf) == -1) {
 			filemode = NEW;
-		} else if (S_ISDIR(buf.st_mode)) {
+		} else if (S_ISDIR(sbuf.st_mode)) {
 			filemode = DIRECTORY;
-		} else if (S_ISCHR(buf.st_mode)) {
+		} else if (S_ISCHR(sbuf.st_mode)) {
 			filemode = CHARACTER_SPECIAL;
-		} else if (S_ISBLK(buf.st_mode)) {
+		} else if (S_ISBLK(sbuf.st_mode)) {
 			filemode = BLOCK_SPECIAL;
 			if (!block_flag) {
 				block_flag = 1;
@@ -148,10 +147,10 @@ off_t load(char* fname)
 				ui__SystemErrorMsg(fname);
 				filemode = ERROR;
 			}
-		} else if (S_ISREG(buf.st_mode)) {
-			if ((unsigned long)buf.st_size >
+		} else if (S_ISREG(sbuf.st_mode)) {
+			if ((unsigned long)sbuf.st_size >
 			    (unsigned long)SIZE_T_MAX) {
-				move(core.screen.maxy, 0);
+				move(core->screen.maxy, 0);
 				endwin();
 				printf("File too large\n");
 				exit(0);
@@ -170,16 +169,16 @@ off_t load(char* fname)
 	} else {
 		filemode = NEW;
 	}
-	if (core.editor.mem != NULL)
-		free(core.editor.mem);
+	if (buf->mem != NULL)
+		free(buf->mem);
 	memsize = 1024;
 	if (block_flag) {
 		memsize += block_size;
 	} else if (filemode == REGULAR) {
-		memsize += buf.st_size;
+		memsize += sbuf.st_size;
 	}
-	if ((core.editor.mem = (char *)malloc(memsize)) == NULL) {
-		move(core.screen.maxy, 0);
+	if ((buf->mem = (char *)malloc(memsize)) == NULL) {
+		move(core->screen.maxy, 0);
 		endwin();
 		printf("Out of memory\n");
 		exit(0);
@@ -192,7 +191,7 @@ off_t load(char* fname)
 			ui__SystemErrorMsg(fname);
 			filemode = ERROR;
 		} else {
-			if ((filesize = read(fd, core.editor.mem, block_size)) == 0) {
+			if ((filesize = read(fd, buf->mem, block_size)) == 0) {
 				sprintf(string, "\"%s\" Empty file", fname);
 				filemode = ERROR;
 			} else {
@@ -209,8 +208,8 @@ off_t load(char* fname)
 			refresh();
 		}
 	} else if (filemode == REGULAR) {
-		filesize = buf.st_size;
-		if (read(fd, core.editor.mem, filesize) != filesize) {
+		filesize = sbuf.st_size;
+		if (read(fd, buf->mem, filesize) != filesize) {
 			ui__SystemErrorMsg(fname);
 			filemode = ERROR;
 		}
@@ -242,10 +241,10 @@ off_t load(char* fname)
 		if (filemode != ERROR)
 			ui__StatusMsg(string);
 	}
-	state.pagepos = core.editor.mem;
-	core.editor.maxpos = core.editor.mem + filesize;
-	state.loc = HEX;
-	x = core.params.COLUMNS_ADDRESS;
+	buf->state.pagepos = buf->mem;
+	buf->maxpos = buf->mem + filesize;
+	buf->state.loc = HEX;
+	x = core->params.COLUMNS_ADDRESS;
 	y = 0;
 	ui__Screen_Repaint();
 	return (filesize);
@@ -254,7 +253,7 @@ off_t load(char* fname)
 /* argument "dir" not used! 
  * Needed for DOS version only
  */
-void bvim_init(char* dir)
+void bvim_init(core_t* core, char* dir)
 {
 	char *initstr;
 	char rcpath[MAXCMD];
@@ -265,64 +264,63 @@ void bvim_init(char* dir)
 		shell = "/bin/sh";
 
 	if ((initstr = getenv("BVIINIT")) != NULL) {
-		docmdline(initstr);
+		docmdline(core, core->curbuf, initstr);
 		return;
 	}
 	strncpy(rcpath, getenv("HOME"), MAXCMD - 8);
 	rcpath[MAXCMD - 8] = '\0';
 	strcat(rcpath, "/.bvimrc");
-	if (stat(rcpath, &buf) == 0) {
-		if (buf.st_uid == getuid())
-			read_rc(rcpath);
+	if (stat(rcpath, &sbuf) == 0) {
+		if (sbuf.st_uid == getuid())
+			read_rc(core, rcpath);
 	}
 
 	strcpy(rcpath, ".bvimrc");
-	if (stat(rcpath, &buf) == 0) {
-		if (buf.st_uid == getuid())
-			read_rc(rcpath);
+	if (stat(rcpath, &sbuf) == 0) {
+		if (sbuf.st_uid == getuid())
+			read_rc(core, rcpath);
 	}
 
 	strcpy(rcpath, ".bvimhistory");
-	if (stat(rcpath, &buf) == 0) {
-		if (buf.st_uid == getuid())
-			read_history(rcpath);
+	if (stat(rcpath, &sbuf) == 0) {
+		if (sbuf.st_uid == getuid())
+			read_history(core, rcpath);
 	}
 
 }
 
-int enlarge(off_t add)
+int enlarge(core_t* core, buf_t* buf, off_t add)
 {
 	char *newmem;
 	off_t savecur, savepag, savemax, saveundo;
 
-	savecur = core.editor.curpos - core.editor.mem;
-	savepag = state.pagepos - core.editor.mem;
-	savemax = core.editor.maxpos - core.editor.mem;
-	saveundo = undo_start - core.editor.mem;
+	savecur = buf->state.curpos - buf->mem;
+	savepag = buf->state.pagepos - buf->mem;
+	savemax = buf->maxpos - buf->mem;
+	saveundo = undo_start - buf->mem;
 
-	if (core.editor.mem == NULL) {
+	if (buf->mem == NULL) {
 		newmem = malloc(memsize + add);
 	} else {
-		newmem = realloc(core.editor.mem, memsize + add);
+		newmem = realloc(buf->mem, memsize + add);
 	}
 	if (newmem == NULL) {
 		ui__ErrorMsg("Out of memory");
 		return 1;
 	}
 
-	core.editor.mem = newmem;
+	buf->mem = newmem;
 	memsize += add;
-	core.editor.curpos = core.editor.mem + savecur;
-	state.pagepos = core.editor.mem + savepag;
-	core.editor.maxpos = core.editor.mem + savemax;
-	undo_start = core.editor.mem + saveundo;
-	state.current = core.editor.curpos + 1L;
+	buf->state.curpos = buf->mem + savecur;
+	buf->state.pagepos = buf->mem + savepag;
+	buf->maxpos = buf->mem + savemax;
+	undo_start = buf->mem + saveundo;
+	buf->state.current = buf->state.curpos + 1L;
 	return 0;
 }
 
 void do_shell()
 {
-	int shresult = 0;
 	addch('\n');
 	savetty();
 	shresult = system(shell);
@@ -344,12 +342,12 @@ off_t alloc_buf(off_t n, char** buffer)
 	return n;
 }
 
-int addfile(char* fname)
+int addfile(core_t* core, buf_t* buf, char* fname)
 {
 	int fd;
 	off_t oldsize;
 
-	if (stat(fname, &buf)) {
+	if (stat(fname, &sbuf)) {
 		ui__SystemErrorMsg(fname);
 		return 1;
 	}
@@ -358,16 +356,16 @@ int addfile(char* fname)
 		return 1;
 	}
 	oldsize = filesize;
-	if (enlarge(buf.st_size))
+	if (enlarge(sbuf.st_size))
 		return 1;
-	if (read(fd, core.editor.mem + filesize, buf.st_size) == -1) {
+	if (read(fd, buf->mem + filesize, sbuf.st_size) == -1) {
 		ui__SystemErrorMsg(fname);
 		return 1;
 	}
-	filesize += buf.st_size;
-	core.editor.maxpos = core.editor.mem + filesize;
+	filesize += sbuf.st_size;
+	buf->maxpos = buf->mem + filesize;
 	close(fd);
-	setpage(core.editor.mem + oldsize);
+	setpage(buf->mem + oldsize);
 	return 0;
 }
 

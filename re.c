@@ -31,8 +31,8 @@
 /* Error and informational messages */
 #include	"messages.h"
 
-extern core_t core;
-extern state_t state;
+//extern core_t core;
+//extern state_t state;
 
 static int sbracket();
 
@@ -50,7 +50,7 @@ char *bvim_substr(const char* str, size_t begin, size_t len)
 	return strndup(str + begin, len);
 }
 
-int bregexec(PTR start, char* scan)
+int bregexec(core_t *core, buf_t *buf, PTR start, char* scan)
 {
 	char *act;
 	int count, test;
@@ -92,9 +92,8 @@ int bregexec(PTR start, char* scan)
 				scan++;
 			} else if (count > 1) {	/* characters in bracket */
 				if (*scan == '^') {
-					while (start < core.editor.maxpos) {
-						if (bregexec
-						    (start, scan + count)) {
+					while (start < buf->maxpos) {
+						if (bregexec(core, buf, start, scan + count)) {
 							*act = '\0';
 							return 1;
 						}
@@ -117,8 +116,8 @@ int bregexec(PTR start, char* scan)
 					scan += count;
 				}
 			} else {	/* ".*"  */
-				while (start < core.editor.maxpos) {
-					if (bregexec(start, scan)) {
+				while (start < buf->maxpos) {
+					if (bregexec(core, buf, start, scan)) {
 						*act = '\0';
 						return 1;
 					}
@@ -143,7 +142,7 @@ static int sbracket(int start, char* scan, int count)
 	return 1;
 }
 
-PTR end_word(PTR start)
+PTR end_word(core_t *core, buf_t *buf, PTR start)
 {
 	PTR pos;
 
@@ -151,14 +150,14 @@ PTR end_word(PTR start)
 	if (!isprint(*pos & 0xff))
 		return start;
 	while (isprint(*pos & 0xff))
-		if (pos++ > core.editor.maxpos)
+		if (pos++ > buf->maxpos)
 			return start;
 	return --pos;
 }
 
 /* wordsearch serves the 'W' and 'w' - command
  */
-PTR wordsearch(PTR start, char mode)
+PTR wordsearch(core_t *core, buf_t *buf, PTR start, char mode)
 {
 	PTR found;
 	PTR pos;
@@ -167,15 +166,15 @@ PTR wordsearch(PTR start, char mode)
 	pos = start + 1;
 	do {
 		while (isprint(*pos & 0xff))
-			if (pos++ > core.editor.maxpos)
+			if (pos++ > buf->maxpos)
 				return start;
 		while (!isprint(*pos & 0xff))
-			if (pos++ > core.editor.maxpos)
+			if (pos++ > buf->maxpos)
 				return start;
 		found = pos;
 		ccount = 0;
 		while (isprint(*pos & 0xff)) {
-			if (pos++ > core.editor.maxpos)
+			if (pos++ > buf->maxpos)
 				return start;
 			ccount++;
 		}
@@ -188,13 +187,13 @@ PTR wordsearch(PTR start, char mode)
 		} else {
 			return found;
 		}
-	} while (pos < core.editor.maxpos);
+	} while (pos < buf->maxpos);
 	return start;
 }
 
 /* backsearch serves the 'b' and 'B' command
  */
-PTR backsearch(PTR start, char mode)
+PTR backsearch(core_t *core, buf_t *buf, PTR start, char mode)
 {
 	PTR pos;
 	int ccount;
@@ -203,30 +202,30 @@ PTR backsearch(PTR start, char mode)
 	do {
 		if (mode == 'B') {
 			while (*pos != '\0' && *pos != '\n')
-				if (pos-- < core.editor.mem)
+				if (pos-- < buf->mem)
 					return start;
 		} else {
 			while (!isprint(*pos & 0xff))
-				if (pos-- < core.editor.mem)
+				if (pos-- < buf->mem)
 					return start;
 		}
 		pos--;
 		ccount = 0;
 		while (isprint(*pos & 0xff)) {
-			if (pos-- < core.editor.mem)
+			if (pos-- < buf->mem)
 				return start;
 			ccount++;
 		}
 		if (ccount >= P(P_WL))
 			return (pos + 1);
 
-	} while (pos > core.editor.mem);
+	} while (pos > buf->mem);
 	return start;
 }
 
 /* used by :s
  */
-int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
+int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpos, PTR endpos)
 {
 	int n;
 	char *found;
@@ -329,12 +328,12 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 		if (strchr(cmd, 'c'))
 			conf = 1;
 	}
-	if ((strchr("\\#", ch) && state.loc == ASCII)
-	    || (strchr("/?", ch) && state.loc == HEX)) {
+	if ((strchr("\\#", ch) && buf->state.loc == ASCII)
+	    || (strchr("/?", ch) && buf->state.loc == HEX)) {
 		toggle();
 	}
 	startpos--;
-	move(core.screen.maxy, 0);
+	move(core->screen.maxy, 0);
 	refresh();
 
 	if (global) {
@@ -347,9 +346,9 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 
       AGAIN:
 	if (direct == FORWARD) {
-		found = fsearch(startpos + 1, endpos, find_pat);
+		found = fsearch(core, buf, startpos + 1, endpos, find_pat);
 	} else {
-		found = rsearch(startpos - 1, core.editor.mem, find_pat);
+		found = rsearch(core, buf, startpos - 1, buf->mem, find_pat);
 	}
 	if (!found) {
 		if (!repl_count) {
@@ -379,8 +378,7 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
 				goto SKIP;
 		}
 		repl_count++;
-		current_start =
-		    state.pagepos + y * core.params.COLUMNS_DATA + xpos();
+		current_start = buf->state.pagepos + y * core->params.COLUMNS_DATA + xpos();
 		if (!global) {
 			if ((undo_count = alloc_buf(pat_len, &undo_buf))) {
 				memcpy(undo_buf, current_start, undo_count);
@@ -405,7 +403,7 @@ int do_substitution(int delim, char* line, PTR startpos, PTR endpos)
  *
  * return	address found
  */
-PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
+PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR endpos, int flag)
 {
 	char *cmd = NULL;
 	PTR found;
@@ -421,8 +419,8 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 	ignore_case = (P(P_IC));
 	magic = P(P_MA);
 	start_addr--;
-	if ((strchr("\\#", ch) && state.loc == ASCII)
-	    || (strchr("/?", ch) && state.loc == HEX)) {
+	if ((strchr("\\#", ch) && buf->state.loc == ASCII)
+	    || (strchr("/?", ch) &&  buf->state.loc == HEX)) {
 		toggle();
 	}
 	if (!strchr("Nn", ch)) {
@@ -456,27 +454,27 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 		cmd = "";
 		ui__StatusMsg(m);
 	}
-	move(core.screen.maxy, 0);
+	move(core->screen.maxy, 0);
 	refresh();
 	sdir = (ch == 'N') ? !direct : direct;
 
 	if (sdir == FORWARD) {
-		found = fsearch(startpos + 1, endpos, search_pat);
+		found = fsearch(core, buf, startpos + 1, endpos, search_pat);
 		if (flag & S_GLOBAL)
 			return (found);
 		if (!found)
 			if (flag & 1) {
 				ui__StatusMsg("Search wrapped BOTTOM|Search wrapped around BOTTOM of buffer");
-				found = fsearch(core.editor.mem, startpos, search_pat);
+				found = fsearch(core, buf, buf->mem, startpos, search_pat);
 			}
 	} else {
-		found = rsearch(startpos - 1, core.editor.mem, search_pat);
+		found = rsearch(core, buf, startpos - 1, buf->mem, search_pat);
 		if (flag & S_GLOBAL)
 			return (found);
 		if (!found)
 			if (flag & 1) {
 				ui__StatusMsg("Search wrapped TOP|Search wrapped around TOP of buffer");
-				found = rsearch(endpos, startpos, search_pat);
+				found = rsearch(core, buf, endpos, startpos, search_pat);
 			}
 	}
 	if (!found) {
@@ -501,12 +499,11 @@ PTR searching(int ch, char* line, PTR startpos, PTR endpos, int flag)
 				do_z(*++cmd);
 				break;
 			case 's':
-				do_substitution(ch, cmd + 2, found, endpos);
+				do_substitution(core, buf, ch, cmd + 2, found, endpos);
 				ui__Screen_Repaint();
 				break;
 			case ';':
-				searching(*(cmd + 1), cmd + 2, found,
-					  core.editor.maxpos - 1, flag);
+				searching(core, buf, *(cmd + 1), cmd + 2, found, buf->maxpos - 1, flag);
 			case '\0':
 				break;
 			default:
@@ -533,13 +530,13 @@ char *patcpy(char *s1, char* s2, char delim)
 	return s2;
 }
 
-PTR fsearch(PTR start, PTR end, char* smem)
+PTR fsearch(core_t* core, buf_t* buf, PTR start, PTR end, char* smem)
 {
 	PTR spos;
 
 	signal(SIGINT, jmpproc);
 	for (spos = start; spos <= end; spos++) {
-		if (bregexec(spos, smem)) {
+		if (bregexec(core, buf, spos, smem)) {
 			signal(SIGINT, SIG_IGN);
 			return (spos);
 		}
@@ -548,13 +545,13 @@ PTR fsearch(PTR start, PTR end, char* smem)
 	return (NULL);
 }
 
-PTR rsearch(PTR start, PTR end, char *smem)
+PTR rsearch(core_t* core, buf_t* buf, PTR start, PTR end, char *smem)
 {
 	PTR spos;
 
 	signal(SIGINT, jmpproc);
 	for (spos = start; spos >= end; spos--) {
-		if (bregexec(spos, smem)) {
+		if (bregexec(core, buf, spos, smem)) {
 			signal(SIGINT, SIG_IGN);
 			return (spos);
 		}
@@ -566,7 +563,7 @@ PTR rsearch(PTR start, PTR end, char *smem)
 /* Calculates an address of a colon command
  * returns NULL on error or default_address, if nothing found
  */
-PTR calc_addr(char** pointer, PTR def_addr)
+PTR calc_addr(core_t* core, buf_t* buf, char** pointer, PTR def_addr)
 {
 	PTR addr;
 	int ch, mark;
@@ -575,20 +572,20 @@ PTR calc_addr(char** pointer, PTR def_addr)
 	cmd = *pointer;
 	addr = def_addr;
 	SKIP_WHITE if (*cmd >= '1' && *cmd <= '9') {
-		addr = core.editor.mem + strtol(cmd, &cmd, 10) - P(P_OF);
+		addr = buf->mem + strtol(cmd, &cmd, 10) - P(P_OF);
 	} else {
 		ch = *cmd;
 		switch (ch) {
 		case '.':	/* Current position */
-			addr = state.current;
+			addr = buf->state.current;
 			cmd++;
 			break;
 		case '^':
-			addr = core.editor.mem;
+			addr = buf->mem;
 			cmd++;
 			break;
 		case '$':
-			addr = core.editor.maxpos - 1;
+			addr = buf->maxpos - 1;
 			cmd++;
 			break;
 		case '\'':	/* Mark */
@@ -625,7 +622,7 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = fsearch(core.editor.mem, core.editor.maxpos - 1, search_pat);
+			addr = fsearch(core, buf, buf->mem, buf->maxpos - 1, search_pat);
 			break;
 		case '#':
 		case '?':
@@ -644,10 +641,10 @@ PTR calc_addr(char** pointer, PTR def_addr)
 						return NULL;
 				}
 			}
-			addr = rsearch(core.editor.maxpos - 1, core.editor.mem, search_pat);
+			addr = rsearch(core, buf, buf->maxpos - 1, buf->mem, search_pat);
 			break;
 		case '0':
-			addr = core.editor.mem + strtol(cmd, &cmd, 16) - P(P_OF);
+			addr = buf->mem + strtol(cmd, &cmd, 16) - P(P_OF);
 			break;
 		}
 	}

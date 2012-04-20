@@ -341,7 +341,7 @@ void keys__KeyMaps_Show(core_t *core)
 		i++;
 	}
 	ui__StatusMsg(dispbuf);
-	wait_return(TRUE);
+	wait_return(core, TRUE);
 }
 
 int keys__Key_Pressed(core_t *core, int key_code)

@@ -337,7 +337,7 @@ int handler__cmdstring(core_t *core, buf_t *buf)
 	addch(':');
 	refresh();
 	/* TODO: Add <Tab> autocompletion */
-	getcmdstr(cmdstr, 1);
+	getcmdstr(core, cmdstr, 1);
 	if (strlen(cmdstr))
 		docmdline(core, buf, cmdstr);
 	return 0;
@@ -456,14 +456,14 @@ int handler__append_mode(core_t *core, buf_t *buf)
 // "B" or "b" keys
 int handler__backsearch(core_t *core, buf_t *buf)
 {
-	setpage(backsearch(buf->state.current, 'b'));
+	setpage(backsearch(core, buf, buf->state.current, 'b'));
 	return 0;
 }
 
 // "e" key
 int handler__setpage(core_t *core, buf_t *buf)
 {
-	setpage(end_word(buf->state.current));
+	setpage(end_word(core, buf, buf->state.current));
 	return 0;
 }
 
@@ -534,7 +534,7 @@ int handler__goto2(core_t *core, buf_t *buf)
 	last_motion = buf->state.current;
 	ui__StatusMsg("Goto Hex Address: ");
 	refresh();
-	getcmdstr(cmdstr, 19);
+	getcmdstr(core, cmdstr, 19);
 	if (cmdstr[0] == '^') {
 		inaddr = P(P_OF);
 	} else if (cmdstr[0] == '$') {
@@ -567,10 +567,10 @@ int handler__search_string1(core_t *core, buf_t *buf)
 	clearstr();
 	addch(ch);
 	refresh();
-	if (getcmdstr(line, 1))
+	if (getcmdstr(core, line, 1))
 		return -1;
 	last_motion = buf->state.current;
-	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
+	searching(core, buf, ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -582,10 +582,10 @@ int handler__search_string2(core_t *core, buf_t *buf)
 	clearstr();
 	addch(ch);
 	refresh();
-	if (getcmdstr(line, 1))
+	if (getcmdstr(core, line, 1))
 		return -1;
 	last_motion = buf->state.current;
-	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
+	searching(core, buf, ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -597,10 +597,10 @@ int handler__search_string3(core_t *core, buf_t *buf)
 	clearstr();
 	addch(ch);
 	refresh();
-	if (getcmdstr(line, 1))
+	if (getcmdstr(core, line, 1))
 		return -1;
 	last_motion = buf->state.current;
-	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
+	searching(core, buf, ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -612,10 +612,10 @@ int handler__search_string4(core_t *core, buf_t *buf)
 	clearstr();
 	addch(ch);
 	refresh();
-	if (getcmdstr(line, 1))
+	if (getcmdstr(core, line, 1))
 		return -1;
 	last_motion = buf->state.current;
-	searching(ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
+	searching(core, buf, ch, line, buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -625,7 +625,7 @@ int handler__search_string4(core_t *core, buf_t *buf)
 int handler__search_next(core_t *core, buf_t *buf)
 {
 	last_motion = buf->state.current;
-	searching('n', "", buf->state.current, buf->maxpos - 1, P(P_WS));
+	searching(core, buf, 'n', "", buf->state.current, buf->maxpos - 1, P(P_WS));
 	return 0;
 }
 
@@ -755,7 +755,7 @@ int handler__visual(core_t *core, buf_t *buf)
 int handler__wordsearch(core_t *core, buf_t *buf)
 {
 	buf->state.loc = ASCII;
-	setpage(wordsearch(buf->state.current, 'w'));
+	setpage(wordsearch(core, buf, buf->state.current, 'w'));
 	return 0;
 }
 
@@ -1351,168 +1351,6 @@ off_t calc_size(char* arg)
 	return (off_t) val;
 }
 
-void trunc_cur(core_t *core, buf_t *buf)
-{
-	undosize = filesize;
-	undo_count = (off_t) (buf->maxpos - buf->state.current);
-	undo_start = buf->state.current;
-	filesize = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA + xpos();
-	buf->maxpos = (PTR) (buf->mem + filesize);
-	if (filesize == 0L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
-	} else
-		cur_back();
-	edits = U_TRUNC;
-	ui__Screen_Repaint();
-}
-
-int do_append(core_t *core, buf_t *buf, int count, char* buffer)
-{
-	if (filesize + count > memsize) {
-		if (enlarge(count + 100L))
-			return 1;
-	}
-	memcpy(buf->mem + filesize, buffer, count);
-	undo_start = buf->mem + filesize - 1L;
-	setpage(undo_start + count);
-	edits = U_APPEND;
-	undosize = filesize;
-	filesize += count;
-	buf->maxpos += count;
-	return 0;
-}
-
-void do_tilde(core_t *core, buf_t *buf, off_t count)
-{
-	if (filesize == 0L)
-		return;
-	undo_start = buf->state.current;
-	if (buf->state.current + count > buf->maxpos) {
-		beep();
-		return;
-	}
-	if ((undo_count = alloc_buf(count, &undo_buf)) == 0L)
-		return;
-	memcpy(undo_buf, buf->state.current, undo_count);
-	while (count--) {
-		if (isupper((int)(*(buf->state.current))))
-			*(buf->state.current) = tolower((int)(*(buf->state.current)));
-		else if (islower((int)(*(buf->state.current))))
-			*(buf->state.current) = toupper((int)(*(buf->state.current)));
-		buf->state.current++;
-		cur_forw(0);
-	}
-	edits = U_TILDE;
-	setcur();
-}
-
-void do_undo(core_t *core, buf_t *buf)
-{
-	off_t n, tempsize;
-	char temp;
-	PTR set_cursor;
-	PTR s;
-	PTR d;
-
-	if (undo_count == 0L) {
-		ui__ErrorMsg("Nothing to undo");
-		return;
-	}
-	set_cursor = undo_start;
-	switch (edits) {
-	case U_EDIT:
-	case U_TILDE:
-		n = undo_count;
-		s = undo_buf;
-		d = undo_start;
-		while (n--) {
-			temp = *d;
-			*d = *s;
-			*s = temp;
-			s++;
-			d++;
-		}
-		break;
-	case U_APPEND:
-	case U_TRUNC:
-		tempsize = filesize;
-		filesize = undosize;
-		undosize = tempsize;
-		buf->maxpos = (PTR) (buf->mem + filesize);
-		if (filesize)
-			set_cursor = buf->maxpos - 1L;
-		else
-			set_cursor = buf->maxpos;
-		break;
-	case U_INSERT:
-		filesize -= undo_count;
-		buf->maxpos -= undo_count;
-		memcpy(undo_buf, undo_start, undo_count);
-		memmove(undo_start, undo_start + undo_count,
-			buf->maxpos - undo_start);
-		edits = U_DELETE;
-		break;
-	case U_BACK:
-	case U_DELETE:
-		filesize += undo_count;
-		buf->maxpos += undo_count;
-		memmove(undo_start + undo_count, undo_start,
-			buf->maxpos - undo_start);
-		memcpy(undo_start, undo_buf, undo_count);
-		edits = U_INSERT;
-		break;
-	}
-	setpage(set_cursor);
-	if (edits == U_TRUNC && undosize > filesize)
-		cur_back();
-	ui__Screen_Repaint();
-}
-
-void do_over(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
-{
-	if (n < 1L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
-		return;
-	}
-	if (loc + n > buf->maxpos) {
-		beep();
-		return;
-	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
-		return;
-	undo_start = loc;
-	memcpy(undo_buf, loc, n);
-	memcpy(loc, bbuf, n);
-	edits = U_EDIT;
-	setpage(loc + n - 1);
-	ui__Screen_Repaint();
-}
-
-void do_put(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
-{
-	if (n < 1L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
-		return;
-	}
-	if (loc > buf->maxpos) {
-		beep();
-		return;
-	}
-	if (filesize + n > memsize) {
-		if (enlarge(n + 1024))
-			return;
-	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
-		return;
-	undo_start = loc + 1;
-	edits = U_INSERT;
-	filesize += n;
-	buf->maxpos += n;
-	memmove(undo_start + n, undo_start, buf->maxpos - loc);
-	memcpy(undo_start, bbuf, n);
-	setpage(loc + n);
-	ui__Screen_Repaint();
-}
 
 /* argument sig not used, because only SIGINT will be catched */
 void jmpproc(int sig)
@@ -1549,9 +1387,9 @@ off_t range(core_t *core, buf_t *buf, int ch)
 		clearstr();
 		addch(ch1);
 		refresh();
-		if (getcmdstr(line, 1))
+		if (getcmdstr(core, line, 1))
 			break;
-		end_addr = searching(ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
+		end_addr = searching(core, buf, ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
 		if (!end_addr) {
 			beep();
 			return 0;
@@ -1563,9 +1401,9 @@ off_t range(core_t *core, buf_t *buf, int ch)
 		clearstr();
 		addch(ch1);
 		refresh();
-		if (getcmdstr(line, 1))
+		if (getcmdstr(core, line, 1))
 			break;
-		start_addr = searching(ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
+		start_addr = searching(core, buf, ch1, line, buf->state.current, buf->maxpos - 1, FALSE);
 		if (!start_addr) {
 			beep();
 			return 0;

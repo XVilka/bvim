@@ -25,7 +25,7 @@
 #include "ui.h"
 #include "keys.h"
 
-extern core_t core;
+//extern core_t core;
 
 int from_file;
 static FILE *ffp;
@@ -51,7 +51,7 @@ struct param params[] = {
 	{"", "", 0, "", 0,}	/* end marker */
 };
 
-int doset(char *arg)
+int doset(core_t *core, char *arg)
 {
 	int i;
 	char *s;
@@ -60,11 +60,11 @@ int doset(char *arg)
 	char string[80];
 
 	if (arg == NULL) {
-		showparms(FALSE);
+		showparms(core, FALSE);
 		return 0;
 	}
 	if (!strcmp(arg, "all")) {
-		showparms(TRUE);
+		showparms(core, TRUE);
 		return 0;
 	}
 	if (!strncmp(arg, "no", 2)) {
@@ -130,28 +130,28 @@ int doset(char *arg)
 
 				if (i == P_CM) {
 					if (((COLS -
-					      core.params.COLUMNS_ADDRESS -
+					      core->params.COLUMNS_ADDRESS -
 					      1) / 4) >= P(P_CM)) {
-						core.params.COLUMNS_DATA =
+						core->params.COLUMNS_DATA =
 						    P(P_CM);
 					} else {
-						core.params.COLUMNS_DATA =
+						core->params.COLUMNS_DATA =
 						    P(P_CM) =
 						    ((COLS -
-						      core.params.
+						      core->params.
 						      COLUMNS_ADDRESS - 1) / 4);
 					}
-					core.screen.maxx =
-					    core.params.COLUMNS_DATA * 4 +
-					    core.params.COLUMNS_ADDRESS + 1;
-					core.params.COLUMNS_HEX =
-					    core.params.COLUMNS_DATA * 3;
+					core->screen.maxx =
+					    core->params.COLUMNS_DATA * 4 +
+					    core->params.COLUMNS_ADDRESS + 1;
+					core->params.COLUMNS_HEX =
+					    core->params.COLUMNS_DATA * 3;
 					status =
-					    core.params.COLUMNS_HEX +
-					    core.params.COLUMNS_DATA - 17;
+					    core->params.COLUMNS_HEX +
+					    core->params.COLUMNS_DATA - 17;
 					screen =
-					    core.params.COLUMNS_DATA *
-					    (core.screen.maxy - 1);
+					    core->params.COLUMNS_DATA *
+					    (core->screen.maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}
@@ -173,7 +173,7 @@ int doset(char *arg)
 	}
 
 	if (did_window) {
-		core.screen.maxy = P(P_LI) - 1;
+		core->screen.maxy = P(P_LI) - 1;
 		ui__Screen_New();
 	}
 
@@ -181,7 +181,7 @@ int doset(char *arg)
 }
 
 /* show ALL parameters */
-void showparms(int all)
+void showparms(core_t *core, int all)
 {
 	struct param *p;
 	int n;
@@ -202,15 +202,15 @@ void showparms(int all)
 		ui__StatusMsg(buf);
 		n++;
 		if (n == params[P_LI].nvalue) {
-			if (wait_return(FALSE))
+			if (wait_return(core, FALSE))
 				return;
 			n = 1;
 		}
 	}
-	wait_return(TRUE);
+	wait_return(core, TRUE);
 }
 
-int getcmdstr(char* p, int x)
+int getcmdstr(core_t *core, char* p, int x)
 {
 	int c;
 	int n;
@@ -229,7 +229,7 @@ int getcmdstr(char* p, int x)
 
 	signal(SIGINT, jmpproc);
 	buff = p;
-	move(core.screen.maxy, x);
+	move(core->screen.maxy, x);
 	do {
 		switch (c = vgetc()) {
 		case BVI_CTRL('H'):
@@ -237,14 +237,14 @@ int getcmdstr(char* p, int x)
 		case KEY_LEFT:
 			if (p > buff) {
 				p--;
-				move(core.screen.maxy, x);
+				move(core->screen.maxy, x);
 				n = x;
 				for (q = buff; q < p; q++) {
 					addch(*q);
 					n++;
 				}
 				addch(' ');
-				move(core.screen.maxy, n);
+				move(core->screen.maxy, n);
 			} else {
 				*buff = '\0';
 				ui__StatusMsg("");

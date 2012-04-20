@@ -7,6 +7,7 @@ Directions
    -- IN PROGRESS
 2. Add hex-data folding support (or lines, or blocks)
 3. Add GZIP, ZIP, TAR, etc signatures to search and highlight (e.g. from binwalk)
+	add them into sqlite
 4. Add :unmap (:unm) feature
    -- IN PROGRESS
 5. Add :split feature (low priority)
@@ -23,7 +24,7 @@ Directions
 16. Add terminal resizing support
 17. Add MathGL visualisation plugin: gistogram, file map, etc.
 18. Save project (with comments, marks, blocks list, highlights and history) 
-	into some file
+	into some file (can be just zip directory with all files)
 19. Implement VIRTUAL_BLOCK with id == 0, which mean whole file/buffer
 20. Add Unicode and other encodings support
 21. Implement lua REPL as pipe/server, to use with multimonitor configuration
@@ -75,10 +76,3 @@ Refactoring Tasks
 	-- IN PROGRESS
 7. Add doxygen documentation
 
-Not needed to refactor:
- keys.c
- keys.h
- bscript.c
- bscript.h
- blocks.c
- blocks.h

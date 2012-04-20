@@ -167,7 +167,7 @@ int CmdDefaults(core_t *core)
 		{ 0, NULL, NULL, 0, 0, { NULL }, 0, 0 }
 	};
 	while (cmds_def[i].id != 0) {
-		CmdAdd(core, cmds_def[i]);
+		CmdAdd(core, &cmds_def[i]);
 		i++;
 	}
 	return 0;
@@ -183,7 +183,7 @@ void commands__Init(core_t *core)
 	core->cmdmap.arr = NULL;
 	core->cmdmap.items = 0;
 	core->cmdmap.allocated = 0;
-	CmdDefaults();
+	CmdDefaults(core);
 }
 
 void commands__Destroy(core_t *core)
@@ -191,7 +191,7 @@ void commands__Destroy(core_t *core)
 	free(core->cmdmap.arr);
 }
 
-int commands__Cmd_Add(core_t *core, command_t new_cmd)
+int commands__Cmd_Add(core_t *core, command_t *new_cmd)
 {
 	CmdAdd(core, new_cmd);
 	return 0;
@@ -231,8 +231,7 @@ int command__help(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 // :map
 int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	int n = 0;
-
-	struct key *bkey_tmp;
+	bkey_t *key_tmp;
 
 	if (c_argc == 0) {
 		bvim_error(buf->state.mode, "Error: empty mapping definition!");
@@ -240,7 +239,7 @@ int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 		if (strncmp(c_argv[0], "all", 3)) {
 			bvim_error(buf->state.mode, "Map what?");
 		} else {
-			keys__KeyMaps_Show();
+			keys__KeyMaps_Show(core);
 		}
 	} else {
 		luacmdbuf[0] = '\0';
@@ -248,8 +247,8 @@ int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 			strcat(luacmdbuf, " ");
 			strcat(luacmdbuf, c_argv[n]);
 		}
-		bkey_tmp = keys__KeyString_Parse(c_argv[0]);
-		if (!keys__Key_Map(bkey_tmp))
+		key_tmp = keys__KeyString_Parse(core, c_argv[0]);
+		if (!keys__Key_Map(core, key_tmp))
 			bvim_error(buf->state.mode, "Error: can't set new key mapping!");
 		return 0;
 	}
@@ -258,13 +257,13 @@ int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 
 // :unmap
 int command__unmap(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	struct key *bkey_tmp;
+	bkey_t *key_tmp;
 
 	if (c_argc != 1) {
 		bvim_error(buf->state.mode, "Error: empty mapping definition!");
 	} else {
-		bkey_tmp = keys__KeyString_Parse(c_argv[0]);
-		if (!keys__Key_Unmap(bkey_tmp))
+		key_tmp = keys__KeyString_Parse(core, c_argv[0]);
+		if (!keys__Key_Unmap(core, key_tmp))
 			bvim_error(buf->state.mode, "Error: can't remove key mapping!");
 		return 0;
 	}
@@ -278,10 +277,10 @@ int command__set(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 	if (chk_comm(buf, NO_ADDR))
 		return -1;
 	if (c_argc == 0) {
-		doset(NULL);
+		doset(core, NULL);
 	} else {
 		for (n = 0; n < c_argc; n++) {
-			if (doset(c_argv[n]))
+			if (doset(core, c_argv[n]))
 				return 0;
 		}
 	}
@@ -438,14 +437,14 @@ int command__args(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 int command__source(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (chk_comm(buf, NO_ADDR | ONE_FILE))
 		return -1;
-	if (read_rc(c_argv[0]))
+	if (read_rc(core, c_argv[0]))
 		ui__SystemErrorMsg(c_argv[0]);
 	refresh();
 	return 0;
 }
 
 // :run
-int command__run(buf_t *buf, char flags, int c_argc, char **c_argv) {
+int command__run(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
 		bvim_error(buf->state.mode, "Error: empty plugin name!");
 	} else {
@@ -526,7 +525,7 @@ int command__read(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 int command__xit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (chk_comm(buf, NO_ADDR | NO_ARG))
 		return -1;
-	do_exit();
+	do_exit(core);
 	return 0;
 }
 
@@ -620,7 +619,7 @@ int command__mark(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 
 // :yank
 int command__yank(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if ((yanked = yd_addr()) == 0L)
+	if ((yanked = yd_addr(core, buf)) == 0L)
 		return -1;
 	if ((yanked = alloc_buf(yanked, &yank_buf)) == 0L)
 		return -1;
@@ -679,11 +678,11 @@ int command__quit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 				bvim_error(buf->state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 				return -1;
 			} else
-			quit(buf);
+			quit(core, buf);
 			return 0;
 		}
 	} else
-		quit(buf);
+		quit(core, buf);
 	return 0;
 }
 
@@ -880,7 +879,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		cmd++;
 		addr_flag = 2;
 	} else {
-		if ((start_addr = calc_addr(&cmd, buf->mem)) == NULL) {
+		if ((start_addr = calc_addr(core, buf, &cmd, buf->mem)) == NULL) {
 			return;
 		}
 		if (*cmd == ',') {
@@ -888,7 +887,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 			addr_flag = 1;
 			SKIP_WHITE
 			    if ((end_addr =
-				 calc_addr(&cmd, buf->maxpos - 1)) == NULL) {
+				 calc_addr(core, buf, &cmd, buf->maxpos - 1)) == NULL) {
 				return;
 			}
 		} else {
@@ -919,7 +918,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		return;
 	}
 	strcpy(cmdbuf, cmd);	/* save the unmodified command */
-	record_cmd(cmd);
+	record_cmd(core, cmd);
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
@@ -971,8 +970,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	}
 	len = strlen(cmdname);
 	SKIP_WHITE if (!strncmp("substitute", cmdname, len) && CMDLNG(10, 1)) {
-		repl_count =
-		    do_substitution(*cmd, cmd + 1, start_addr, end_addr);
+		repl_count = do_substitution(core, buf, *cmd, cmd + 1, start_addr, end_addr);
 		if (repl_count == -1) {
 			bvim_error(buf->state.mode, "No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
@@ -981,28 +979,25 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		if (!repl_count) {
 			bvim_error(buf->state.mode, "Fail|Substitute pattern matching failed");
 		} else if (repl_count > 1) {
-			bvim_info(buf->state.mode, "%d subs|%d substitutions", repl_count,
-				repl_count);
+			bvim_info(buf->state.mode, "%d subs|%d substitutions", repl_count, repl_count);
 		}
 		return;
 	} else if (!strncmp("global", cmdname, len) && CMDLNG(6, 1)) {
 		buf->state.current = start_addr - 1;
 		repl_count = 0;
 		addch('\n');
-		while ((buf->state.current = searching(*cmd, cmd + 1, buf->state.current,
-					    end_addr,
-					    FALSE | S_GLOBAL)) != 0L) {
+		while ((buf->state.current = searching(core, buf, *cmd, cmd + 1, buf->state.current, end_addr, FALSE | S_GLOBAL)) != 0L) {
 			addch('\n');
 			ui__Line_Print(buf->state.current, core->screen.maxy - 1);
 			repl_count++;
 			if (repl_count == LINES - 2) {
-				if (wait_return(FALSE))
+				if (wait_return(core, FALSE))
 					return;
 				repl_count = 0;
 			}
 		}
 		if (repl_count) {
-			wait_return(TRUE);
+			wait_return(core, TRUE);
 		} else {
 			ui__Screen_Repaint();
 			bvim_error(buf->state.mode, BVI_ERROR_PATNOTFOUND);
@@ -1111,7 +1106,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		}
 		if (!strcmp("wq", cmdname)) {
 			if (ok)
-				quit(buf);
+				quit(core, buf);
 		}
 		return;
 	}
@@ -1152,7 +1147,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		if P
 			(P_MM) {
 			if (!strncmp("delete", cmdname, len) && CMDLNG(6, 1)) {
-				if ((undo_count = yd_addr()) == 0L)
+				if ((undo_count = yd_addr(core, buf)) == 0L)
 					return;
 				do_delete(undo_count, start_addr);
 				bvim_info(buf->state.mode, "%lu bytes", (long)undo_count);
@@ -1171,7 +1166,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 					return;
 				if (!addr_flag)
 					start_addr = buf->state.current;
-				do_put(start_addr, yanked, yank_buf);
+				do_put(core, buf, start_addr, yanked, yank_buf);
 			} else {
 				bvim_error(buf->state.mode, string);
 			}
@@ -1192,14 +1187,14 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 }
 
 /* calculate address range for :yank and :delete command */
-off_t yd_addr()
+off_t yd_addr(core_t *core, buf_t *buf)
 {
 	off_t count = 0;
 
 	if (c_argc == 0) {
 		switch (addr_flag) {
 		case 0:
-			start_addr = state.current;
+			start_addr = buf->state.current;
 		case 1:
 			count = 1;
 			break;
@@ -1211,7 +1206,7 @@ off_t yd_addr()
 		count = atoi(c_argv[0]);
 		switch (addr_flag) {
 		case 0:
-			start_addr = state.current;
+			start_addr = buf->state.current;
 		case 1:
 			end_addr = start_addr + count - 1;
 			break;
@@ -1231,16 +1226,16 @@ void do_exit(core_t *core)
 {
 // FIXME: implement function, which check all buffers
 	if (edits) {
-		if (!save(name, core->buf->mem, core->buf->maxpos - 1L, WRITE))
+		if (!save(name, core->curbuf->mem, core->curbuf->maxpos - 1L, WRITE))
 			return;
 	}
 	if ((curfile + 1) < numfiles) {
-		bvim_error(buf->state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
+		bvim_error(core->curbuf->state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 	} else {
 #ifdef HAVE_LUA_H
 		bvim_lua_finish();
 #endif
-		quit(&core, buf);
+		quit(core, core->curbuf);
 	}
 }
 
