@@ -213,13 +213,13 @@ static char* tmp_cmd;
 int command__help(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	int i = 0;
 	if (c_argc == 0) {
-		bvim_error(buf->state.mode, "What?");
+		bvim_error(core, buf, "What?");
 	} else if (c_argc == 1) {
 		while (i < core->cmdmap.items) {
 			if (strncmp(c_argv[0], core->cmdmap.arr[i].name, strlen(core->cmdmap.arr[i].name))) {
-				bvim_error(buf->state.mode, "Command not exist!");
+				bvim_error(core, buf, "Command not exist!");
 			} else {
-				bvim_info(buf->state.mode, core->cmdmap.arr[i].description);
+				bvim_info(core, buf, core->cmdmap.arr[i].description);
 				return 0;
 			}
 			i++;
@@ -234,10 +234,10 @@ int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 	bkey_t *key_tmp;
 
 	if (c_argc == 0) {
-		bvim_error(buf->state.mode, "Error: empty mapping definition!");
+		bvim_error(core, buf, "Error: empty mapping definition!");
 	} else if (c_argc == 1) {
 		if (strncmp(c_argv[0], "all", 3)) {
-			bvim_error(buf->state.mode, "Map what?");
+			bvim_error(core, buf, "Map what?");
 		} else {
 			keys__KeyMaps_Show(core);
 		}
@@ -249,7 +249,7 @@ int command__map(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 		}
 		key_tmp = keys__KeyString_Parse(core, c_argv[0]);
 		if (!keys__Key_Map(core, key_tmp))
-			bvim_error(buf->state.mode, "Error: can't set new key mapping!");
+			bvim_error(core, buf, "Error: can't set new key mapping!");
 		return 0;
 	}
 	return -1;
@@ -260,11 +260,11 @@ int command__unmap(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 	bkey_t *key_tmp;
 
 	if (c_argc != 1) {
-		bvim_error(buf->state.mode, "Error: empty mapping definition!");
+		bvim_error(core, buf, "Error: empty mapping definition!");
 	} else {
 		key_tmp = keys__KeyString_Parse(core, c_argv[0]);
 		if (!keys__Key_Unmap(core, key_tmp))
-			bvim_error(buf->state.mode, "Error: can't remove key mapping!");
+			bvim_error(core, buf, "Error: can't remove key mapping!");
 		return 0;
 	}
 	return -1;
@@ -274,7 +274,7 @@ int command__unmap(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 // :set
 int command__set(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	int n  = 0;
-	if (chk_comm(buf, NO_ADDR))
+	if (chk_comm(core, buf, NO_ADDR))
 		return -1;
 	if (c_argc == 0) {
 		doset(core, NULL);
@@ -333,15 +333,15 @@ int command__block(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 					ui__BlockHighlightAdd(&tmp_blk);
 					// this we need to remove too
 					blkblk = blocks__GetByID(buf, tmp_blk.id);
-					bvim_info(buf->state.mode, "Added block: start %ld end %ld", blkblk->pos_start, blkblk->pos_end);
+					bvim_info(core, buf, "Added block: start %ld end %ld", blkblk->pos_start, blkblk->pos_end);
 					
-					ui__Screen_Repaint();
+					ui__Screen_Repaint(core, buf);
 				} else {
-					bvim_error(buf->state.mode, "Wrong block start and end values!");
+					bvim_error(core, buf, "Wrong block start and end values!");
 					return -1;
 				}
 			} else {
-				bvim_error(buf->state.mode, "Wrong :block command format!");
+				bvim_error(core, buf, "Wrong :block command format!");
 				return -1;
 			}
 		/* :block del */
@@ -351,13 +351,13 @@ int command__block(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 			if (c_argc == 2) {
 				blkblk = blocks__GetByID(buf, (unsigned int)atoi(c_argv[1])); // block id
 				if (blkblk != NULL) {
-					bvim_info(buf->state.mode, "Block #%d [%ld, %ld], %s", blkblk->id, blkblk->pos_start, blkblk->pos_end, blkblk->annotation);
+					bvim_info(core, buf, "Block #%d [%ld, %ld], %s", blkblk->id, blkblk->pos_start, blkblk->pos_end, blkblk->annotation);
 				} else {
-					bvim_error(buf->state.mode, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
+					bvim_error(core, buf, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
 					return -1;
 				}
 			} else {
-				bvim_error(buf->state.mode, "Wrong :block command format!");
+				bvim_error(core, buf, "Wrong :block command format!");
 				return -1;
 			}
 		/* :block list */
@@ -372,7 +372,7 @@ int command__block(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 				blkblk = blocks__GetByID(buf, (unsigned int)atoi(c_argv[1])); // block id
 				if (blkblk != NULL) {
 					blkblk->folding = 1;
-					ui__Screen_Repaint();
+					ui__Screen_Repaint(core, buf);
 				}
 			}
 		/* :block annotation */
@@ -382,15 +382,15 @@ int command__block(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 				if (blkblk != NULL) {
 					blkblk->annotation = c_argv[2]; // FIXME: Use valid string copy function !
 				} else {
-					bvim_error(buf->state.mode, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
+					bvim_error(core, buf, "Can't find block with %d id!", (unsigned int)atoi(c_argv[1]));
 					return -1;
 				}
 			} else {
-				bvim_error(buf->state.mode, "Wrong :block command format!");
+				bvim_error(core, buf, "Wrong :block command format!");
 				return -1;
 			}
 		} else {
-			bvim_error(buf->state.mode, "Wrong :block command format!");
+			bvim_error(core, buf, "Wrong :block command format!");
 			return -1;
 		}
 	}
@@ -402,14 +402,14 @@ int command__lua(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 	int n = 0;
 
 	if (c_argc == 0) {
-		bvim_error(buf->state.mode, "Error: empty lua command!");
+		bvim_error(core, buf, "Error: empty lua command!");
 	} else {
 		luacmdbuf[0] = '\0';
 		for (n = 0; n < c_argc; n++) {
 			strcat(luacmdbuf, " ");
 			strcat(luacmdbuf, c_argv[n]);
 		}
-		bvim_run_lua_string(luacmdbuf);
+		bvim_run_lua_string(core, buf, luacmdbuf);
 	}
 	return 0;
 }
@@ -418,7 +418,7 @@ int command__lua(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 int command__args(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	int n = 0;
 
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	string[0] = '\0';
 	for (n = 0; n < numfiles; n++) {
@@ -429,16 +429,16 @@ int command__args(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 			strcat(string, "]");
 		strcat(string, " ");
 	}
-	bvim_info(buf->state.mode, string);
+	bvim_info(core, buf, string);
 	return 0;
 }
 
 // :source
 int command__source(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | ONE_FILE))
+	if (chk_comm(core, buf, NO_ADDR | ONE_FILE))
 		return -1;
 	if (read_rc(core, c_argv[0]))
-		ui__SystemErrorMsg(c_argv[0]);
+		bvim_error(core, buf, c_argv[0]);
 	refresh();
 	return 0;
 }
@@ -446,24 +446,24 @@ int command__source(core_t *core, buf_t *buf, char flags, int c_argc, char **c_a
 // :run
 int command__run(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
-		bvim_error(buf->state.mode, "Error: empty plugin name!");
+		bvim_error(core, buf, "Error: empty plugin name!");
 	} else {
-		bvim_run_lua_script(c_argv[0]);
+		bvim_run_lua_script(core, buf, c_argv[0]);
 	}
 	return 0;
 }
 
 // :cd
 int command__cd(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | ONE_FILE))
+	if (chk_comm(core, buf, NO_ADDR | ONE_FILE))
 		return -1;
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, buf->mem, buf->maxpos, WRITE);
+				save(core, buf, name, WRITE);
 				edits = 0;
 			} else {
-				bvim_error(buf->state.mode, BVI_ERROR_NOWRITE, "cd");
+				bvim_error(core, buf, BVI_ERROR_NOWRITE, "cd");
 				return -1;
 			}
 		}
@@ -473,7 +473,7 @@ int command__cd(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv)
 		c_argv[0] = string;
 	}
 	if (chdir(c_argv[0]))
-		ui__SystemErrorMsg(c_argv[0]);
+		bvim_error(core, buf, c_argv[0]);
 	return 0;
 }
 
@@ -485,45 +485,45 @@ int command__edit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 	 */
 	if (*tmp_cmd == 'e' && c_argc == 0) {
 		if (tmp_cmd[1] == '!')
-			(void)doecmd(buf, &tmp_cmd[2], TRUE);
+			(void)doecmd(core, buf, &tmp_cmd[2], TRUE);
 		else
-			(void)doecmd(buf, &tmp_cmd[1], FALSE);
+			(void)doecmd(core, buf, &tmp_cmd[1], FALSE);
 		return 0;
 	}
-	if (chk_comm(buf, NO_ADDR | MAX_ONE_FILE))
+	if (chk_comm(core, buf, NO_ADDR | MAX_ONE_FILE))
 		return -1;
-	doecmd(buf, c_argv[0], flags & FLAG_FORCE);
+	doecmd(core, buf, c_argv[0], flags & FLAG_FORCE);
 	return 0;
 }
 
 // :file
 int command__file(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | MAX_ONE_FILE))
+	if (chk_comm(core, buf, NO_ADDR | MAX_ONE_FILE))
 		return -1;
 	if (c_argc != 0)
 		name = strdup(c_argv[0]);
-	fileinfo(name);
+	fileinfo(core, buf, name);
 	return 0;
 }
 
 // :read
 int command__read(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | MAX_ONE_FILE))
+	if (chk_comm(core, buf, NO_ADDR | MAX_ONE_FILE))
 		return -1;
 	/* read reads a file at EOF */
 	if (c_argc == 0)
 		c_argv[0] = name;
-	if (!addfile(c_argv[0])) {
+	if (!addfile(core, buf, c_argv[0])) {
 		edits = U_TRUNC;
 		undosize = filesize;
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 	}
 	return 0;
 }
 
 // :xit
 int command__xit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	do_exit(core);
 	return 0;
@@ -531,15 +531,15 @@ int command__xit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 
 // :next
 int command__next(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, buf->mem, buf->maxpos, WRITE);
+				save(core, buf, name, WRITE);
 				edits = 0;
 			} else {
-				bvim_error(buf->state.mode, BVI_ERROR_NOWRITE, "next");
+				bvim_error(core, buf, BVI_ERROR_NOWRITE, "next");
 				return -1;
 			}
 		}
@@ -552,23 +552,23 @@ int command__next(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 		stuffin(files[++curfile]);
 		stuffin("\n");
 	} else
-		bvim_error(buf->state.mode, "No more files@to edit!");
+		bvim_error(core, buf, "No more files@to edit!");
 	return 0;
 }
 
 // :rewind
 int command__rewind(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	if (numfiles <= 1)	/* nothing to rewind */
 		return -1;
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
 			if (P(P_AW)) {
-				save(name, buf->mem, buf->maxpos, WRITE);
+				save(core, buf, name, WRITE);
 				edits = 0;
 			} else {
-				bvim_error(buf->state.mode, BVI_ERROR_NOWRITE, "rewind");
+				bvim_error(core, buf, BVI_ERROR_NOWRITE, "rewind");
 				return -1;
 			}
 		}
@@ -585,35 +585,35 @@ int command__rewind(core_t *core, buf_t *buf, char flags, int c_argc, char **c_a
 
 // :append
 int command__append(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | MAX_ONE_ARG))
+	if (chk_comm(core, buf, NO_ADDR | MAX_ONE_ARG))
 		return -1;
-	do_ins_chg(start_addr, c_argc == 1 ? c_argv[0] : "a", U_APPEND);
+	do_ins_chg(core, buf, start_addr, c_argc == 1 ? c_argv[0] : "a", U_APPEND);
 	return 0;
 }
 
 // :change
 int command__change(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, MAX_ONE_ARG))
+	if (chk_comm(core, buf, MAX_ONE_ARG))
 		return -1;
 	if (!addr_flag)
 		start_addr = buf->state.current;
-	do_ins_chg(start_addr, c_argc == 1 ? c_argv[0] : "a", U_EDIT);
+	do_ins_chg(core, buf, start_addr, c_argc == 1 ? c_argv[0] : "a", U_EDIT);
 	return 0;
 }
 
 // :mark
 int command__mark(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 0) {
-		bvim_error(buf->state.mode, "Mark what?");
+		bvim_error(core, buf, "Mark what?");
 		return -1;
 	}
 	if (c_argc > 1 || (strlen(c_argv[0]) > 1)) {
-		bvim_error(buf->state.mode, BVI_ERROR_EXTRACHARS);
+		bvim_error(core, buf, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
 	if (!addr_flag)
 		start_addr = buf->state.current;
-	do_mark(c_argv[0][0], start_addr);
+	do_mark(buf, c_argv[0][0], start_addr);
 	return 0;
 }
 
@@ -621,16 +621,16 @@ int command__mark(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 int command__yank(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if ((yanked = yd_addr(core, buf)) == 0L)
 		return -1;
-	if ((yanked = alloc_buf(yanked, &yank_buf)) == 0L)
+	if ((yanked = alloc_buf(core, buf, yanked, &yank_buf)) == 0L)
 		return -1;
 	memcpy(yank_buf, start_addr, yanked);
-	bvim_info(buf->state.mode, "%lu bytes", (long)yanked);
+	bvim_info(core, buf, "%lu bytes", (long)yanked);
 	return 0;
 }
 
 // :overwrite
 int command__overwrite(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ARG))
+	if (chk_comm(core, buf, NO_ARG))
 		return -1;
 	if (!addr_flag)
 		start_addr = buf->state.current;
@@ -640,7 +640,7 @@ int command__overwrite(core_t *core, buf_t *buf, char flags, int c_argc, char **
 
 // :undo
 int command__undo(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	do_undo(core, buf);
 	return 0;
@@ -648,34 +648,34 @@ int command__undo(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 
 // :version
 int command__version(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
-	bvim_info(buf->state.mode, "bvim version %s %s", VERSION, copyright);
+	bvim_info(core, buf, "bvim version %s %s", VERSION, copyright);
 	return 0;
 }
 
 // :shell
 int command__shell(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
-	do_shell();
+	do_shell(core, buf);
 	clear();
-	ui__Screen_Repaint();
-	clearstr();
+	ui__Screen_Repaint(core, buf);
+	ui__clearstr(core, buf);
 	return 0;
 }
 
 // :quit
 int command__quit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
-	if (chk_comm(buf, NO_ADDR | NO_ARG))
+	if (chk_comm(core, buf, NO_ADDR | NO_ARG))
 		return -1;
 	if (!(flags & FLAG_FORCE)) {
 		if (edits) {
-			bvim_error(buf->state.mode, BVI_ERROR_NOWRITE, "quit");
+			bvim_error(core, buf, BVI_ERROR_NOWRITE, "quit");
 			return -1;
 		} else {
 			if ((curfile + 1) < numfiles) {
-				bvim_error(buf->state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
+				bvim_error(core,buf, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 				return -1;
 			} else
 			quit(core, buf);
@@ -691,13 +691,13 @@ int command__quit(core_t *core, buf_t *buf, char flags, int c_argc, char **c_arg
 // :sleft
 int command__sleft(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(LSHIFT, c_argv[0]);
+		math__logic(core, buf, LSHIFT, c_argv[0]);
 	} else if (c_argc == 0) {
-		math__logic(LSHIFT, "1");
+		math__logic(core, buf, LSHIFT, "1");
 	} else if (c_argc == 2) {
-		math__logic_block(LSHIFT, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, LSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -706,13 +706,13 @@ int command__sleft(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 // :sright
 int command__sright(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(RSHIFT, c_argv[0]);
+		math__logic(core, buf, RSHIFT, c_argv[0]);
 	} else if (c_argc == 0) {
-		math__logic(RSHIFT, "1");
+		math__logic(core, buf, RSHIFT, "1");
 	} else if (c_argc == 2) {
-		math__logic_block(RSHIFT, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, RSHIFT, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -721,13 +721,13 @@ int command__sright(core_t *core, buf_t *buf, char flags, int c_argc, char **c_a
 // :rleft
 int command__rleft(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(LROTATE, c_argv[0]);
+		math__logic(core, buf, LROTATE, c_argv[0]);
 	} else if (c_argc == 0) {
-		math__logic(LROTATE, "1");
+		math__logic(core, buf, LROTATE, "1");
 	} else if (c_argc == 2) {
-		math__logic_block(LROTATE, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, LROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -736,13 +736,13 @@ int command__rleft(core_t *core, buf_t *buf, char flags, int c_argc, char **c_ar
 // :rright
 int command__rright(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(RROTATE, c_argv[0]);
+		math__logic(core, buf, RROTATE, c_argv[0]);
 	} else if (c_argc == 0) {
-		math__logic(RROTATE, "1");
+		math__logic(core, buf, RROTATE, "1");
 	} else if (c_argc == 2) {
-		math__logic_block(RROTATE, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, RROTATE, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -751,14 +751,14 @@ int command__rright(core_t *core, buf_t *buf, char flags, int c_argc, char **c_a
 // :and
 int command__and(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(AND, c_argv[0]);
+		math__logic(core, buf, AND, c_argv[0]);
 	} else if (c_argc == 0) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOVAL);
+		bvim_error(core, buf, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		math__logic_block(AND, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, AND, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -767,14 +767,14 @@ int command__and(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 // :or
 int command__or(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(OR, c_argv[0]);
+		math__logic(core, buf, OR, c_argv[0]);
 	} else if (c_argc == 0) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOVAL);
+		bvim_error(core, buf, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		math__logic_block(OR, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, OR, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -783,14 +783,14 @@ int command__or(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv)
 // :xor
 int command__xor(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc == 1) {
-		math__logic(XOR, c_argv[0]);
+		math__logic(core, buf, XOR, c_argv[0]);
 	} else if (c_argc == 0) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOVAL);
+		bvim_error(core, buf, BVI_ERROR_NOVAL);
 		return -1;
 	} else if (c_argc == 2) {
-		math__logic_block(XOR, c_argv[0], atoi(c_argv[1]));
+		math__logic_block(core, buf, XOR, c_argv[0], atoi(c_argv[1]));
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return -1;
 	}
 	return 0;
@@ -799,20 +799,20 @@ int command__xor(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 // :neg
 int command__neg(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc != 0) {
-		bvim_error(buf->state.mode, BVI_ERROR_EXTRACHARS);
+		bvim_error(core, buf, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
-	math__logic(NEG, "255");
+	math__logic(core, buf, NEG, "255");
 	return 0;
 }
 
 // :not
 int command__not(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv) {
 	if (c_argc != 0) {
-		bvim_error(buf->state.mode, BVI_ERROR_EXTRACHARS);
+		bvim_error(core, buf, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
-	math__logic(NOT, "255");
+	math__logic(core, buf, NOT, "255");
 	return 0;
 }
 
@@ -823,14 +823,14 @@ int command__fuz(core_t *core, buf_t *buf, char flags, int c_argc, char **c_argv
 	int distance;
 	if (c_argc == 1) {
 		distance = 1;
-		fnd = fuzzy_search(buf->mem, filesize, c_argv[0], strlen(c_argv[0]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
-		bvim_info(buf->state.mode, "Found %d matches", fnd.cnt);
+		fnd = fuzzy_search(core, buf, filesize, c_argv[0], strlen(c_argv[0]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
+		bvim_info(core, buf, "Found %d matches", fnd.cnt);
 	} else if (c_argc == 2) {
 		distance = atoi(c_argv[0]);
-		fnd = fuzzy_search(buf->mem, filesize, c_argv[1], strlen(c_argv[1]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
-		bvim_info(buf->state.mode, "Found %d matches", fnd.cnt);
+		fnd = fuzzy_search(core, buf, filesize, c_argv[1], strlen(c_argv[1]), FUZZY_BITAP_HAMMINGTON_DISTANCE, distance);
+		bvim_info(core, buf, "Found %d matches", fnd.cnt);
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_EXTRACHARS);
+		bvim_error(core, buf, BVI_ERROR_EXTRACHARS);
 		return -1;
 	}
 	return 0;
@@ -863,7 +863,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	if (*cmdline == '"')
 		return;			/** comment **/
 	if (strlen(cmdline) > CMDSZ - 2) {
-		ui__ErrorMsg("Command too long");
+		bvim_error(core, buf, "Command too long");
 		return;
 	}
 	strcpy(buff, cmdline);
@@ -898,15 +898,15 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		}
 	}
 	SKIP_WHITE if (start_addr > (end_addr + 1)) {
-		bvim_error(buf->state.mode, "Addr1 > addr2|First address exceeds second");
+		bvim_error(core, buf, "Addr1 > addr2|First address exceeds second");
 		return;
 	}
 	if ((end_addr + 1) > buf->maxpos) {
-		bvim_error(buf->state.mode, "Not that many bytes@in buffer");
+		bvim_error(core, buf, "Not that many bytes@in buffer");
 		return;
 	}
 	if (start_addr < buf->mem) {
-		bvim_error(buf->state.mode, "Negative address@- first byte is %ld", P(P_OF));
+		bvim_error(core, buf, "Negative address@- first byte is %ld", P(P_OF));
 		return;
 	}
 
@@ -914,7 +914,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	/**** End of address range calculation ****/
 	
 	if (*cmd == '\0') {
-		setpage(end_addr);
+		setpage(core, buf, end_addr);
 		return;
 	}
 	strcpy(cmdbuf, cmd);	/* save the unmodified command */
@@ -922,26 +922,26 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 
 	if (*cmd == '!') {
 		if (*(cmdbuf + 1) == '\0') {
-			bvim_error(buf->state.mode, "Incomplete shell escape command@- use 'shell' to get a shell");
+			bvim_error(core, buf, "Incomplete shell escape command@- use 'shell' to get a shell");
 			return;
 		}
 		if (*(cmdbuf + 1) == '!') {
 			if (oldbuf[0] != '\0') {
 				strcpy(cmdbuf + 1, oldbuf);
-				bvim_info(buf->state.mode, oldbuf);
+				bvim_info(core, buf, oldbuf);
 			} else {
-				bvim_error(buf->state.mode, "No previous command@to substitute for !");
+				bvim_error(core, buf, "No previous command@to substitute for !");
 				return;
 			}
 		} else
 			sprintf(oldbuf, "\n%s\n", cmdbuf + 1);
 
 		if (P(P_AW)) {
-			save(name, buf->mem, buf->maxpos, WRITE);
+			save(core, buf, name, WRITE);
 			edits = 0;
 		}
 		if (edits)
-			bvim_info(buf->state.mode, "[No write]|[No write since last change]");
+			bvim_info(core, buf, "[No write]|[No write since last change]");
 		savetty();
 		endwin();
 		shresult = system(cmdbuf + 1);
@@ -950,8 +950,8 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		fprintf(stderr, "[Hit return to continue]");
 		getchar();
 		doupdate();
-		ui__Screen_Repaint();
-		clearstr();
+		ui__Screen_Repaint(core, buf);
+		ui__clearstr(core, buf);
 		return;
 	}
 
@@ -959,7 +959,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	while (*cmd >= 'a' && *cmd <= 'z') {
 		cmdname[n++] = *cmd++;
 		if (n == MAXNAME) {
-			bvim_error(buf->state.mode, "What?|%s: Not an editor command 1", cmdbuf);
+			bvim_error(core, buf, "What?|%s: Not an editor command 1", cmdbuf);
 			return;
 		}
 	}
@@ -972,14 +972,14 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	SKIP_WHITE if (!strncmp("substitute", cmdname, len) && CMDLNG(10, 1)) {
 		repl_count = do_substitution(core, buf, *cmd, cmd + 1, start_addr, end_addr);
 		if (repl_count == -1) {
-			bvim_error(buf->state.mode, "No previous substitute re|No previous substitute regular expression");
+			bvim_error(core, buf, "No previous substitute re|No previous substitute regular expression");
 			return;	/* No prev subst */
 		}
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		if (!repl_count) {
-			bvim_error(buf->state.mode, "Fail|Substitute pattern matching failed");
+			bvim_error(core, buf, "Fail|Substitute pattern matching failed");
 		} else if (repl_count > 1) {
-			bvim_info(buf->state.mode, "%d subs|%d substitutions", repl_count, repl_count);
+			bvim_info(core, buf, "%d subs|%d substitutions", repl_count, repl_count);
 		}
 		return;
 	} else if (!strncmp("global", cmdname, len) && CMDLNG(6, 1)) {
@@ -988,26 +988,26 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 		addch('\n');
 		while ((buf->state.current = searching(core, buf, *cmd, cmd + 1, buf->state.current, end_addr, FALSE | S_GLOBAL)) != 0L) {
 			addch('\n');
-			ui__Line_Print(buf->state.current, core->screen.maxy - 1);
+			ui__Line_Print(core, buf, buf->state.current, core->screen.maxy - 1);
 			repl_count++;
 			if (repl_count == LINES - 2) {
-				if (wait_return(core, FALSE))
+				if (wait_return(core, buf, FALSE))
 					return;
 				repl_count = 0;
 			}
 		}
 		if (repl_count) {
-			wait_return(core, TRUE);
+			wait_return(core, buf, TRUE);
 		} else {
-			ui__Screen_Repaint();
-			bvim_error(buf->state.mode, BVI_ERROR_PATNOTFOUND);
+			ui__Screen_Repaint(core, buf);
+			bvim_error(core, buf, BVI_ERROR_PATNOTFOUND);
 		}
 		return;
 	} else if (cmdname[0] == 't') {
 		if (!addr_flag)
 			start_addr = buf->state.current;
 		cmd = cmdname + 1L;
-		SKIP_WHITE do_mark(*cmd, start_addr);
+		SKIP_WHITE do_mark(buf, *cmd, start_addr);
 		return;
 	}
 
@@ -1018,11 +1018,11 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 				cmd++;
 				saveflag = APPEND;
 			} else {
-				bvim_error(buf->state.mode, "Write forms are 'w' and 'w>>'");
+				bvim_error(core, buf, "Write forms are 'w' and 'w>>'");
 				return;
 			}
 		} else if (*cmd == '!') {
-			bvim_error(buf->state.mode, "Not yet implemented");
+			bvim_error(core, buf, "Not yet implemented");
 			return;
 		} else {
 			saveflag = WRITE;
@@ -1034,7 +1034,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 			c_argc++;
 
 		if (c_argc > 1) {
-			bvim_error(buf->state.mode, BVI_ERROR_AMBIGOUS);
+			bvim_error(core, buf, BVI_ERROR_AMBIGOUS);
 			return;
 		}
 		if (c_argc == 1) {
@@ -1042,7 +1042,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 			while ((p = strchr(c_argv[0], '%')) != NULL
 			       && *(p - 1) != '\\') {
 				if (name == NULL) {
-					bvim_error(buf->state.mode, "No filename@to substitute for %");
+					bvim_error(core, buf, "No filename@to substitute for %");
 					return;
 				}
 				*p = '\0';
@@ -1056,24 +1056,20 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 			name = strdup(c_argv[0]);
 		if (flags & FLAG_FORCE) {
 			if (c_argc == 0)
-				ok = save(name, start_addr, end_addr, saveflag);
+				ok = save(core, buf, name, saveflag);
 			else
-				ok = save(c_argv[0], start_addr, end_addr,
-					  saveflag);
+				ok = save(core, buf, c_argv[0], saveflag);
 		} else {
 			if (c_argc == 0) {
 				if (P(P_RO)) {
-					bvim_error(buf->state.mode, "\"%s\" File is read only", name);
+					bvim_error(core, buf, "\"%s\" File is read only", name);
 					return;
 				} else
-					ok = save(name, start_addr, end_addr,
-						  saveflag);
+					ok = save(core, buf, name, saveflag);
 			} else {
 				if (!stat(c_argv[0], &bbuf)) {
 					if (saveflag == WRITE) {
-						bvim_error(buf->state.mode ,
-							"File exists@- use \"%s! %s\" to overwrite",
-							cmdname, c_argv[0]);
+						bvim_error(core, buf, "File exists@- use \"%s! %s\" to overwrite", cmdname, c_argv[0]);
 						return;
 					} else {	/* APPEND */
 					/* We can only append to a regular file! */
@@ -1082,15 +1078,14 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 								filemode =
 								    REGULAR;
 						} else if (S_ISBLK(bbuf.st_mode)) {
-							bvim_error(buf->state.mode, "Cannot append to a block special file");
+							bvim_error(core, buf, "Cannot append to a block special file");
 							return;
 						}
-						ok = save(c_argv[0], start_addr,
-							  end_addr, saveflag);
+						ok = save(core, buf, c_argv[0], saveflag);
 					}
 				} else {
 					if (saveflag == APPEND) {
-						bvim_error(buf->state.mode, "No such file");
+						bvim_error(core, buf, "No such file");
 						return;
 					} else {	/* WRITE */
 					/* If we write the block of a partial file to a new file, it will
@@ -1098,8 +1093,7 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 					 */
 						if (filemode == PARTIAL)
 							filemode = REGULAR;
-						ok = save(c_argv[0], start_addr,
-							  end_addr, saveflag);
+						ok = save(core, buf, c_argv[0], saveflag);
 					}
 				}
 			}
@@ -1124,20 +1118,16 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 	while (j < core->cmdmap.items) {
 		if (!strncmp(core->cmdmap.arr[j].name, cmdname, len) && CMDLNG(core->cmdmap.arr[j].size1, core->cmdmap.arr[j].size2) &&
 			(core->cmdmap.arr[j].enabled == 1)) {
-			if ((core->cmdmap.arr[j].handler_type ==
-			     BVI_HANDLER_INTERNAL) & (core->cmdmap.arr[j].handler.
-						      func != NULL)) {
+			if ((core->cmdmap.arr[j].handler_type == BVI_HANDLER_INTERNAL) & (core->cmdmap.arr[j].handler.func != NULL)) {
 				(*(core->cmdmap.arr[j].handler.func)) (core, buf, flags, c_argc, c_argv);
 				cmd_recognized = 1;
 				break;
-			} else
-			    if ((core->cmdmap.arr[j].handler_type ==
-				 BVI_HANDLER_LUA) & (core->cmdmap.arr[j].handler.
-						     lua_cmd != NULL)) {
-				bvim_run_lua_string(core->cmdmap.arr[j].handler.
-						   lua_cmd);
-				cmd_recognized = 1;
-				break;
+			} else {
+			    if ((core->cmdmap.arr[j].handler_type == BVI_HANDLER_LUA) & (core->cmdmap.arr[j].handler.lua_cmd != NULL)) {
+					bvim_run_lua_string(core, buf, core->cmdmap.arr[j].handler.lua_cmd);
+					cmd_recognized = 1;
+					break;
+				}
 			}
 		}
 		j++;
@@ -1149,38 +1139,37 @@ void docmdline(core_t *core, buf_t *buf, char* cmdline)
 			if (!strncmp("delete", cmdname, len) && CMDLNG(6, 1)) {
 				if ((undo_count = yd_addr(core, buf)) == 0L)
 					return;
-				do_delete(undo_count, start_addr);
-				bvim_info(buf->state.mode, "%lu bytes", (long)undo_count);
+				do_delete(core, buf, undo_count, start_addr);
+				bvim_info(core, buf, "%lu bytes", (long)undo_count);
 			} else if (!strncmp("insert", cmdname, len)
 				   && CMDLNG(6, 1)) {
-				if (chk_comm(buf, MAX_ONE_ARG))
+				if (chk_comm(core, buf, MAX_ONE_ARG))
 					return;
 				if (!addr_flag)
 					start_addr = buf->state.current;
-				do_ins_chg(start_addr - 1,
-					   c_argc == 1 ? c_argv[0] : "a",
-					   U_INSERT);
+				do_ins_chg(core, buf, start_addr - 1,
+					   c_argc == 1 ? c_argv[0] : "a", U_INSERT);
 			} else if (!strncmp("put", cmdname, len)
 				   && CMDLNG(3, 2)) {
-				if (chk_comm(buf, NO_ARG))
+				if (chk_comm(core, buf, NO_ARG))
 					return;
 				if (!addr_flag)
 					start_addr = buf->state.current;
 				do_put(core, buf, start_addr, yanked, yank_buf);
 			} else {
-				bvim_error(buf->state.mode, string);
+				bvim_error(core, buf, string);
 			}
 		} else {
 			if (!strncmp("delete", cmdname, len) && CMDLNG(6, 1)) {
-				movebyte();
+				movebyte(core, buf);
 			} else if (!strncmp("insert", cmdname, len)
 				   && CMDLNG(6, 1)) {
-				movebyte();
+				movebyte(core, buf);
 			} else if (!strncmp("put", cmdname, len)
 				   && CMDLNG(3, 2)) {
-				movebyte();
+				movebyte(core, buf);
 			} else {
-				bvim_error(buf->state.mode, string);
+				bvim_error(core, buf, string);
 			}
 		}
 	}
@@ -1216,7 +1205,7 @@ off_t yd_addr(core_t *core, buf_t *buf)
 			break;
 		}
 	} else {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return 0;
 	}
 	return count;
@@ -1226,27 +1215,27 @@ void do_exit(core_t *core)
 {
 // FIXME: implement function, which check all buffers
 	if (edits) {
-		if (!save(name, core->curbuf->mem, core->curbuf->maxpos - 1L, WRITE))
+		if (!save(core, core->curbuf, name, WRITE))
 			return;
 	}
 	if ((curfile + 1) < numfiles) {
-		bvim_error(core->curbuf->state.mode, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
+		bvim_error(core, core->curbuf, "%d %s", numfiles - curfile - 1, BVI_ERROR_MOREFILES);
 	} else {
 #ifdef HAVE_LUA_H
-		bvim_lua_finish();
+		bvim_lua_finish(core);
 #endif
 		quit(core, core->curbuf);
 	}
 }
 
-int doecmd(buf_t *buf, char* arg, int flags)
+int doecmd(core_t *core, buf_t *buf, char* arg, int flags)
 {
 	char *tmp;
 
 	if (*arg == '\0')
 		arg = NULL;
 	if (!(flags & FLAG_FORCE) && edits) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOWRITE, "edit");
+		bvim_error(core, buf, BVI_ERROR_NOWRITE, "edit");
 		/*
 		   if (altfile)
 		   free(altfile);
@@ -1261,7 +1250,7 @@ int doecmd(buf_t *buf, char* arg, int flags)
 		}
 		if (name != NULL && !strcmp(arg, "#")) {
 			if (altfile == NULL) {
-				bvim_error(buf->state.mode, "No alternate filename@to substitute for #");
+				bvim_error(core, buf, "No alternate filename@to substitute for #");
 				return FALSE;
 			}
 			tmp = name;
@@ -1276,25 +1265,25 @@ int doecmd(buf_t *buf, char* arg, int flags)
 		}
 	}
 	if (name == NULL) {
-		bvim_error(buf->state.mode, "No file|No current filename");
+		bvim_error(core, buf, "No file|No current filename");
 		return FALSE;
 	}
 
 	edits = 0;
-	filesize = load(name);
+	filesize = load(core, buf, name);
 	if (arg == NULL) {
-		setpage(buf->state.current < buf->maxpos ? buf->state.current : buf->maxpos - 1L);
+		setpage(core, buf, buf->state.current < buf->maxpos ? buf->state.current : buf->maxpos - 1L);
 	}
 	return TRUE;
 }
 
 /* If flag == TRUE we do a ui__Screen_Repaint */
-int wait_return(core_t *core, int flag)
+int wait_return(core_t *core, buf_t *buf,  int flag)
 {
 	int c;
 
 	signal(SIGINT, jmpproc);
-	clearstr();
+	ui__clearstr(core, buf);
 	attrset(A_REVERSE);
 	mvaddstr(core->screen.maxy, 0, "[Hit return to continue]");
 	attrset(A_NORMAL);
@@ -1302,9 +1291,9 @@ int wait_return(core_t *core, int flag)
 	c = getch();
 	if (flag) {
 		clear();
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 	}
-	clearstr();
+	ui__clearstr(core, buf);
 	signal(SIGINT, SIG_IGN);
 	if (c != CR && c != NL && c != ' ' && c != ':' && c != KEY_ENTER)
 		return 1;
@@ -1312,27 +1301,28 @@ int wait_return(core_t *core, int flag)
 }
 
 /* check command arguments for integrity */
-int chk_comm(buf_t* buf, int flag)
+int chk_comm(core_t *core, buf_t* buf, int flag)
 {
 	if ((flag & NO_ADDR) && (addr_flag > 0)) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOADDR);
+		bvim_error(core, buf, BVI_ERROR_NOADDR);
 		return 1;
 	}
 	if ((flag & NO_ARG) && (c_argc > 0)) {
-		bvim_error(buf->state.mode, BVI_ERROR_EXTRACHARS);
+		bvim_error(core, buf, BVI_ERROR_EXTRACHARS);
 		return 1;
 	}
 	if ((flag & MAX_ONE_ARG) && (c_argc > 1)) {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBVALUE);
+		bvim_error(core, buf, BVI_ERROR_AMBVALUE);
 		return 1;
 	}
 	if ((flag & ONE_FILE) && (c_argc == 0)) {
-		bvim_error(buf->state.mode, "Missing filename");
+		bvim_error(core, buf, "Missing filename");
 		return 1;
 	}
 	if ((flag & MAX_ONE_FILE) && (c_argc > 1)) {
-		bvim_error(buf->state.mode, BVI_ERROR_AMBIGOUS);
+		bvim_error(core, buf, BVI_ERROR_AMBIGOUS);
 		return 1;
 	}
 	return 0;
 }
+

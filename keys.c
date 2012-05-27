@@ -340,8 +340,8 @@ void keys__KeyMaps_Show(core_t *core)
 		strcat(dispbuf, luacmdbuf);
 		i++;
 	}
-	ui__StatusMsg(dispbuf);
-	wait_return(core, TRUE);
+	bvim_info(core, core->curbuf, dispbuf);
+	wait_return(core, core->curbuf, TRUE);
 }
 
 int keys__Key_Pressed(core_t *core, int key_code)
@@ -358,7 +358,7 @@ int keys__Key_Pressed(core_t *core, int key_code)
 			    if ((core->keymap.arr[j].handler_type ==
 				 BVI_HANDLER_LUA) & (core->keymap.arr[j].handler.
 						     lua_cmd != NULL)) {
-				bvim_run_lua_string(core->keymap.arr[j].handler.
+				bvim_run_lua_string(core, core->curbuf, core->keymap.arr[j].handler.
 						   lua_cmd);
 			}
 		}

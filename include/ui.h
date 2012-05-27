@@ -44,36 +44,40 @@ struct repl_t {
 	int current_x;
 };
 
-void ui__Init(void);
-void ui__ErrorMsg(char *);
-void ui__SystemErrorMsg(char *);
-void ui__StatusMsg(char *);
-void ui__MsgWin_Show(char *, int width, int height);
+void ui__Init(core_t*, buf_t*);
+void ui__ErrorMsg(core_t*, buf_t*, char *);
+void ui__SystemErrorMsg(core_t*, buf_t *, char *);
+void ui__StatusMsg(core_t*, buf_t*, char *);
+void ui__MsgWin_Show(core_t*, buf_t*, char *, int width, int height);
 
-int ui__ToolWin_Show(int), ui__ToolWin_Hide();
-int ui__ToolWin_Print(char *, int);
-short ui__ToolWin_Exist();
+int ui__ToolWin_Show(core_t*, buf_t*, int);
+int ui__ToolWin_Hide(core_t*, buf_t*);
+int ui__ToolWin_Print(core_t*, buf_t*, char *, int);
+short ui__ToolWin_Exist(core_t*, buf_t*);
 
-int ui__REPL_Main();
-int ui__REPLWin_Show();
-int ui__REPLWin_Hide();
-int ui__REPLWin_print(const char*);
-int ui__REPLWin_clear();
+int ui__REPL_Main(core_t*, buf_t*);
+int ui__REPLWin_Show(core_t*, buf_t*);
+int ui__REPLWin_Hide(core_t*, buf_t*);
+int ui__REPLWin_print(core_t*, buf_t*, char*);
+int ui__REPLWin_clear(core_t*, buf_t*);
 short ui__REPLWin_Exist();
 
-void ui__MainWin_Resize(int);
+void ui__MainWin_Resize(core_t*, int);
 void printcolorline(int, int, int, char *);
-void ui__Line_Print();
-int ui__lineout();
+void ui__Line_Print(core_t*, buf_t*, PTR, int);
+int ui__lineout(core_t*, buf_t*);
+void ui__clearstr(core_t*, buf_t*);
+void ui__smsg(core_t*, buf_t*, char *s);
 
 void ui__setcur(void);
 
-int ui__Color_Set(char *);
+int ui__Color_Set(core_t *core, buf_t *buf, char *);
 void ui__Colors_Set();
 void ui__Colors_Load();
 void ui__Colors_Save();
 
-void ui__Screen_Repaint(void), ui__Screen_New(void);
+void ui__Screen_Repaint(core_t*, buf_t*);
+void ui__Screen_New(core_t*, buf_t*);
 
 int ui__BlockHighlightAdd(struct block_item *blk);
 

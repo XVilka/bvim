@@ -102,8 +102,10 @@ int blocks__Iterator(buf_t *buf, int (*(func))(), int result)
 	t = buf->blocks;
 	while (t != NULL)
 	{
-		if ((*(func))(&(t->item)) == result) {
-			return 0;
+		if (t->item.id != 0) {
+			if ((*(func))(&(t->item)) == result) {
+				return 0;
+			}
 		}
 		t = t->next;
 	}

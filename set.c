@@ -75,10 +75,10 @@ int doset(core_t *core, char *arg)
 	/* extract colors section */
 	if (!strncmp(arg, "color", 5)) {
 		arg = bvim_substr(arg, 6, -1);
-		ui__Color_Set(arg);
+		ui__Color_Set(core, core->curbuf, arg);
 		return 0;
 	} else {
-		ui__ErrorMsg(arg);
+		bvim_error(core, core->curbuf, arg);
 		return 1;
 	}
 
@@ -103,21 +103,19 @@ int doset(core_t *core, char *arg)
 			else
 				sprintf(buf, "      %s=%ld", params[i].fullname,
 					params[i].nvalue);
-			ui__StatusMsg(buf);
+			bvim_info(core, core->curbuf, buf);
 			return 0;
 		}
 		if (!strcmp(params[i].fullname, "term")) {
-			ui__ErrorMsg
-			    ("Can't change type of terminal from within bvim");
+			bvim_error(core, core->curbuf, "Can't change type of terminal from within bvim");
 			return 1;
 		}
 		if (params[i].flags & P_NUM) {
 			if ((i == P_LI) || (i == P_OF))
 				did_window++;
 			if (arg[strlen(s)] != '=' || state == FALSE) {
-				sprintf(string, "Option %s is not a toggle",
-					params[i].fullname);
-				ui__ErrorMsg(string);
+				sprintf(string, "Option %s is not a toggle", params[i].fullname);
+				bvim_error(core, core->curbuf, string);
 				return 1;
 			} else {
 				s = arg + strlen(s) + 1;
@@ -129,37 +127,22 @@ int doset(core_t *core, char *arg)
 				params[i].flags |= P_CHANGED;
 
 				if (i == P_CM) {
-					if (((COLS -
-					      core->params.COLUMNS_ADDRESS -
-					      1) / 4) >= P(P_CM)) {
-						core->params.COLUMNS_DATA =
-						    P(P_CM);
+					if (((COLS - core->params.COLUMNS_ADDRESS - 1) / 4) >= P(P_CM)) {
+						core->params.COLUMNS_DATA = P(P_CM);
 					} else {
-						core->params.COLUMNS_DATA =
-						    P(P_CM) =
-						    ((COLS -
-						      core->params.
-						      COLUMNS_ADDRESS - 1) / 4);
+						core->params.COLUMNS_DATA = P(P_CM) = ((COLS - core->params.COLUMNS_ADDRESS - 1) / 4);
 					}
-					core->screen.maxx =
-					    core->params.COLUMNS_DATA * 4 +
-					    core->params.COLUMNS_ADDRESS + 1;
-					core->params.COLUMNS_HEX =
-					    core->params.COLUMNS_DATA * 3;
-					status =
-					    core->params.COLUMNS_HEX +
-					    core->params.COLUMNS_DATA - 17;
-					screen =
-					    core->params.COLUMNS_DATA *
-					    (core->screen.maxy - 1);
+					core->screen.maxx = core->params.COLUMNS_DATA * 4 + core->params.COLUMNS_ADDRESS + 1;
+					core->params.COLUMNS_HEX = core->params.COLUMNS_DATA * 3;
+					status = core->params.COLUMNS_HEX + core->params.COLUMNS_DATA - 17;
+					screen = core->params.COLUMNS_DATA * (core->screen.maxy - 1);
 					did_window++;
 					stuffin("H");	/* set cursor at HOME */
 				}
 			}
 		} else {	/* boolean */
 			if (arg[strlen(s)] == '=') {
-				ui__ErrorMsg
-				    ("Invalid set of boolean parameter");
+				bvim_error(core, core->curbuf, "Invalid set of boolean parameter");
 				return 1;
 			} else {
 				params[i].nvalue = state;
@@ -167,14 +150,13 @@ int doset(core_t *core, char *arg)
 			}
 		}
 	} else {
-		ui__ErrorMsg
-		    ("No such option@- `set all' gives all option values");
+		bvim_error(core, core->curbuf, "No such option@- `set all' gives all option values");
 		return 1;
 	}
 
 	if (did_window) {
 		core->screen.maxy = P(P_LI) - 1;
-		ui__Screen_New();
+		ui__Screen_New(core, core->curbuf);
 	}
 
 	return 0;
@@ -187,27 +169,26 @@ void showparms(core_t *core, int all)
 	int n;
 
 	n = 2;
-	ui__StatusMsg("Parameters:\n");
+	bvim_info(core, core->curbuf, "Parameters:\n");
 	for (p = &params[0]; p->fullname[0] != '\0'; p++) {
 		if (!all && ((p->flags & P_CHANGED) == 0))
 			continue;
 		if (p->flags & P_BOOL)
-			sprintf(buf, "    %s%s\n",
-				(p->nvalue ? "  " : "no"), p->fullname);
+			sprintf(buf, "    %s%s\n", (p->nvalue ? "  " : "no"), p->fullname);
 		else if (p->flags & P_TEXT)
 			sprintf(buf, "      %s=%s\n", p->fullname, p->svalue);
 		else
 			sprintf(buf, "      %s=%ld\n", p->fullname, p->nvalue);
 
-		ui__StatusMsg(buf);
+		bvim_info(core, core->curbuf, buf);
 		n++;
 		if (n == params[P_LI].nvalue) {
-			if (wait_return(core, FALSE))
+			if (wait_return(core, core->curbuf, FALSE))
 				return;
 			n = 1;
 		}
 	}
-	wait_return(core, TRUE);
+	wait_return(core, core->curbuf, TRUE);
 }
 
 int getcmdstr(core_t *core, char* p, int x)
@@ -247,7 +228,7 @@ int getcmdstr(core_t *core, char* p, int x)
 				move(core->screen.maxy, n);
 			} else {
 				*buff = '\0';
-				ui__StatusMsg("");
+				bvim_info(core, core->curbuf, "");
 				attroff(COLOR_PAIR(C_CM + 1));
 				signal(SIGINT, SIG_IGN);
 				return 1;
@@ -255,7 +236,7 @@ int getcmdstr(core_t *core, char* p, int x)
 			break;
 		case ESC:	/* abandon command */
 			*buff = '\0';
-			ui__StatusMsg("");
+			bvim_info(core, core->curbuf, "");
 			attroff(COLOR_PAIR(C_CM + 1));
 			signal(SIGINT, SIG_IGN);
 			return 1;

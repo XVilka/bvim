@@ -47,7 +47,7 @@ static off_t block_read;
 char *terminal;
 
 /* Save the patched file */
-int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flags)
+int save(core_t* core, buf_t* buf, char* fname, int flags)
 {
 	int fd;
 	char string[255];
@@ -55,7 +55,7 @@ int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flag
 	off_t filesize;
 
 	if (!fname) {
-		ui__ErrorMsg("No file|No current filename");
+		bvim_error(core, buf, "No file|No current filename");
 		return 0;
 	}
 	if (stat(fname, &sbuf) == -1) {
@@ -63,11 +63,11 @@ int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flag
 	} else {
 		if (S_ISDIR(sbuf.st_mode)) {
 			sprintf(string, "\"%s\" Is a directory", fname);
-			ui__StatusMsg(string);
+			bvim_info(core, buf, string);
 			return 0;
 		} else if (S_ISCHR(sbuf.st_mode)) {
 			sprintf(string, "\"%s\" Character special file", fname);
-			ui__StatusMsg(string);
+			bvim_info(core, buf, string);
 			return 0;
 		} else if (S_ISBLK(sbuf.st_mode)) {
 			/*
@@ -82,7 +82,7 @@ int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flag
 	if (filemode == PARTIAL)
 		flags = O_RDWR;
 	if ((fd = open(fname, flags, 0666)) < 0) {
-		ui__SystemErrorMsg(fname);
+		bvim_error(core, buf, fname);
 		return 0;
 	}
 	if (filemode == PARTIAL) {
@@ -92,26 +92,26 @@ int save(core_t* core, buf_t* buf, char* fname, char* start, char* end, int flag
 				(unsigned long)block_begin,
 				(unsigned long)(block_begin - 1 + filesize));
 			if (lseek(fd, block_begin, SEEK_SET) < 0) {
-				ui__SystemErrorMsg(fname);
+				bvim_error(core, buf, fname);
 				return 0;
 			}
 		} else {
-			ui__StatusMsg("Null range");
+			bvim_info(core, buf, "Null range");
 			return 0;
 		}
 	} else {
-		filesize = end - start + 1L;
+		filesize = buf->maxpos - buf->mem + 1L;
 		sprintf(string, "\"%s\" %s%lu bytes", fname, newstr, (unsigned long)filesize);
 	}
 
-	if (write(fd, start, filesize) != filesize) {
-		ui__SystemErrorMsg(fname);
+	if (write(fd, buf->mem, filesize) != filesize) {
+		bvim_error(core, buf, fname);
 		close(fd);
 		return 0;
 	}
 	close(fd);
 	edits = 0;
-	ui__StatusMsg(string);
+	bvim_info(core, buf, string);
 	return 1;
 }
 
@@ -124,7 +124,7 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 	sbuf.st_size = 0L;
 	if (fname != NULL) {
 		sprintf(string, "\"%s\"", fname);
-		ui__StatusMsg(string);
+		bvim_info(core, buf, string);
 		refresh();
 		if (stat(fname, &sbuf) == -1) {
 			filemode = NEW;
@@ -144,7 +144,7 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 				P(P_RO) = TRUE;
 				params[P_RO].flags |= P_CHANGED;
 			} else {
-				ui__SystemErrorMsg(fname);
+				bvim_error(core, buf, fname);
 				filemode = ERROR;
 			}
 		} else if (S_ISREG(sbuf.st_mode)) {
@@ -162,7 +162,7 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 					params[P_RO].flags |= P_CHANGED;
 				}
 			} else {
-				ui__SystemErrorMsg(fname);
+				bvim_error(core, buf, fname);
 				filemode = ERROR;
 			}
 		}
@@ -183,12 +183,12 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 		printf("Out of memory\n");
 		exit(0);
 	}
-	clear_marks();
+	clear_marks(buf);
 
 	if (block_flag
 	    && ((filemode == REGULAR) || (filemode == BLOCK_SPECIAL))) {
 		if (lseek(fd, block_begin, SEEK_SET) < 0) {
-			ui__SystemErrorMsg(fname);
+			bvim_error(core, buf, fname);
 			filemode = ERROR;
 		} else {
 			if ((filesize = read(fd, buf->mem, block_size)) == 0) {
@@ -204,13 +204,13 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 				P(P_OF) = block_begin;
 				params[P_OF].flags |= P_CHANGED;
 			}
-			ui__StatusMsg(string);
+			bvim_info(core, buf, string);
 			refresh();
 		}
 	} else if (filemode == REGULAR) {
 		filesize = sbuf.st_size;
 		if (read(fd, buf->mem, filesize) != filesize) {
-			ui__SystemErrorMsg(fname);
+			bvim_error(core, buf, fname);
 			filemode = ERROR;
 		}
 	} else {
@@ -239,14 +239,14 @@ off_t load(core_t* core, buf_t* buf, char* fname)
 			break;
 		}
 		if (filemode != ERROR)
-			ui__StatusMsg(string);
+			bvim_info(core, buf, string);
 	}
 	buf->state.pagepos = buf->mem;
 	buf->maxpos = buf->mem + filesize;
 	buf->state.loc = HEX;
 	x = core->params.COLUMNS_ADDRESS;
 	y = 0;
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 	return (filesize);
 }
 
@@ -263,7 +263,7 @@ void bvim_init(core_t* core, char* dir)
 	if (shell == NULL || *shell == '\0')
 		shell = "/bin/sh";
 
-	if ((initstr = getenv("BVIINIT")) != NULL) {
+	if ((initstr = getenv("BVIMINIT")) != NULL) {
 		docmdline(core, core->curbuf, initstr);
 		return;
 	}
@@ -305,7 +305,7 @@ int enlarge(core_t* core, buf_t* buf, off_t add)
 		newmem = realloc(buf->mem, memsize + add);
 	}
 	if (newmem == NULL) {
-		ui__ErrorMsg("Out of memory");
+		bvim_error(core, buf, "Out of memory");
 		return 1;
 	}
 
@@ -319,16 +319,16 @@ int enlarge(core_t* core, buf_t* buf, off_t add)
 	return 0;
 }
 
-void do_shell()
+void do_shell(core_t *core, buf_t *buf)
 {
 	addch('\n');
 	savetty();
-	shresult = system(shell);
-	ui__StatusMsg("shell executed successfully!");
+	system(shell);
+	bvim_info(core, buf, "shell executed successfully!");
 	resetty();
 }
 
-off_t alloc_buf(off_t n, char** buffer)
+off_t alloc_buf(core_t *core, buf_t *buf, off_t n, char** buffer)
 {
 	if (*buffer == NULL) {
 		*buffer = (char *)malloc(n);
@@ -336,7 +336,7 @@ off_t alloc_buf(off_t n, char** buffer)
 		*buffer = (char *)realloc(*buffer, n);
 	}
 	if (*buffer == NULL) {
-		ui__ErrorMsg("No buffer space available");
+		bvim_error(core, buf, "No buffer space available");
 		return 0L;
 	}
 	return n;
@@ -348,24 +348,24 @@ int addfile(core_t* core, buf_t* buf, char* fname)
 	off_t oldsize;
 
 	if (stat(fname, &sbuf)) {
-		ui__SystemErrorMsg(fname);
+		bvim_error(core, buf, fname);
 		return 1;
 	}
 	if ((fd = open(fname, O_RDONLY)) == -1) {
-		ui__SystemErrorMsg(fname);
+		bvim_error(core, buf, fname);
 		return 1;
 	}
 	oldsize = filesize;
-	if (enlarge(sbuf.st_size))
+	if (enlarge(core, buf, sbuf.st_size))
 		return 1;
 	if (read(fd, buf->mem + filesize, sbuf.st_size) == -1) {
-		ui__SystemErrorMsg(fname);
+		bvim_error(core, buf, fname);
 		return 1;
 	}
 	filesize += sbuf.st_size;
 	buf->maxpos = buf->mem + filesize;
 	close(fd);
-	setpage(buf->mem + oldsize);
+	setpage(core, buf, buf->mem + oldsize);
 	return 0;
 }
 

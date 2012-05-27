@@ -24,5 +24,5 @@ struct found {
 
 /* Exported functions */
 
-struct found fuzzy_search(void* input, long input_size, void *pattern, long pattern_size, int algo, int distance);
+struct found fuzzy_search(core_t *core, buf_t *buf, long input_size, void *pattern, long pattern_size, int algo, int distance);
 

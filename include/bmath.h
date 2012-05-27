@@ -33,9 +33,9 @@ typedef unsigned char bool_t;
 typedef uint64_t crc_reg_t;
 #define REGFMT PRIx64
 
-int math__logic(int mode, char* str);
-int math__logic_block(int mode, char* str, int block_id);
-double math__entropy(int block_id);
+int math__logic(core_t* core, buf_t* buf, int mode, char* str);
+int math__logic_block(core_t *core, buf_t* buf, int mode, char* str, int block_id);
+double math__entropy(core_t *core, buf_t* buf, int block_id);
 
 /* Arithmetics */
 long math__eval(int mode, char *expression);

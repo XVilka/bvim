@@ -62,4 +62,5 @@ int commands__Cmd_Del(core_t*, char*);
 
 
 void docmdline(core_t*, buf_t *, char *);
+int chk_comm(core_t *core, buf_t* buf, int flag);
 

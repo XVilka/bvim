@@ -27,18 +27,6 @@
 #include "keys.h"
 #include "bscript.h"
 
-// TODO: Implement UI object/structure and its slots, move all current implementations
-// TODO: in console.c
-/* struct ui_t {
- *		int *(init)();
- *		int *(destroy)();
- * }
- *
- */
-
-extern core_t core;
-extern state_t state;
-
 extern struct MARKERS_ markers[MARK_COUNT];
 
 char tmpbuf[10];
@@ -49,12 +37,12 @@ char linbuf[256];
  * ----------------------------------------------------------------------
  */
 
-int outmsg(char *s)
+int outmsg(core_t *core, char *s)
 {
 	char *poi;
 	int cnt = 0;
 
-	move(core.screen.maxy, 0);
+	move(core->screen.maxy, 0);
 	poi = strchr(s, '|');
 
 	if (P(P_TE)) {
@@ -166,7 +154,7 @@ void ui__Colors_Set()
 	}
 }
 
-int ui__Color_Set(char *arg)
+int ui__Color_Set(core_t *core, buf_t *buf, char *arg)
 {
 	int i;
 	char *s;
@@ -179,7 +167,7 @@ int ui__Color_Set(char *arg)
 			break;
 	}
 	if (i == 0) {
-		ui__ErrorMsg("Wrong color name!");
+		ui__ErrorMsg(core, buf, "Wrong color name!");
 		return -1;
 	} else {
 		colors[i].r = atoi(bvim_substr(arg, strlen(s) + 1, 3));
@@ -187,34 +175,34 @@ int ui__Color_Set(char *arg)
 		colors[i].b = atoi(bvim_substr(arg, strlen(s) + 9, 3));
 		/*set_palette(); */
 		ui__Colors_Set();
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 	}
 	return 0;
 }
 
 
-void ui__Init()
+void ui__Init(core_t *core, buf_t *buf)
 {
 	// Initialization of curses
 	initscr();
 	if (has_colors() != FALSE) {
 		start_color();
 		ColorsSave();
-		ui__Colors_Set();
+		ui__Colors_Set(core, buf);
 	}
 	attrset(A_NORMAL);
-	ui__MainWin_Resize(LINES);
+	ui__MainWin_Resize(core, LINES);
 }
 
-void ui__MainWin_Resize(int lines_count)
+void ui__MainWin_Resize(core_t *core, int lines_count)
 {
-	core.screen.maxy = lines_count;
+	core->screen.maxy = lines_count;
 	if (params[P_LI].flags & P_CHANGED)
-		core.screen.maxy = P(P_LI);
-	state.scrolly = core.screen.maxy / 2;
-	P(P_SS) = state.scrolly;
-	P(P_LI) = core.screen.maxy;
-	core.screen.maxy--;
+		core->screen.maxy = P(P_LI);
+	core->curbuf->state.scrolly = core->screen.maxy / 2;
+	P(P_SS) = core->curbuf->state.scrolly;
+	P(P_LI) = core->screen.maxy;
+	core->screen.maxy--;
 
 	keypad(stdscr, TRUE);
 	scrollok(stdscr, TRUE);
@@ -222,19 +210,19 @@ void ui__MainWin_Resize(int lines_count)
 	cbreak();
 	noecho();
 
-	core.params.COLUMNS_ADDRESS = 10;
+	core->params.COLUMNS_ADDRESS = 10;
 	strcpy(addr_form, "%08lX%c:");
 
-	core.params.COLUMNS_DATA =
-	    ((COLS - core.params.COLUMNS_ADDRESS - 1) / 16) * 4;
-	P(P_CM) = core.params.COLUMNS_DATA;
-	core.screen.maxx =
-	    core.params.COLUMNS_DATA * 4 + core.params.COLUMNS_ADDRESS + 1;
-	core.params.COLUMNS_HEX = core.params.COLUMNS_DATA * 3;
-	status = core.params.COLUMNS_HEX + core.params.COLUMNS_DATA - 17;
-	state.screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
+	core->params.COLUMNS_DATA =
+	    ((COLS - core->params.COLUMNS_ADDRESS - 1) / 16) * 4;
+	P(P_CM) = core->params.COLUMNS_DATA;
+	core->screen.maxx =
+	    core->params.COLUMNS_DATA * 4 + core->params.COLUMNS_ADDRESS + 1;
+	core->params.COLUMNS_HEX = core->params.COLUMNS_DATA * 3;
+	status = core->params.COLUMNS_HEX + core->params.COLUMNS_DATA - 17;
+	core->curbuf->state.screen = core->params.COLUMNS_DATA * (core->screen.maxy - 1);
 
-	ui__Screen_New();
+	ui__Screen_New(core, core->curbuf);
 }
 
 /* ==================== REPL window ======================= */
@@ -256,12 +244,12 @@ short ui__REPLWin_Exist()
 }
 
 /* Show tools window with <lines_count> height */
-int ui__REPLWin_Show()
+int ui__REPLWin_Show(core_t *core, buf_t *buf)
 {
 	if (repl_win == NULL) {
 		refresh();
 		attron(COLOR_PAIR(C_WN + 1));
-		repl_win = newwin(LINES - 1, core.screen.maxx + 1, 0, 0);
+		repl_win = newwin(LINES - 1, core->screen.maxx + 1, 0, 0);
 		box(repl_win, 0, 0);
 		wrefresh(repl_win);
 		//attroff(COLOR_PAIR(C_WN + 1));
@@ -274,7 +262,7 @@ int ui__REPLWin_Show()
 }
 
 /* Print string in REPL */
-int ui__REPLWin_print(const char *str)
+int ui__REPLWin_print(core_t *core, buf_t* buf, char *str)
 {
 	char *saved = NULL;
 	char *sptr = NULL;
@@ -290,13 +278,13 @@ int ui__REPLWin_print(const char *str)
 		}
 		return 0;
 	} else {
-		ui__ErrorMsg("print_repl_window: repl window not exist!");
+		ui__ErrorMsg(core, buf, "print_repl_window: repl window not exist!");
 		return -1;
 	}
 }
 
 // FIXME: clear repl window
-int ui__REPLWin_clear()
+int ui__REPLWin_clear(core_t *core, buf_t* buf)
 {
 	repl.current_y = 1;
 	repl.current_x = 1;
@@ -305,7 +293,7 @@ int ui__REPLWin_clear()
 	return 0;
 }
 
-int ui__REPL_Main()
+int ui__REPL_Main(core_t *core, buf_t *buf)
 {
 	int c;
 	int i = 0;
@@ -314,8 +302,8 @@ int ui__REPL_Main()
 	p[0] = '\0';
 
 	signal(SIGINT, jmpproc);
-	state.mode = BVI_MODE_REPL;
-	ui__REPLWin_Show();
+	buf->state.mode = BVI_MODE_REPL;
+	ui__REPLWin_Show(core, buf);
 	repl.current_y = 1;
 	repl.current_x = 1;
 	mvwaddch(repl_win, repl.current_y, repl.current_x, '>');
@@ -358,8 +346,8 @@ int ui__REPL_Main()
 		wrefresh(repl_win);
 	} while (c != BVI_CTRL('D'));
 	p[0] = '\0';
-	ui__REPLWin_Hide();
-	state.mode = BVI_MODE_EDIT;
+	ui__REPLWin_Hide(core, buf);
+	buf->state.mode = BVI_MODE_EDIT;
 	signal(SIGINT, SIG_IGN);
 	return 0;
 }
@@ -375,7 +363,7 @@ int ui__REPLWin_ScrollDown(int lines)
 }
 
 /* Hides tools window */
-int ui__REPLWin_Hide()
+int ui__REPLWin_Hide(core_t *core, buf_t *buf)
 {
 	if (repl_win != NULL) {
 		//attron(COLOR_PAIR(C_WN + 1));
@@ -384,10 +372,10 @@ int ui__REPLWin_Hide()
 		delwin(repl_win);
 		repl_win = NULL;
 		attroff(COLOR_PAIR(C_WN + 1));
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		return 0;
 	} else {
-		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
+		ui__ErrorMsg(core, buf, "hide_tools_window: tools window not exist!\n");
 		return -1;
 	}
 }
@@ -401,7 +389,7 @@ WINDOW *tools_win = NULL;
 // TODO: buffer and make it scrollable
 
 /* Check if tools window already exist */
-short ui__ToolWin_Exist()
+short ui__ToolWin_Exist(core_t *core, buf_t *buf)
 {
 	if (tools_win == NULL)
 		return 0;
@@ -410,29 +398,27 @@ short ui__ToolWin_Exist()
 }
 
 /* Show tools window with <lines_count> height */
-int ui__ToolWin_Show(int lines_count)
+int ui__ToolWin_Show(core_t *core, buf_t *buf, int lines_count)
 {
 	if (tools_win == NULL) {
 		lines_count = LINES - lines_count - 2;
-		ui__MainWin_Resize(lines_count);
+		ui__MainWin_Resize(core, lines_count);
 		refresh();
 		attron(COLOR_PAIR(C_WN + 1));
-		tools_win =
-		    newwin(LINES - lines_count + 2, core.screen.maxx + 1,
-			   lines_count, 0);
+		tools_win = newwin(LINES - lines_count + 2, core->screen.maxx + 1, lines_count, 0);
 		box(tools_win, 0, 0);
 		wrefresh(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
-		ui__ToolWin_Hide();
-		ui__ToolWin_Show(lines_count);
+		ui__ToolWin_Hide(core, buf);
+		ui__ToolWin_Show(core, buf, lines_count);
 		return 0;
 	}
 }
 
 /* Print string in tools window in <line> line */
-int ui__ToolWin_Print(char *str, int line)
+int ui__ToolWin_Print(core_t *core, buf_t *buf, char *str, int line)
 {
 	if (tools_win != NULL) {
 		attron(COLOR_PAIR(C_WN + 1));
@@ -441,7 +427,7 @@ int ui__ToolWin_Print(char *str, int line)
 		attroff(COLOR_PAIR(C_WN + 1));
 		return 0;
 	} else {
-		ui__ErrorMsg("print_tools_window: tools window not exist!\n");
+		ui__ErrorMsg(core, buf, "print_tools_window: tools window not exist!\n");
 		return -1;
 	}
 }
@@ -457,20 +443,20 @@ int ui__ToolWin_ScrollDown(int lines)
 }
 
 /* Hides tools window */
-int ui__ToolWin_Hide()
+int ui__ToolWin_Hide(core_t *core, buf_t *buf)
 {
 	if (tools_win != NULL) {
-		ui__MainWin_Resize(LINES);
+		ui__MainWin_Resize(core, LINES);
 		attron(COLOR_PAIR(C_WN + 1));
 		wborder(tools_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 		wrefresh(tools_win);
 		delwin(tools_win);
 		attroff(COLOR_PAIR(C_WN + 1));
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		tools_win = NULL;
 		return 0;
 	} else {
-		ui__ErrorMsg("hide_tools_window: tools window not exist!\n");
+		ui__ErrorMsg(core, buf, "hide_tools_window: tools window not exist!\n");
 		return -1;
 	}
 }
@@ -545,7 +531,7 @@ struct hl_item* HighlightGetByID(unsigned int id) {
 
 /* =========== Implementation ========= */
 
-int highlight_block(struct block_item *tmp_blk) {
+int highlight_block(core_t *core, buf_t* buf, struct block_item *tmp_blk) {
 	int i = 0;
 	struct hl_item *thl;
 // TODO: Implement recursive handling for highlights
@@ -557,33 +543,33 @@ int highlight_block(struct block_item *tmp_blk) {
 		thl->dat_start = 0;
 		thl->palette = tmp_blk->palette;
 		if (thl->flg == 1) {
-			thl->hex_end = core.params.COLUMNS_DATA * 3;
-			thl->dat_end = core.params.COLUMNS_DATA;
+			thl->hex_end = core->params.COLUMNS_DATA * 3;
+			thl->dat_end = core->params.COLUMNS_DATA;
 		} else {
 			thl->hex_end = 0;
 			thl->dat_end = 0;
 		}
-		for (i = 0; i < core.params.COLUMNS_DATA * 3; i += 3) {
-			if (((long)(tmp_mem - core.editor.mem + (i / 3)) == tmp_blk->pos_start) & (thl->flg != 1)) {
+		for (i = 0; i < core->params.COLUMNS_DATA * 3; i += 3) {
+			if (((long)(tmp_mem - buf->mem + (i / 3)) == tmp_blk->pos_start) & (thl->flg != 1)) {
 				thl->hex_start = i;
 				thl->dat_start = i / 3;
-				thl->hex_end = core.params.COLUMNS_DATA * 3;
-				thl->dat_end = core.params.COLUMNS_DATA;
+				thl->hex_end = core->params.COLUMNS_DATA * 3;
+				thl->dat_end = core->params.COLUMNS_DATA;
 				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - core.editor.mem + (i / 3)) > tmp_blk->pos_start) & (thl->flg != 1)) {
+			    if (((long)(tmp_mem - buf->mem + (i / 3)) < tmp_blk->pos_end) & ((long)(tmp_mem - buf->mem + (i / 3)) > tmp_blk->pos_start) & (thl->flg != 1)) {
 				thl->hex_start = i;
 				thl->dat_start = i / 3;
-				thl->hex_end = core.params.COLUMNS_DATA * 3;
-				thl->dat_end = core.params.COLUMNS_DATA;
+				thl->hex_end = core->params.COLUMNS_DATA * 3;
+				thl->dat_end = core->params.COLUMNS_DATA;
 				thl->flg = 1;
 			} else
-			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) == tmp_blk->pos_end) & (thl->flg == 1)) {
+			    if (((long)(tmp_mem - buf->mem + (i / 3)) == tmp_blk->pos_end) & (thl->flg == 1)) {
 				thl->hex_end = i + 2;
 				thl->dat_end = i / 3 + 1;
 				thl->flg = 0;
 			} else
-			    if (((long)(tmp_mem - core.editor.mem + (i / 3)) > tmp_blk->pos_end)) {
+			    if (((long)(tmp_mem - buf->mem + (i / 3)) > tmp_blk->pos_end)) {
 				thl->flg = 0;
 			}
 		}
@@ -633,7 +619,7 @@ void printcolorline_dathl(int y, int x, int base_palette, char *string)
 	}
 }
 
-void ui__Line_Print(PTR mempos, int scpos)
+void ui__Line_Print(core_t *core, buf_t *buf, PTR mempos, int scpos)
 {
 	char hl_msg[256];
 	unsigned int k = 0;
@@ -646,10 +632,10 @@ void ui__Line_Print(PTR mempos, int scpos)
 	hl_msg[0] = '\0';
 	*linbuf = '\0';
 
-	if (mempos > core.editor.maxpos) {
+	if (mempos > buf->maxpos) {
 		strcpy(linbuf, "~         ");
 	} else {
-		address = (long)(mempos - core.editor.mem + P(P_OF));
+		address = (long)(mempos - buf->mem + P(P_OF));
 		while (markers[k].address != 0) {
 			if (markers[k].address == address) {
 				marker = markers[k].marker;
@@ -667,11 +653,11 @@ void ui__Line_Print(PTR mempos, int scpos)
 	*linbuf = '\0';
 
 	tmp_mem = mempos;
-	blocks__Iterator(highlight_block, 1);
+	blocks__Iterator(buf, highlight_block, 1);
 	mempos = tmp_mem;
 
-	for (print_pos = 0; print_pos < core.params.COLUMNS_DATA; print_pos++) {
-		if (mempos + print_pos >= core.editor.maxpos) {
+	for (print_pos = 0; print_pos < core->params.COLUMNS_DATA; print_pos++) {
+		if (mempos + print_pos >= buf->maxpos) {
 			sprintf(tmpbuf, "   ");
 			Zeichen = ' ';
 		} else {
@@ -684,7 +670,7 @@ void ui__Line_Print(PTR mempos, int scpos)
 		else
 			*(string + print_pos) = '.';
 	}
-	*(string + core.params.COLUMNS_DATA) = '\0';
+	*(string + core->params.COLUMNS_DATA) = '\0';
 
 	/* load color from C(C_HX) */
 	strcat(linbuf, "|");
@@ -701,12 +687,12 @@ void ui__Line_Print(PTR mempos, int scpos)
 /* displays a line on screen
  * at state.pagepos + line y
  */
-int ui__lineout()
+int ui__lineout(core_t *core, buf_t *buf)
 {
 	off_t Address;
 
-	Address = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA;
-	ui__Line_Print(core.editor.mem + Address, y);
+	Address = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA;
+	ui__Line_Print(core, buf, buf->mem + Address, y);
 	move(y, x);
 	/*if (k != 0) 
 	   y = k;
@@ -714,16 +700,16 @@ int ui__lineout()
 	return (0);
 }
 
-void ui__Screen_New()
+void ui__Screen_New(core_t *core, buf_t *buf)
 {
-	state.screen = core.params.COLUMNS_DATA * (core.screen.maxy - 1);
+	buf->state.screen = core->params.COLUMNS_DATA * (core->screen.maxy - 1);
 	clear();
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 }
 
-int ui__line(int line, int address)
+int ui__line(core_t *core, buf_t *buf, int line, int address)
 {
-	ui__Line_Print(core.editor.mem + address, line);
+	ui__Line_Print(core, buf, buf->mem + address, line);
 	move(line, x);
 	return (0);
 }
@@ -745,7 +731,7 @@ int fold_block(struct block_item tmp_blk) {
 }
 
 // Redraw screen
-void ui__Screen_Repaint()
+void ui__Screen_Repaint(core_t *core, buf_t *buf)
 {
 	int save_y;
 	int fold_start = 0;
@@ -753,9 +739,9 @@ void ui__Screen_Repaint()
 	int i = 0;
 
 	save_y = y;
-	for (y = 0; y < core.screen.maxy; y++) {
-		buf_address = state.pagepos - core.editor.mem + y * core.params.COLUMNS_DATA;
-		ui__line(y, buf_address);
+	for (y = 0; y < core->screen.maxy; y++) {
+		buf_address = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA;
+		ui__line(core, buf, y, buf_address);
 	}
 	y = save_y;
 	if (repl_win != NULL)
@@ -764,37 +750,37 @@ void ui__Screen_Repaint()
 		wrefresh(tools_win);
 }
 
-void clearstr()
+void ui__clearstr(core_t *core, buf_t *buf)
 {
 	int n;
 
-	move(core.screen.maxy, 0);
-	for (n = 0; n < core.screen.maxx; n++)
+	move(core->screen.maxy, 0);
+	for (n = 0; n < core->screen.maxx; n++)
 		addch(' ');
-	move(core.screen.maxy, 0);
+	move(core->screen.maxy, 0);
 }
 
 // Displays an error message
-void ui__ErrorMsg(char* s)
+void ui__ErrorMsg(core_t *core, buf_t* buf, char *s)
 {
 	int cnt;
 
 	if (P(P_EB))
 		beep();
-	clearstr();
+	ui__clearstr(core, buf);
 	attron(COLOR_PAIR(C_ER + 1));
 	/* attrset(A_REVERSE); */
-	cnt = outmsg(s);
+	cnt = outmsg(core, s);
 	/* attrset(A_NORMAL); */
 	attroff(COLOR_PAIR(C_ER + 1));
-	if (cnt >= (core.screen.maxx - 25)) {	/* 25 = status */
+	if (cnt >= (core->screen.maxx - 25)) {	/* 25 = status */
 		addch('\n');
-		wait_return(TRUE);
+		wait_return(core, buf, TRUE);
 	}
 }
 
 // System error message
-void ui__SystemErrorMsg(char* s)
+void ui__SystemErrorMsg(core_t *core, buf_t* buf, char* s)
 {
 	char string[256];
 
@@ -804,20 +790,20 @@ void ui__SystemErrorMsg(char* s)
 	sprintf(string, "%s: %s", s, sys_errlist[errno]);
 #endif
 
-	ui__ErrorMsg(string);
+	ui__ErrorMsg(core, buf, string);
 }
 
 /*** displays mode if showmode set *****/
-void smsg(char* s)
+void ui__smsg(core_t *core, buf_t *buf, char* s)
 {
 	if (P(P_MO)) {
-		ui__StatusMsg(s);
+		ui__StatusMsg(core, buf, s);
 		setcur();
 	}
 }
 
 // Display simple message window
-void ui__MsgWin_Show(char* s, int height, int width)
+void ui__MsgWin_Show(core_t *core, buf_t* buf, char* s, int height, int width)
 {
 	WINDOW *msg_win;
 	int starty = (LINES - height) / 2;	/* Calculating for a center placement */
@@ -836,8 +822,8 @@ void ui__MsgWin_Show(char* s, int height, int width)
 	wrefresh(msg_win);
 	delwin(msg_win);
 	attroff(COLOR_PAIR(C_WN + 1));
-	if (state.mode != BVI_MODE_REPL)
-		ui__Screen_Repaint();
+	if (buf->state.mode != BVI_MODE_REPL)
+		ui__Screen_Repaint(core, buf);
 	/*
 	else
 		wrefresh(repl_win);
@@ -845,12 +831,12 @@ void ui__MsgWin_Show(char* s, int height, int width)
 }
 
 // Display message in the status line
-void ui__StatusMsg(char* msg)
+void ui__StatusMsg(core_t *core, buf_t *buf, char* msg)
 {
-	clearstr();
-	if (outmsg(msg) >= (core.screen.maxx - 25)) {	/* 25 = status */
+	ui__clearstr(core, buf);
+	if (outmsg(core, msg) >= (core->screen.maxx - 25)) {	/* 25 = status */
 		addch('\n');
-		wait_return(TRUE);
+		wait_return(core, buf, TRUE);
 	}
 }
 

@@ -273,10 +273,8 @@ int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpo
 					repl_pat[pat_len++] = '\\';
 					break;
 				default:
-					sprintf(string,
-						"No such escape sequence \\%c",
-						*poi);
-					ui__ErrorMsg(string);
+					sprintf(string, "No such escape sequence \\%c", *poi);
+					bvim_error(core, buf, string);
 					return 0;
 				}
 			} else {
@@ -300,8 +298,7 @@ int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpo
 				poi++;
 			} else {
 				if ((n = hexchar()) < 0) {
-					ui__ErrorMsg
-					    ("Badly formed replacement pattern");
+					bvim_error(core, buf, "Badly formed replacement pattern");
 					return 0;
 				}
 				repl_pat[pat_len] = n;
@@ -314,12 +311,11 @@ int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpo
 	case 'c':
 		break;
 	default:
-		ui__ErrorMsg("Extra chars|Extra characters at end of command");
+		bvim_error(core, buf, "Extra chars|Extra characters at end of command");
 		return -1;
 	}
 	if (pat_len == -1) {
-		ui__ErrorMsg
-		    ("No previous substitute re|No previous substitute to repeat");
+		bvim_error(core, buf, "No previous substitute re|No previous substitute to repeat");
 		return -1;
 	}
 	if (delim != '\0') {
@@ -330,14 +326,14 @@ int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpo
 	}
 	if ((strchr("\\#", ch) && buf->state.loc == ASCII)
 	    || (strchr("/?", ch) && buf->state.loc == HEX)) {
-		toggle();
+		toggle(core, buf);
 	}
 	startpos--;
 	move(core->screen.maxy, 0);
 	refresh();
 
 	if (global) {
-		if ((undo_count = alloc_buf(endpos - startpos, &undo_buf))) {
+		if ((undo_count = alloc_buf(core, buf, endpos - startpos, &undo_buf))) {
 			memcpy(undo_buf, startpos + 1, undo_count);
 		}
 		undo_start = startpos + 1;
@@ -353,34 +349,29 @@ int do_substitution(core_t *core, buf_t *buf, int delim, char* line, PTR startpo
 	if (!found) {
 		if (!repl_count) {
 			if (P(P_WS)) {
-				ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
+				bvim_error(core, buf, BVI_ERROR_PATNOTFOUND);
 			} else {
 				if (P(P_TE))
-					sprintf(string, "No match to %s",
-						direct ==
-						FORWARD ? "BOTTOM" : "TOP");
+					sprintf(string, "No match to %s", direct ==	FORWARD ? "BOTTOM" : "TOP");
 				else
-					sprintf(string,
-						"Address search hit %s without matching pattern",
-						direct ==
-						FORWARD ? "BOTTOM" : "TOP");
-				ui__ErrorMsg(string);
+					sprintf(string, "Address search hit %s without matching pattern", direct ==	FORWARD ? "BOTTOM" : "TOP");
+				bvim_error(core, buf, string);
 			}
 		}
 		return repl_count;
 	} else {
-		setpage(found);
+		setpage(core, buf, found);
 		if (conf) {
-			ui__Screen_Repaint();
-			ui__StatusMsg("Replace?");
+			ui__Screen_Repaint(core, buf);
+			bvim_info(core, buf, "Replace?");
 			move(y, x);
 			if (vgetc() != 'y')
 				goto SKIP;
 		}
 		repl_count++;
-		current_start = buf->state.pagepos + y * core->params.COLUMNS_DATA + xpos();
+		current_start = buf->state.pagepos + y * core->params.COLUMNS_DATA + xpos(core, buf);
 		if (!global) {
-			if ((undo_count = alloc_buf(pat_len, &undo_buf))) {
+			if ((undo_count = alloc_buf(core, buf, pat_len, &undo_buf))) {
 				memcpy(undo_buf, current_start, undo_count);
 			}
 			undo_start = current_start;
@@ -412,7 +403,7 @@ PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR en
 	static int direct;
 
 	if (line[0] == '\0' && again == 0) {
-		ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
+		bvim_error(core, buf, BVI_ERROR_NOPREVEXPR);
 		return 0L;
 	}
 
@@ -421,7 +412,7 @@ PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR en
 	start_addr--;
 	if ((strchr("\\#", ch) && buf->state.loc == ASCII)
 	    || (strchr("/?", ch) &&  buf->state.loc == HEX)) {
-		toggle();
+		toggle(core, buf);
 	}
 	if (!strchr("Nn", ch)) {
 		m[0] = ch;
@@ -452,7 +443,7 @@ PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR en
 			return 0L;
 	} else {
 		cmd = "";
-		ui__StatusMsg(m);
+		bvim_info(core, buf, m);
 	}
 	move(core->screen.maxy, 0);
 	refresh();
@@ -464,7 +455,7 @@ PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR en
 			return (found);
 		if (!found)
 			if (flag & 1) {
-				ui__StatusMsg("Search wrapped BOTTOM|Search wrapped around BOTTOM of buffer");
+				bvim_info(core, buf, "Search wrapped BOTTOM|Search wrapped around BOTTOM of buffer");
 				found = fsearch(core, buf, buf->mem, startpos, search_pat);
 			}
 	} else {
@@ -473,34 +464,31 @@ PTR searching(core_t *core, buf_t *buf, int ch, char* line, PTR startpos, PTR en
 			return (found);
 		if (!found)
 			if (flag & 1) {
-				ui__StatusMsg("Search wrapped TOP|Search wrapped around TOP of buffer");
+				bvim_info(core, buf, "Search wrapped TOP|Search wrapped around TOP of buffer");
 				found = rsearch(core, buf, endpos, startpos, search_pat);
 			}
 	}
 	if (!found) {
 		if (flag & 1) {
-			ui__ErrorMsg(BVI_ERROR_PATNOTFOUND);
+			bvim_error(core, buf, BVI_ERROR_PATNOTFOUND);
 		} else {
 			if (P(P_TE)) {
-				sprintf(string, "No match to %s",
-					sdir == FORWARD ? "BOTTOM" : "TOP");
+				sprintf(string, "No match to %s", sdir == FORWARD ? "BOTTOM" : "TOP");
 			} else {
-				sprintf(string,
-					"Address search hit %s without matching pattern",
-					sdir == FORWARD ? "BOTTOM" : "TOP");
+				sprintf(string, "Address search hit %s without matching pattern", sdir == FORWARD ? "BOTTOM" : "TOP");
 			}
-			ui__ErrorMsg(string);
+			bvim_error(core, buf, string);
 		}
 	} else {
-		setpage(found);
+		setpage(core, buf, found);
 		if (cmd) {
 			switch (*cmd) {
 			case 'z':
-				do_z(*++cmd);
+				do_z(core, buf, *(++cmd));
 				break;
 			case 's':
 				do_substitution(core, buf, ch, cmd + 2, found, endpos);
-				ui__Screen_Repaint();
+				ui__Screen_Repaint(core, buf);
 				break;
 			case ';':
 				searching(core, buf, *(cmd + 1), cmd + 2, found, buf->maxpos - 1, flag);
@@ -595,11 +583,11 @@ PTR calc_addr(core_t* core, buf_t* buf, char** pointer, PTR def_addr)
 				cmd++;
 				break;
 			} else if (mark < 'a' || mark > 'z') {
-				ui__ErrorMsg("Marks are ' and a-z");
+				bvim_error(core, buf, "Marks are ' and a-z");
 				return NULL;
 			}
 			if (markbuf[mark - 'a'] == NULL) {
-				ui__ErrorMsg("Mark not defined");
+				bvim_error(core, buf, "Mark not defined");
 				return NULL;
 			}
 			addr = markbuf[mark - 'a'];
@@ -609,7 +597,7 @@ PTR calc_addr(core_t* core, buf_t* buf, char** pointer, PTR def_addr)
 		case '/':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
+				bvim_error(core, buf, BVI_ERROR_NOPREVEXPR);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {
@@ -628,7 +616,7 @@ PTR calc_addr(core_t* core, buf_t* buf, char** pointer, PTR def_addr)
 		case '?':
 			cmd = patcpy(pattern, cmd + 1, ch);
 			if (pattern[0] == '\0' && again == 0) {
-				ui__ErrorMsg(BVI_ERROR_NOPREVEXPR);
+				bvim_error(core, buf, BVI_ERROR_NOPREVEXPR);
 				return NULL;
 			}
 			if (pattern[0] != '\0') {
@@ -671,3 +659,4 @@ PTR calc_addr(core_t* core, buf_t* buf, char** pointer, PTR def_addr)
 	}
 	return addr;
 }
+

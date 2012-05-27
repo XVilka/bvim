@@ -36,15 +36,15 @@ struct lua_io {
 	lua_io_link next;
 };
 
-void bvim_lua_init(void);
-void bvim_lua_finish(void);
-int bvim_run_lua_string(char *string);
-int bvim_run_lua_script(char *name);
+void bvim_lua_init(core_t*);
+void bvim_lua_finish(core_t*);
+int bvim_run_lua_string(core_t*, buf_t*, char*);
+int bvim_run_lua_script(core_t*, buf_t*, char*);
 int bvim_repl_read();
 int bvim_repl_eval(char* line);
 
 int luaF_Add(core_t*, struct luaF_item b);
-int luaF_Iterator(int (*(func))(), int result);
+int luaF_Iterator(core_t *, int (*(func))(), int result);
 int luaF_DelByName(core_t*, char *);
 int luaF_DelByID(core_t*, int);
 struct luaF_item* luaF_GetByName(core_t*, char*);

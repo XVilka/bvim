@@ -42,6 +42,7 @@ extern int ignore_case;
 /*
  *  Compiling an ASCII sequence to a regex string
  */
+// TODO: Add return codes/error codes
 int ascii_comp(smem, pattern)
 char *smem;
 char *pattern;
@@ -68,12 +69,12 @@ char *pattern;
 		}
 		if (bracket) {
 			if (!(end = strchr(poi, ']'))) {
-				ui__ErrorMsg("Missing ]");
+				//bvim_error(core, buf, "Missing ]");
 				return 1;
 			}
 			poi++;
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				ui__ErrorMsg(BVI_ERROR_EMPTYCLASS);
+				//bvim_error(core, buf, BVI_ERROR_EMPTYCLASS);
 				return 1;
 			}
 			if (magic) {
@@ -189,6 +190,7 @@ char *pattern;
 /*
  * Compiling a hex expression to a regex string
  */
+// TODO: Add return codes/error codes
 int hex_comp(smem, pattern)
 char *smem;
 char *pattern;
@@ -206,7 +208,7 @@ char *pattern;
 			poi++;
 		if (*poi == '[') {
 			if (!(end = strchr(poi, ']'))) {
-				ui__ErrorMsg("Missing ]");
+				//bvim_error(core, buf, "Missing ]");
 				return 1;
 			}
 			poi++;
@@ -214,7 +216,7 @@ char *pattern;
 				poi++;
 
 			if (*poi == ']' || (*poi == '^' && *(poi + 1) == ']')) {
-				ui__ErrorMsg(BVI_ERROR_EMPTYCLASS);
+				//bvim_error(core, buf, BVI_ERROR_EMPTYCLASS);
 				return 1;
 			}
 			if (*(end + 1) == '*')
@@ -257,7 +259,7 @@ char *pattern;
 			poi++;
 			if (!(end = strchr(poi, '"'))) {
 				/*
-				   ui__ErrorMsg("Missing '\"'");
+				   bvim_error(core, buf, "Missing '\"'");
 				   return 1;
 				 */
 				end = poi + strlen(poi);
@@ -314,7 +316,7 @@ int hexchar()
 			poi++;
 		return nr;
 	} else {
-		ui__ErrorMsg("Bad hex character@in expression");
+		//bvim_error(core, buf, "Bad hex character@in expression");
 		return -1;
 	}
 }

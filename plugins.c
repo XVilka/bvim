@@ -63,7 +63,7 @@ int PluginAdd(core_t *core, plugin_t i)
 	return 0;
 }
 
-int PluginDel(core_t *core, plugin_t i)
+int PluginDel(core_t *core, plugin_t *i)
 {
 	return 0;
 }
@@ -131,7 +131,7 @@ int plugin__Load(core_t *core, char* path)
 
 	/* Check if file exist and valid */
 	if (access(path, R_OK) != 0) {
-		bvim_error(core->curbuf->state.mode, "Can't read/find plugin *.so file");
+		bvim_error(core, core->curbuf, "Can't read/find plugin *.so file");
 		return -1;
 	}
 	module = dlopen(path, RTLD_NOW);
@@ -139,7 +139,7 @@ int plugin__Load(core_t *core, char* path)
 		msg = dlerror();
 		if (msg != NULL) {
 			dlclose(module);
-			bvim_error(core->curbuf->state.mode, "plugin load error: %s", msg);
+			bvim_error(core, core->curbuf, "plugin load error: %s", msg);
 			return -1;
 		}
 	}
@@ -148,7 +148,7 @@ int plugin__Load(core_t *core, char* path)
 	msg = dlerror();
 	if (msg != NULL) {
 		dlclose(module);
-		bvim_error(core->curbuf->state.mode, "plugin load error: can't find plugin_register() function; %s", msg);
+		bvim_error(core, core->curbuf, "plugin load error: can't find plugin_register() function; %s", msg);
 		return -1;
 	}
 	if (plugin_register != NULL) {
@@ -160,11 +160,11 @@ int plugin__Load(core_t *core, char* path)
 		msg = dlerror();
 		if (msg != NULL) {
 			dlclose(plg.module);
-			bvim_error(core->curbuf->state.mode, "plugin init error: can't find plugin_init() function: %s", msg);
+			bvim_error(core, core->curbuf, "plugin init error: can't find plugin_init() function: %s", msg);
 			return -1;
 		}
 		if (plugin_init != NULL) {
-			plugin_init(core, &state);
+			plugin_init(core);
 			if (plg.exports.keys != NULL) {
 				i = 0;
 				while (plg.exports.keys[i].id != 0)
@@ -198,12 +198,12 @@ int plugin__Load(core_t *core, char* path)
 
 		} else {
 			dlclose(module);
-			bvim_error(core->curbuf->state.mode, "plugin init error: wrong plugin_init() function");
+			bvim_error(core, core->curbuf, "plugin init error: wrong plugin_init() function");
 			return -1;
 		}
 	} else {
 		dlclose(module);
-		bvim_error(core->curbuf->state.mode, "plugin load error: wrong plugin_register() function");
+		bvim_error(core, core->curbuf, "plugin load error: wrong plugin_register() function");
 		return -1;
 	}
 	return 0;
@@ -220,7 +220,7 @@ int plugin__Unload(core_t *core, plugin_t *plg)
 	msg = dlerror();
 	if (msg != NULL) {
 		dlclose(plg->module);
-		bvim_error(core->curbuf->state.mode, "plugin unload error: can't find plugin_unregister() function");
+		bvim_error(core, core->curbuf, "plugin unload error: can't find plugin_unregister() function");
 		return -1;
 	}
 	/* Unregistering commands, hotkeys, lua functions */
@@ -252,8 +252,8 @@ int plugin__Unload(core_t *core, plugin_t *plg)
 			}
 
 	}
-	dlclose(plg.module);
-	PluginDel(plg);
+	dlclose(plg->module);
+	PluginDel(core, plg);
 	return 0;
 }
 

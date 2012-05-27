@@ -102,28 +102,28 @@ extern off_t block_begin, block_end, block_size;
 
 /* ================= Debug utilities ================ */
 
-void bvim_error(int mode, char* fmt, ...);
-void bvim_info(int mode, char* fmt, ...);
-void bvim_debug(int mode, char* fmt, ...);
+void bvim_error(core_t *core, buf_t *buf, char* fmt, ...);
+void bvim_info(core_t *core, buf_t *buf, char* fmt, ...);
+void bvim_debug(core_t *core, buf_t *buf, char* fmt, ...);
 
 /* ================= Exports ================ */
 
 char *bvim_substr(const char *, size_t, size_t);
 
-off_t alloc_buf(off_t, char **);
+off_t alloc_buf(core_t*, buf_t*, off_t, char **);
 off_t yd_addr(core_t*, buf_t*);
 off_t range(core_t *, buf_t*, int);
 void do_dot(void);
 void do_exit(core_t*);
-void do_shell(void);
+void do_shell(core_t*, buf_t*);
 void do_undo(core_t *core, buf_t *buf);
 void do_tilde(core_t *core, buf_t *buf, off_t);
 void trunc_cur(core_t *core, buf_t *buf);
-void do_back(off_t, PTR);
-void do_ins_chg(PTR, char *, int);
-void do_mark(int, PTR);
+void do_back(core_t*, buf_t*, off_t, PTR);
+void do_ins_chg(core_t*, buf_t*, PTR, char*, int);
+void do_mark(buf_t*, int, PTR);
 void badcmd(char *);
-void movebyte(void);
+void movebyte(core_t*, buf_t*);
 void do_over(core_t *core, buf_t *buf, PTR, off_t, PTR);
 void do_put(core_t *, buf_t *, PTR, off_t, PTR);
 void jmpproc(int);
@@ -131,10 +131,9 @@ void printline(PTR, int);
 
 int addfile(core_t*, buf_t*, char *);
 int bregexec(core_t*, buf_t*, PTR, char *);
-int chk_comm(buf_t*, int);
-int doecmd(buf_t *buf, char *, int);
-int do_append(core_t *core, buf_t *buf, int, char *);
-int do_delete(off_t, PTR);
+int doecmd(core_t*, buf_t*, char *, int);
+int do_append(core_t*, buf_t*, int, char *);
+int do_delete(core_t*, buf_t*, off_t, PTR);
 int doset(core_t*, char *);
 int do_substitution(core_t*, buf_t*, int, char *, PTR, PTR);
 int hexchar(void);
@@ -146,44 +145,43 @@ PTR fsearch(core_t*, buf_t*, PTR, PTR, char *);
 PTR rsearch(core_t*, buf_t*, PTR, PTR, char *);
 PTR end_word(core_t*, buf_t*, PTR);
 PTR calc_addr(core_t*, buf_t*, char **, PTR);
-PTR do_ft(int, int);
+PTR do_ft(core_t*, buf_t*, int, int);
 char *patcpy(char *, char *, char);
-void setpage(PTR), smsg(char *);
+void setpage(core_t*, buf_t*, PTR);
 
 void usage(void);
 void bvim_init(core_t*, char *);
-void statpos(void);
+void statpos(core_t*, buf_t*);
 
 void setcur(void);
 
 void showparms(core_t*, int);
-void toggle(void);
-void scrolldown(int);
-void scrollup(int);
-void fileinfo(char *);
-void clearstr(void);
-void clear_marks(void);
+void toggle(core_t*, buf_t*);
+void scrolldown(core_t*, buf_t*, int);
+void scrollup(core_t*, buf_t*, int);
+void fileinfo(core_t*, buf_t*, char *);
+void clear_marks(buf_t*);
 
-void quit(core_t *, buf_t *);
+void quit(core_t*, buf_t *);
 
-void do_z(int);
+void do_z(core_t*, buf_t*, int);
 void stuffin(char *);
-off_t edit(int);
+off_t edit(core_t*, buf_t*, int);
 off_t load(core_t*, buf_t*, char *);
 off_t calc_size(char *);
 int ascii_comp(char *, char *);
 int hex_comp(char *, char *);
-int cur_forw(int);
-int cur_back(void);
+int cur_forw(core_t*, buf_t*, int);
+int cur_back(core_t*, buf_t*);
 int lineout(void);
-int save(core_t*, buf_t*, char *, PTR, PTR, int);
+int save(core_t*, buf_t*, char *, int);
 int at_least(char *, char *, int);
 int vgetc(void);
-int xpos(void);
+int xpos(core_t*, buf_t*);
 int enlarge(core_t*, buf_t*, off_t);
 int getcmdstr(core_t*, char *, int);
 int read_rc(core_t*, char*);
-int wait_return(core_t*, int);
+int wait_return(core_t*, buf_t *buf, int);
 int get_cursor_position();
 
 int read_history(core_t*, char*);

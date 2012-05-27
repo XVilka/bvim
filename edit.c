@@ -25,6 +25,7 @@
 #include	"commands.h"
 #include    "set.h"
 #include	"ui.h"
+#include	"messages.h"
 
 extern int precount;
 extern core_t core;
@@ -65,7 +66,7 @@ static char *getcnext = NULL;
  * for insert and append we misuse the undo buffer for the inserted
  * characters (for "." command)
  */
-off_t edit(int mode)
+off_t edit(core_t *core, buf_t *buf, int mode)
 {
 	unsigned int ch, ch1;
 	size_t len;
@@ -77,7 +78,7 @@ off_t edit(int mode)
 		mode = 'A';
 	}
 	if (mode != 'A' && mode != 'a') {
-		if (state.current - core.editor.mem >= filesize) {
+		if (buf->state.current - buf->mem >= filesize) {
 			beep();
 			return 0L;
 		}
@@ -85,12 +86,12 @@ off_t edit(int mode)
 	if (precount < 1)
 		precount = 1;
 	len = strlen(rep_buf);
-	if (mode == 'r' && state.current + precount > core.editor.maxpos) {
+	if (mode == 'r' && buf->state.current + precount > buf->maxpos) {
 		beep();
 		rep_buf[len] = '\0';
 		return 0L;
 	}
-	if (alloc_buf(buffer, &undo_buf) == 0L) {
+	if (alloc_buf(core, buf, buffer, &undo_buf) == 0L) {
 		rep_buf[len] = '\0';
 		return 0L;
 	}
@@ -100,26 +101,26 @@ off_t edit(int mode)
 		break;
 	case 'R':
 		edits = U_EDIT;
-		smsg("REPLACE MODE");
+		ui__smsg(core, buf, "REPLACE MODE");
 		break;
 	case 'r':
 		edits = U_EDIT;
-		smsg("REPLACE 1 CHAR");
+		ui__smsg(core, buf, "REPLACE 1 CHAR");
 		break;
 	case 'a':
 	case 'i':
 		edits = U_INSERT;
-		smsg("INSERT MODE");
+		ui__smsg(core, buf, "INSERT MODE");
 		break;
 	}
 
-	undo_start = state.current;
+	undo_start = buf->state.current;
 
 	while ((ch = vgetc()) != ESC) {
 		ch &= 0xff;
 		rep_buf[len++] = ch;
 		if (ch == '\t') {
-			toggle();
+			toggle(core, buf);
 			setcur();
 			continue;
 		}
@@ -129,16 +130,16 @@ off_t edit(int mode)
 				count--;
 				if (mode == 'A' || mode == 'a' || mode == 'i') {
 					filesize--;
-					core.editor.maxpos--;
+					buf->maxpos--;
 				}
-				state.current--;
-				cur_back();
+				buf->state.current--;
+				cur_back(core, buf);
 				setcur();
 			} else
 				beep();
 			continue;
 		}
-		if (state.loc == HEX) {
+		if (buf->state.loc == HEX) {
 			if (isxdigit(ch)) {
 				mvaddch(y, x + 1, ' ');
 				mvaddch(y, x, ch);
@@ -146,8 +147,8 @@ off_t edit(int mode)
 					ch1 = vgetc() & 0xff;
 					if (ch1 == ESC) {
 						mvaddch(y, x, ' ');
-						state.current--;
-						cur_back();
+						buf->state.current--;
+						cur_back(core, buf);
 						goto escape;
 					}
 					if (!isxdigit(ch1)) {
@@ -172,44 +173,44 @@ off_t edit(int mode)
 				goto wrong;
 			}
 		}
-		core.editor.curpos = state.current++;
+		buf->state.curpos = buf->state.current++;
 		if (mode == 'i' || mode == 'a') {
-			memmove(state.current, core.editor.curpos, core.editor.maxpos - core.editor.curpos);
+			memmove(buf->state.current, buf->state.curpos, buf->maxpos - buf->state.curpos);
 		}
 		if (mode == 'A' || mode == 'i' || mode == 'a') {
-			core.editor.maxpos++;
+			buf->maxpos++;
 			filesize++;
 			/* NEU
 			   undo_buf[count++] = ch;
 			 */
 			count++;
 		} else {
-			undo_buf[count++] = *core.editor.curpos;
+			undo_buf[count++] = *(buf->state.curpos);
 		}
 		if (count == buffer) {
 			buffer += BUFFER;
-			if (alloc_buf(buffer, &undo_buf) == 0L) {
+			if (alloc_buf(core, buf, buffer, &undo_buf) == 0L) {
 				rep_buf[len] = '\0';
 				return count;
 			}
 		}
 
-		*core.editor.curpos = (char)ch;
-		cur_forw(0);
-		statpos();
+		*(buf->state.curpos) = (char)ch;
+		cur_forw(core, buf, 0);
+		statpos(core, buf);
 		if (mode == 'i' || mode == 'a') {
-			ui__Screen_Repaint();
+			ui__Screen_Repaint(core, buf);
 		} else {
-			ui__lineout();
+			ui__lineout(core, buf);
 		}
 		setcur();
 
 		if (filesize > memsize - 2L) {
-			if (enlarge(100L))
+			if (enlarge(core, buf, 100L))
 				break;
 		}
 
-		if ((mode != 'A' && mode != 'a') && core.editor.curpos == core.editor.maxpos - 1)
+		if ((mode != 'A' && mode != 'a') && buf->state.curpos == buf->maxpos - 1)
 			break;
 		if (mode == 'r') {
 			break;
@@ -229,17 +230,16 @@ off_t edit(int mode)
 		case 'A':
 			psize = count * (precount - 1);
 			if (filesize + psize > memsize - 2L) {
-				if (enlarge(psize + 100L))
+				if (enlarge(core, buf, psize + 100L))
 					return count;
 			}
 			if (psize + count > buffer) {
-				if (alloc_buf(psize + count, &undo_buf) == 0L)
+				if (alloc_buf(core, buf, psize + count, &undo_buf) == 0L)
 					return count;
 			}
 
 			if (mode == 'i' || mode == 'a') {
-				memmove(state.current + psize, state.current,
-					core.editor.maxpos - core.editor.curpos);
+				memmove(buf->state.current + psize, buf->state.current, buf->maxpos - buf->state.curpos);
 			}
 
 			/* NEU
@@ -250,46 +250,46 @@ off_t edit(int mode)
 				   memcpy(undo_pos + 1L, undo_pos - count + 1L, count);
 				   undo_pos += count;
 				 */
-				memcpy(core.editor.curpos + 1L, core.editor.curpos - count + 1L, count);
-				core.editor.curpos += count;
+				memcpy(buf->state.curpos + 1L, buf->state.curpos - count + 1L, count);
+				buf->state.curpos += count;
 			}
 			filesize += psize;
 			count += psize;
-			core.editor.maxpos += psize;
+			buf->maxpos += psize;
 			undo_count += psize;
-			state.current = core.editor.curpos + 1L;
-			setpage(state.current);
-			ui__Screen_Repaint();
+			buf->state.current = buf->state.curpos + 1L;
+			setpage(core, buf, buf->state.current);
+			ui__Screen_Repaint(core, buf);
 			break;
 		case 'R':
-			if (state.current + count * (precount - 1) > core.editor.maxpos)
+			if (buf->state.current + count * (precount - 1) > buf->maxpos)
 				break;
 			psize = count;
 			while (--precount) {
-				memcpy(undo_buf + psize, core.editor.curpos + 1L, count);
+				memcpy(undo_buf + psize, buf->state.curpos + 1L, count);
 				psize += count;
-				memcpy(core.editor.curpos + 1L, core.editor.curpos - count + 1L, count);
-				core.editor.curpos += count;
+				memcpy(buf->state.curpos + 1L, buf->state.curpos - count + 1L, count);
+				buf->state.curpos += count;
 			}
 			count = psize;
-			setpage(++core.editor.curpos);
-			ui__Screen_Repaint();
+			setpage(core, buf, ++(buf->state.curpos));
+			ui__Screen_Repaint(core, buf);
 			break;
 		case 'r':
 			while (--precount) {
-				undo_buf[count++] = *(++core.editor.curpos);
-				*core.editor.curpos = (char)ch;
-				cur_forw(0);
-				statpos();
-				ui__lineout();
+				undo_buf[count++] = *(++(buf->state.curpos));
+				*(buf->state.curpos) = (char)ch;
+				cur_forw(core, buf, 0);
+				statpos(core, buf);
+				ui__lineout(core, buf);
 			}
 			break;
 		}
 	}
-	cur_back();
+	cur_back(core, buf);
       escape:
 	setcur();
-	smsg("");
+	ui__smsg(core, buf, "");
 	return (count);
 }
 
@@ -356,13 +356,13 @@ PTR do_ft(core_t *core, buf_t *buf, int ch, int flag)
 	} while (--precount > 0);
 	if (*ptr == chi) {
 		if (buf->state.loc == HEX)
-			toggle();
+			toggle(core, buf);
 		if (chp == 't')
 			ptr--;
 		if (chp == 'T')
 			ptr++;
 		if (!flag) {
-			setpage(ptr);
+			setpage(core, buf, ptr);
 		}
 		return (ptr);
 	}
@@ -406,7 +406,7 @@ void do_z(core_t *core, buf_t *buf, int mode)
 		beep();
 		break;
 	}
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 }
 
 /* Scroll down on <count> lines */
@@ -419,7 +419,7 @@ void scrolldown(core_t *core, buf_t *buf, int lines)
 			beep();
 			lines = 0;
 		}
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		refresh();
 	}
 }
@@ -434,7 +434,7 @@ void scrollup(core_t *core, buf_t *buf, int lines)
 			beep();
 			lines = 0;
 		}
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		refresh();
 	}
 }
@@ -451,7 +451,7 @@ int xpos(core_t *core, buf_t *buf)
 
 int get_cursor_position(core_t *core, buf_t *buf)
 {
-	return (buf->state.current - core->editor.mem);
+	return (buf->state.current - buf->mem);
 }
 
 /* toggle between ASCII and HEX windows positions */
@@ -510,8 +510,7 @@ void statpos(core_t *core, buf_t *buf)
 	} else
 		strcpy(str, "   ");
 
-	sprintf(string, "%08lX  \\%03o 0x%02X %3d %3s",
-		(long)(bytepos + P(P_OF)), Char1, Char1, Char1, str);
+	sprintf(string, "%08lX  \\%03o 0x%02X %3d %3s",	(long)(bytepos + P(P_OF)), Char1, Char1, Char1, str);
 	
 	// ncurses ! Split this out !
 	attrset(A_BOLD);
@@ -552,7 +551,7 @@ void setpage(core_t *core, buf_t *buf, PTR addr)
 			x = core->params.COLUMNS_ADDRESS +
 			    core->params.COLUMNS_HEX + ((addr - buf->state.pagepos) -
 						       y * core->params.COLUMNS_DATA);
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 	}
 }
 
@@ -580,15 +579,15 @@ int cur_forw(core_t *core, buf_t *buf, int check)
 		} else
 			x = core->params.COLUMNS_ADDRESS;
 	}
-	statpos();
-	ui__lineout();
+	statpos(core, buf);
+	ui__lineout(core, buf);
 	if (y < core->screen.maxy - 1) {
 		y++;
 		return 0;
 	} else {
 		if (buf->state.pagepos < (PTR) (buf->mem + filesize)) {
 			buf->state.pagepos += core->params.COLUMNS_DATA;
-			ui__Screen_Repaint();
+			ui__Screen_Repaint(core, buf);
 			return 0;
 		} else {
 			beep();
@@ -618,15 +617,15 @@ int cur_back(core_t *core, buf_t *buf)
 			    core->params.COLUMNS_HEX - 3;
 		}
 	}
-	statpos();
-	ui__lineout();
+	statpos(core, buf);
+	ui__lineout(core, buf);
 	if (y > 0) {
 		y--;
 		return 0;
 	} else {
 		if (buf->state.pagepos > buf->mem) {
 			buf->state.pagepos -= core->params.COLUMNS_DATA;
-			ui__Screen_Repaint();
+			ui__Screen_Repaint(core, buf);
 			return 0;
 		} else {
 			beep();
@@ -635,7 +634,7 @@ int cur_back(core_t *core, buf_t *buf)
 	}
 }
 
-void fileinfo(char* fname)
+void fileinfo(core_t* core, buf_t* buf, char* fname)
 {
 	off_t bytepos;
 	char fstatus[64];
@@ -652,16 +651,15 @@ void fileinfo(char* fname)
 	if (edits)
 		strcat(string, "[Modified] ");
 	if (filesize) {
-		bytepos =
-		    (state.pagepos + y * core.params.COLUMNS_DATA + xpos()) -
-		    core.editor.mem + 1L;
+		bytepos = (buf->state.pagepos + y * core->params.COLUMNS_DATA + xpos(core, buf)) -
+		    buf->mem + 1L;
 		sprintf(fstatus, "byte %lu of %lu --%lu%%--", (long)bytepos,
 			(long)filesize, (long)(bytepos * 100L / filesize));
 		strcat(string, fstatus);
 	} else {
 		strcat(string, " 0 bytes");
 	}
-	ui__StatusMsg(string);
+	bvim_info(core, buf, string);
 }
 
 int vgetc()
@@ -692,55 +690,55 @@ void stuffin(char* s)
 		strcat(getcbuff, s);
 }
 
-void do_back(off_t n, PTR start)
+void do_back(core_t* core, buf_t* buf, off_t n, PTR start)
 {
-	if (start - n < core.editor.mem) {
+	if (start - n < buf->mem) {
 		beep();
 		return;
 	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, n, &undo_buf)) == 0L)
 		return;
-	yanked = alloc_buf(n, &yank_buf);
+	yanked = alloc_buf(core, buf, n, &yank_buf);
 	edits = U_BACK;
 	undo_start = start - n;
 	memcpy(undo_buf, start - undo_count, undo_count);
 	memcpy(yank_buf, start - undo_count, undo_count);
-	memmove(start - undo_count, start, core.editor.maxpos - start);
+	memmove(start - undo_count, start, buf->maxpos - start);
 	filesize -= undo_count;
-	core.editor.maxpos -= undo_count;
-	setpage(start - undo_count);
-	ui__Screen_Repaint();
+	buf->maxpos -= undo_count;
+	setpage(core, buf, start - undo_count);
+	ui__Screen_Repaint(core, buf);
 }
 
-int do_delete(off_t n, PTR start)
+int do_delete(core_t *core, buf_t* buf, off_t n, PTR start)
 {
-	if (n + start > core.editor.maxpos) {
+	if (n + start > buf->maxpos) {
 		beep();
 		return 1;
 	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, n, &undo_buf)) == 0L)
 		return 1;
-	yanked = alloc_buf(n, &yank_buf);
+	yanked = alloc_buf(core, buf, n, &yank_buf);
 	edits = U_DELETE;
 	undo_start = start;
 	memcpy(undo_buf, start, undo_count);
 	memcpy(yank_buf, start, undo_count);
-	memmove(start, start + undo_count, core.editor.maxpos - (start + undo_count));
+	memmove(start, start + undo_count, buf->maxpos - (start + undo_count));
 	filesize -= undo_count;
-	core.editor.maxpos -= undo_count;
-	if (start == core.editor.maxpos && start > core.editor.mem) {
+	buf->maxpos -= undo_count;
+	if (start == buf->maxpos && start > buf->mem) {
 		start--;
-		cur_back();
+		cur_back(core, buf);
 	}
-	setpage(start);
-	ui__Screen_Repaint();
+	setpage(core, buf, start);
+	ui__Screen_Repaint(core, buf);
 	return 0;
 }
 
 /*
  * The :insert, :append and :change command
  */
-void do_ins_chg(PTR start, char* arg, int mode)
+void do_ins_chg(core_t* core, buf_t* buf, PTR start, char* arg, int mode)
 {
 	int base;
 	off_t buffer = BUFFER;
@@ -750,7 +748,7 @@ void do_ins_chg(PTR start, char* arg, int mode)
 	char *tempbuf = NULL;
 	char *poi, *epoi;
 
-	if ((mode == U_EDIT) && (state.current - core.editor.mem >= filesize)) {
+	if ((mode == U_EDIT) && (buf->state.current - buf->mem >= filesize)) {
 		beep();
 		return;
 	}
@@ -766,15 +764,15 @@ void do_ins_chg(PTR start, char* arg, int mode)
 	} else if (!strncmp("hexadecimal", arg, len) && CMDLNG(11, 1)) {
 		base = 16;
 	} else {
-		ui__ErrorMsg("No such option");
+		bvim_error(core, buf, "No such option");
 		return;
 	}
 	addch('\n');
-	if (getcmdstr(cmdstr, 0) == 1) {
-		ui__Screen_Repaint();
+	if (getcmdstr(core, cmdstr, 0) == 1) {
+		ui__Screen_Repaint(core, buf);
 		return;
 	}
-	if (alloc_buf(buffer, &tempbuf) == 0L)
+	if (alloc_buf(core, buf, buffer, &tempbuf) == 0L)
 		return;
 	while (strcmp(cmdstr, ".")) {
 		poi = cmdstr;
@@ -813,8 +811,8 @@ void do_ins_chg(PTR start, char* arg, int mode)
 			while (*poi != '\0') {
 				val = strtol(poi, &epoi, base);
 				if (val > 255 || val < 0 || poi == epoi) {
-					ui__Screen_Repaint();
-					ui__ErrorMsg("Invalid value");
+					ui__Screen_Repaint(core, buf);
+					bvim_error(core, buf, "Invalid value");
 					free(tempbuf);
 					return;
 				}
@@ -823,58 +821,59 @@ void do_ins_chg(PTR start, char* arg, int mode)
 			}
 		}
 		addch('\n');
-		if (getcmdstr(cmdstr, 0) == 1) {
-			ui__Screen_Repaint();
+		if (getcmdstr(core, cmdstr, 0) == 1) {
+			ui__Screen_Repaint(core, buf);
 			free(tempbuf);
 			return;
 		}
 	}
 	if (count == 0) {
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		free(tempbuf);
 		return;
 	}
 	switch (mode) {
 	case U_INSERT:
-		do_put(start, count, tempbuf);
+		do_put(core, buf, start, count, tempbuf);
 		break;
 	case U_EDIT:
-		do_over(start, count, tempbuf);
+		do_over(core, buf, start, count, tempbuf);
 		break;
 	case U_APPEND:
-		if ((undo_count = alloc_buf(count, &undo_buf)) == 0L) {
-			ui__Screen_Repaint();
+		if ((undo_count = alloc_buf(core, buf, count, &undo_buf)) == 0L) {
+			ui__Screen_Repaint(core, buf);
 			free(tempbuf);
 			return;
 		}
-		do_append(count, tempbuf);
+		do_append(core, buf, count, tempbuf);
 		memcpy(undo_buf, tempbuf, count);
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		break;
 	}
 	free(tempbuf);
 	return;
 }
 
-void clear_marks()
+/* TODO: move marks buffer into buf_t struct */
+void clear_marks(buf_t *buf)
 {
 	int n;
 
 	for (n = 0; n < 26; markbuf[n++] = NULL) ;
 	undo_count = 0;
-	last_motion = core.editor.mem;
+	last_motion = buf->mem;
 }
 
-void do_mark(int mark, PTR addr)
+void do_mark(buf_t* buf, int mark, PTR addr)
 {
-	if (mark < 'a' || mark > 'z' || state.current >= core.editor.maxpos)
+	if (mark < 'a' || mark > 'z' || buf->state.current >= buf->maxpos)
 		return;
 	markbuf[mark - 'a'] = addr;
 }
 
-void movebyte()
+void movebyte(core_t* core, buf_t* buf)
 {
-	bvim_error(state.mode, "Command disabled@- use ':set memmove' to enable ");
+	bvim_error(core, buf, "Command disabled@- use ':set memmove' to enable ");
 }
 
 void trunc_cur(core_t *core, buf_t *buf)
@@ -882,25 +881,25 @@ void trunc_cur(core_t *core, buf_t *buf)
 	undosize = filesize;
 	undo_count = (off_t) (buf->maxpos - buf->state.current);
 	undo_start = buf->state.current;
-	filesize = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA + xpos();
+	filesize = buf->state.pagepos - buf->mem + y * core->params.COLUMNS_DATA + xpos(core, buf);
 	buf->maxpos = (PTR) (buf->mem + filesize);
 	if (filesize == 0L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(core, buf, BVI_ERROR_NOBYTES);
 	} else
-		cur_back();
+		cur_back(core, buf);
 	edits = U_TRUNC;
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 }
 
 int do_append(core_t *core, buf_t *buf, int count, char* buffer)
 {
 	if (filesize + count > memsize) {
-		if (enlarge(count + 100L))
+		if (enlarge(core, buf, count + 100L))
 			return 1;
 	}
 	memcpy(buf->mem + filesize, buffer, count);
 	undo_start = buf->mem + filesize - 1L;
-	setpage(undo_start + count);
+	setpage(core, buf, undo_start + count);
 	edits = U_APPEND;
 	undosize = filesize;
 	filesize += count;
@@ -917,7 +916,7 @@ void do_tilde(core_t *core, buf_t *buf, off_t count)
 		beep();
 		return;
 	}
-	if ((undo_count = alloc_buf(count, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, count, &undo_buf)) == 0L)
 		return;
 	memcpy(undo_buf, buf->state.current, undo_count);
 	while (count--) {
@@ -926,7 +925,7 @@ void do_tilde(core_t *core, buf_t *buf, off_t count)
 		else if (islower((int)(*(buf->state.current))))
 			*(buf->state.current) = toupper((int)(*(buf->state.current)));
 		buf->state.current++;
-		cur_forw(0);
+		cur_forw(core, buf, 0);
 	}
 	edits = U_TILDE;
 	setcur();
@@ -941,7 +940,7 @@ void do_undo(core_t *core, buf_t *buf)
 	PTR d;
 
 	if (undo_count == 0L) {
-		ui__ErrorMsg("Nothing to undo");
+		bvim_error(core, buf, "Nothing to undo");
 		return;
 	}
 	set_cursor = undo_start;
@@ -988,36 +987,36 @@ void do_undo(core_t *core, buf_t *buf)
 		edits = U_INSERT;
 		break;
 	}
-	setpage(set_cursor);
+	setpage(core, buf, set_cursor);
 	if (edits == U_TRUNC && undosize > filesize)
-		cur_back();
-	ui__Screen_Repaint();
+		cur_back(core, buf);
+	ui__Screen_Repaint(core, buf);
 }
 
 void do_over(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 {
 	if (n < 1L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(core, buf, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc + n > buf->maxpos) {
 		beep();
 		return;
 	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, n, &undo_buf)) == 0L)
 		return;
 	undo_start = loc;
 	memcpy(undo_buf, loc, n);
 	memcpy(loc, bbuf, n);
 	edits = U_EDIT;
-	setpage(loc + n - 1);
-	ui__Screen_Repaint();
+	setpage(core, buf, loc + n - 1);
+	ui__Screen_Repaint(core, buf);
 }
 
 void do_put(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 {
 	if (n < 1L) {
-		bvim_error(buf->state.mode, BVI_ERROR_NOBYTES);
+		bvim_error(core, buf, BVI_ERROR_NOBYTES);
 		return;
 	}
 	if (loc > buf->maxpos) {
@@ -1025,10 +1024,10 @@ void do_put(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 		return;
 	}
 	if (filesize + n > memsize) {
-		if (enlarge(n + 1024))
+		if (enlarge(core, buf, n + 1024))
 			return;
 	}
-	if ((undo_count = alloc_buf(n, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, n, &undo_buf)) == 0L)
 		return;
 	undo_start = loc + 1;
 	edits = U_INSERT;
@@ -1036,7 +1035,7 @@ void do_put(core_t *core, buf_t *buf, PTR loc, off_t n, PTR bbuf)
 	buf->maxpos += n;
 	memmove(undo_start + n, undo_start, buf->maxpos - loc);
 	memcpy(undo_start, bbuf, n);
-	setpage(loc + n);
-	ui__Screen_Repaint();
+	setpage(core, buf, loc + n);
+	ui__Screen_Repaint(core, buf);
 }
 

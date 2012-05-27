@@ -320,9 +320,9 @@ struct luaF {
 
 // TODO: Add buffers handling api
 struct API_T {
-	void (*error)(int, char*, ...);
-	void (*info)(int, char*, ...);
-	void (*debug)(int, char*, ...);
+	void (*error)(core_t*, buf_t*, char*, ...);
+	void (*info)(core_t*, buf_t*, char*, ...);
+	void (*debug)(core_t*, buf_t*, char*, ...);
 	/* editor functions */
 	
 	/* block functions */

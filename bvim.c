@@ -48,7 +48,8 @@ Copyright (C) 2011-2012 by Anton Kochkov";
 
 jmp_buf env;			/* context for `longjmp' function   */
 
-//core_t core;
+core_t *coretmp;
+core_t *coreslot;
 //state_t state;
 //api_t api;
 
@@ -130,7 +131,7 @@ int handler__goto_ASCII(core_t *core, buf_t *buf)
 // "Tab" key
 int handler__toggle(core_t *core, buf_t *buf)
 {
-	toggle();
+	toggle(core, buf);
 	return 0;
 }
 
@@ -154,7 +155,7 @@ int handler__goto_home(core_t *core, buf_t *buf)
 	if (precount > 0) {
 		y = --precount;
 		if (y > core->screen.maxy - 1) {
-			scrolldown(y - core->screen.maxy + 1);
+			scrolldown(core, buf, y - core->screen.maxy + 1);
 			y = core->screen.maxy - 1;
 		}
 	} else
@@ -265,7 +266,7 @@ int handler__goto_up(core_t *core, buf_t *buf)
 		if (y > 0)
 			y--;
 		else
-			scrollup(1);
+			scrollup(core, buf, 1);
 	} while (--precount > 0);
 	return 0;
 }
@@ -294,7 +295,7 @@ int handler__goto_down(core_t *core, buf_t *buf)
 		if (y < (core->screen.maxy - 1))
 			y++;
 		else
-			scrolldown(1);
+			scrolldown(core, buf, 1);
 	} while (--precount > 0);
 	return 0;
 }
@@ -322,10 +323,10 @@ int handler__line(core_t *core, buf_t *buf)
 //case 'S':
 int handler__toolwin_toggle(core_t *core, buf_t *buf)
 {
-	if (!ui__ToolWin_Exist()) {
-		ui__ToolWin_Show(10);
+	if (!ui__ToolWin_Exist(core, buf)) {
+		ui__ToolWin_Show(core, buf, 10);
 	} else {
-		ui__ToolWin_Hide();
+		ui__ToolWin_Hide(core, buf);
 	}
 	return 0;
 }
@@ -333,7 +334,7 @@ int handler__toolwin_toggle(core_t *core, buf_t *buf)
 // ":" key
 int handler__cmdstring(core_t *core, buf_t *buf)
 {
-	clearstr();
+	ui__clearstr(core, buf);
 	addch(':');
 	refresh();
 	/* TODO: Add <Tab> autocompletion */
@@ -351,7 +352,7 @@ int handler__previous_page(core_t *core, buf_t *buf)
 		buf->state.pagepos -= buf->state.screen;
 	else
 		buf->state.pagepos = buf->mem;
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 	return 0;
 }
 
@@ -360,7 +361,7 @@ int handler__scrolldown(core_t *core, buf_t *buf)
 {
 	if (precount > 1)
 		buf->state.scrolly = precount;
-	scrolldown(buf->state.scrolly);
+	scrolldown(core, buf, buf->state.scrolly);
 	return 0;
 }
 
@@ -369,7 +370,7 @@ int handler__scrollup(core_t *core, buf_t *buf)
 {
 	if (precount > 1)
 		buf->state.scrolly = precount;
-	scrollup(buf->state.scrolly);
+	scrollup(core, buf, buf->state.scrolly);
 	return 0;
 }
 
@@ -378,7 +379,7 @@ int handler__linescroll_down(core_t *core, buf_t *buf)
 {
 	if (y > 0)
 		y--;
-	scrolldown(1);
+	scrolldown(core, buf, 1);
 	return 0;
 }
 
@@ -391,9 +392,9 @@ int handler__nextpage(core_t *core, buf_t *buf)
 		buf->state.current += buf->state.screen;
 		if (buf->state.current - buf->mem >= filesize) {
 			buf->state.current = buf->mem + filesize;
-			setpage((PTR) (buf->mem + filesize - 1L));
+			setpage(core, buf, (PTR) (buf->mem + filesize - 1L));
 		}
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 	}
 	return 0;
 }
@@ -401,7 +402,7 @@ int handler__nextpage(core_t *core, buf_t *buf)
 // "Ctrl-G" key
 int handler__fileinfo(core_t *core, buf_t *buf)
 {
-	fileinfo(name);
+	fileinfo(core, buf, name);
 	wrstat = 0;
 	return 0;
 }
@@ -409,7 +410,7 @@ int handler__fileinfo(core_t *core, buf_t *buf)
 // Redraw screen
 int handler__screen_redraw(core_t *core, buf_t *buf)
 {
-	ui__Screen_New();
+	ui__Screen_New(core, buf);
 	return 0;
 }
 
@@ -418,14 +419,14 @@ int handler__linescroll_up(core_t *core, buf_t *buf)
 {
 	if (y < core->screen.maxy)
 		y++;
-	scrollup(1);
+	scrollup(core, buf, 1);
 	return 0;
 }
 
 // "Ctrl-R" key - Open Lua REPL window
 int handler__luarepl(core_t *core, buf_t *buf)
 {
-	ui__REPL_Main();
+	ui__REPL_Main(core, buf);
 	return 0;
 }
 
@@ -443,69 +444,69 @@ int handler__toggle_selection(core_t *core, buf_t *buf)
 // "A" key
 int handler__append_mode(core_t *core, buf_t *buf)
 {
-	smsg("APPEND MODE");
+	ui__smsg(core, buf, "APPEND MODE");
 	buf->state.current = (PTR) (buf->mem + filesize - 1L);
-	setpage(buf->state.current++);
-	cur_forw(0);
+	setpage(core, buf, buf->state.current++);
+	cur_forw(core, buf, 0);
 	setcur();
 	undosize = filesize;
-	undo_count = edit('A');
+	undo_count = edit(core, buf, 'A');
 	return 0;
 }
 
 // "B" or "b" keys
 int handler__backsearch(core_t *core, buf_t *buf)
 {
-	setpage(backsearch(core, buf, buf->state.current, 'b'));
+	setpage(core, buf, backsearch(core, buf, buf->state.current, 'b'));
 	return 0;
 }
 
 // "e" key
 int handler__setpage(core_t *core, buf_t *buf)
 {
-	setpage(end_word(core, buf, buf->state.current));
+	setpage(core, buf, end_word(core, buf, buf->state.current));
 	return 0;
 }
 
 // "," key
 int handler__doft1(core_t *core, buf_t *buf)
 {
-	do_ft(-1, 0);
+	do_ft(core, buf, -1, 0);
 	return 0;
 }
 
 // ";" key
 int handler__doft2(core_t *core, buf_t *buf)
 {
-	do_ft(0, 0);
+	do_ft(core, buf, 0, 0);
 	return 0;
 }
 
 //case 'F':
 int handler__doft3_F(core_t *core, buf_t *buf)
 {
-	do_ft('F', 0);
+	do_ft(core, buf, 'F', 0);
 	return 0;
 }
 
 // "f" key
 int handler__doft3_f(core_t *core, buf_t *buf)
 {
-	do_ft('f', 0);
+	do_ft(core, buf, 'f', 0);
 	return 0;
 }
 
 // "t" key
 int handler__doft3_t(core_t *core, buf_t *buf)
 {
-	do_ft('t', 0);
+	do_ft(core, buf, 't', 0);
 	return 0;
 }
 
 // "T" key
 int handler__doft3_T(core_t *core, buf_t *buf)
 {
-	do_ft('T', 0);
+	do_ft(core, buf, 'T', 0);
 	return 0;
 }
 
@@ -518,10 +519,10 @@ int handler__goto1(core_t *core, buf_t *buf)
 		    || (precount - P(P_OF)) > (filesize - 1L)) {
 			beep();
 		} else {
-			setpage((PTR) (buf->mem + precount - P(P_OF)));
+			setpage(core, buf, (PTR) (buf->mem + precount - P(P_OF)));
 		}
 	} else {
-		setpage((PTR) (buf->mem + filesize - 1L));
+		setpage(core, buf, (PTR) (buf->mem + filesize - 1L));
 	}
 	return 0;
 }
@@ -532,7 +533,7 @@ int handler__goto2(core_t *core, buf_t *buf)
 	off_t inaddr;
 
 	last_motion = buf->state.current;
-	ui__StatusMsg("Goto Hex Address: ");
+	bvim_info(core, buf, "Goto Hex Address: ");
 	refresh();
 	getcmdstr(core, cmdstr, 19);
 	if (cmdstr[0] == '^') {
@@ -548,13 +549,13 @@ int handler__goto2(core_t *core, buf_t *buf)
 		return -1;
 	inaddr -= P(P_OF);
 	if (inaddr < filesize) {
-		setpage(buf->mem + inaddr);
+		setpage(core, buf, buf->mem + inaddr);
 	} else {
 		if (filesize == 0L)
 			return -1;
 		sprintf(string, "Max. address of current file : %06lX",
 			(long)(filesize - 1L + P(P_OF)));
-		ui__ErrorMsg(string);
+		bvim_error(core, buf, string);
 	}
 	return 0;
 }
@@ -564,7 +565,7 @@ int handler__search_string1(core_t *core, buf_t *buf)
 {
 	char ch = '?';
 
-	clearstr();
+	ui__clearstr(core, buf);
 	addch(ch);
 	refresh();
 	if (getcmdstr(core, line, 1))
@@ -579,7 +580,7 @@ int handler__search_string2(core_t *core, buf_t *buf)
 {
 	char ch = '/';
 
-	clearstr();
+	ui__clearstr(core, buf);
 	addch(ch);
 	refresh();
 	if (getcmdstr(core, line, 1))
@@ -594,7 +595,7 @@ int handler__search_string3(core_t *core, buf_t *buf)
 {
 	char ch = '#';
 
-	clearstr();
+	ui__clearstr(core, buf);
 	addch(ch);
 	refresh();
 	if (getcmdstr(core, line, 1))
@@ -609,7 +610,7 @@ int handler__search_string4(core_t *core, buf_t *buf)
 {
 	char ch = '\\';
 
-	clearstr();
+	ui__clearstr(core, buf);
 	addch(ch);
 	refresh();
 	if (getcmdstr(core, line, 1))
@@ -632,7 +633,7 @@ int handler__search_next(core_t *core, buf_t *buf)
 //case 'm':
 int handler__mark(core_t *core, buf_t *buf)
 {
-	do_mark(vgetc(), buf->state.current);
+	do_mark(buf, vgetc(), buf->state.current);
 	return 0;
 }
 
@@ -644,7 +645,7 @@ int handler__goto_mark(core_t *core, buf_t *buf)
 	//      toggle();
 	mark = vgetc();
 	if (mark == '`' || mark == '\'') {
-		setpage(last_motion);
+		setpage(core, buf, last_motion);
 		last_motion = buf->state.current;
 	} else {
 		if (mark < 'a' || mark > 'z') {
@@ -654,7 +655,7 @@ int handler__goto_mark(core_t *core, buf_t *buf)
 			beep();
 			return -1;
 		}
-		setpage(markbuf[mark - 'a']);
+		setpage(core, buf, markbuf[mark - 'a']);
 	}
 	return 0;
 }
@@ -685,7 +686,7 @@ int handler__paste(core_t *core, buf_t *buf)
 {
 	if (precount < 1)
 		precount = 1;
-	if ((undo_count = alloc_buf(yanked, &undo_buf)) == 0L)
+	if ((undo_count = alloc_buf(core, buf, yanked, &undo_buf)) == 0L)
 		return -1;
 	sprintf(rep_buf, "%ldP", precount);
 	if (do_append(core, buf, yanked, yank_buf))
@@ -693,7 +694,7 @@ int handler__paste(core_t *core, buf_t *buf)
 	/* we save it not for undo but for the dot command
 	 * memcpy(undo_buf, yank_buf, yanked);
 	 */
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 	return 0;
 }
 
@@ -706,7 +707,7 @@ int handler__redo(core_t *core, buf_t *buf)
 	if (precount < 1)
 		precount = 1;
 	sprintf(rep_buf, "%ld%c", precount, 'r');
-	undo_count = edit('r');
+	undo_count = edit(core, buf, 'r');
 	lflag++;
 	return 0;
 }
@@ -729,14 +730,14 @@ int handler__visual(core_t *core, buf_t *buf)
 		buf->state.mode = BVI_MODE_VISUAL;
 		// start selection
 		buf->state.selection.start = get_cursor_position();
-		bvim_info(buf->state.mode, "Started selection from %ld", buf->state.selection.start);
+		bvim_info(core, buf, "Started selection from %ld", buf->state.selection.start);
 		return 0;
 	}
 	if (buf->state.mode == BVI_MODE_VISUAL) {
 		buf->state.mode = BVI_MODE_EDIT;
 		// end selection
 		buf->state.selection.end = get_cursor_position();
-		bvim_info(buf->state.mode, "Selected block [%ld, %ld]", buf->state.selection.start, buf->state.selection.end);
+		bvim_info(core, buf, "Selected block [%ld, %ld]", buf->state.selection.start, buf->state.selection.end);
 		tmpblk.pos_start = buf->state.selection.start;
 		tmpblk.pos_end = buf->state.selection.end;
 		tmpblk.palette = 1; // TODO: something more nice
@@ -744,7 +745,7 @@ int handler__visual(core_t *core, buf_t *buf)
 		tmpblk.id = BVI_VISUAL_SELECTION_ID; // TODO: do something!
 		blocks__Add(buf, tmpblk);
 		ui__BlockHighlightAdd(&tmpblk);
-		ui__Screen_Repaint();
+		ui__Screen_Repaint(core, buf);
 		return 0;
 	}
 	return 0;
@@ -755,7 +756,7 @@ int handler__visual(core_t *core, buf_t *buf)
 int handler__wordsearch(core_t *core, buf_t *buf)
 {
 	buf->state.loc = ASCII;
-	setpage(wordsearch(core, buf, buf->state.current, 'w'));
+	setpage(core, buf, wordsearch(core, buf, buf->state.current, 'w'));
 	return 0;
 }
 
@@ -767,12 +768,12 @@ int handler__yank(core_t *core, buf_t *buf)
 
 	count = range(core, buf, 'y');
 	if (count > 0) {
-		if ((yanked = alloc_buf(count, &yank_buf)) == 0L) {
+		if ((yanked = alloc_buf(core, buf, count, &yank_buf)) == 0L) {
 			return -1;
 		}
 		memcpy(yank_buf, buf->state.current, yanked);
 	} else if (count < 0) {
-		if ((yanked = alloc_buf(-count, &yank_buf)) == 0L) {
+		if ((yanked = alloc_buf(core, buf, -count, &yank_buf)) == 0L) {
 			return -1;
 		}
 		memcpy(yank_buf, buf->state.current + count, yanked);
@@ -788,7 +789,7 @@ int handler__yank(core_t *core, buf_t *buf)
 //case 'z':
 int handler__doz(core_t *core, buf_t *buf)
 {
-	do_z(vgetc());
+	do_z(core, buf, vgetc());
 	return 0;
 }
 
@@ -826,9 +827,9 @@ int handler__insert(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldI", precount);
 	buf->state.current = buf->mem;
-	setpage(buf->mem);
-	ui__Screen_Repaint();
-	undo_count = edit('i');
+	setpage(core, buf, buf->mem);
+	ui__Screen_Repaint(core, buf);
+	undo_count = edit(core, buf, 'i');
 	lflag++;
 	return 0;
 }	
@@ -838,10 +839,10 @@ int handler__insert(core_t *core, buf_t *buf)
 int handler__s(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%lds", precount);
-	if (do_delete((off_t) precount, buf->state.current))
+	if (do_delete(core, buf, (off_t) precount, buf->state.current))
 		return 0;
 	precount = 1;
-	undo_count = edit('i');
+	undo_count = edit(core, buf, 'i');
 	lflag++;
 	return 0;
 }
@@ -849,7 +850,7 @@ int handler__s(core_t *core, buf_t *buf)
 //case 'a':
 int handler__append2(core_t *core, buf_t *buf)
 {
-	if (cur_forw(1))
+	if (cur_forw(core, buf, 1))
 		return 0;
 	buf->state.current++;
 	return 0;
@@ -861,7 +862,7 @@ int handler__insert2(core_t *core, buf_t *buf)
 	char ch = 'i';
 
 	sprintf(rep_buf, "%ld%c", precount, ch);
-	undo_count = edit(ch);
+	undo_count = edit(core, buf, ch);
 	lflag++;
 	return 0;
 }
@@ -882,12 +883,12 @@ int handler__c_or_d(core_t *core, buf_t *buf)
 	int count = range(core, buf, ch);
 
 	if (count > 0)
-		do_delete((off_t) count, buf->state.current);
+		do_delete(core, buf, (off_t) count, buf->state.current);
 	else if (count < 0)
-		do_back(-(off_t) count, buf->state.current);
+		do_back(core, buf, -(off_t) count, buf->state.current);
 	if (ch == 'c') {
 		precount = 1;
-		undo_count = edit('i');
+		undo_count = edit(core, buf, 'i');
 		lflag++;
 	//
 	//} else if (count) {
@@ -902,7 +903,7 @@ int handler__c_or_d(core_t *core, buf_t *buf)
 int handler__x(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldx", precount);
-	do_delete((off_t) precount, buf->state.current);
+	do_delete(core, buf, (off_t) precount, buf->state.current);
 	return 0;
 }
 
@@ -910,7 +911,7 @@ int handler__x(core_t *core, buf_t *buf)
 int handler__x2(core_t *core, buf_t *buf)
 {
 	sprintf(rep_buf, "%ldX", precount);
-	do_back((off_t) precount, buf->state.current);
+	do_back(core, buf, (off_t) precount, buf->state.current);
 	return 0;
 }
 
@@ -974,40 +975,46 @@ void record_cmd(core_t* core, char* cmdline)
  * ---------------------------------------------------------------
  */
 
-void bvim_error(int mode, char* fmt, ...)
+void bvim_error(core_t *core, buf_t *buf, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
+	int mode = 0;
 
 	msg[0] = '\0';
+	mode = buf->state.mode;
 
 	va_start(ap, fmt);
 	vsprintf(msg, fmt, ap);
 	va_end(ap);
 
-	ui__ErrorMsg(msg);
+	ui__ErrorMsg(core, buf, msg);
 }
 
-void bvim_info(int mode, char* fmt, ...)
+void bvim_info(core_t *core, buf_t *buf, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
+	int mode = 0;
 
 	msg[0] = '\0';
+	mode = buf->state.mode;
 
 	va_start(ap, fmt);
 	vsprintf(msg, fmt, ap);
 	va_end(ap);
 
-	ui__StatusMsg(msg);
+	ui__StatusMsg(core, buf, msg);
 }
 
-void bvim_debug(int mode, char* fmt, ...)
+void bvim_debug(core_t *core, buf_t *buf, char* fmt, ...)
 {
 	char msg[1024];
 	va_list ap;
+	int mode = 0;
 
 	msg[0] = '\0';
+	mode = buf->state.mode;
 
 	va_start(ap, fmt);
 	vsprintf(msg, fmt, ap);
@@ -1029,6 +1036,17 @@ void usage()
 	exit(1);
 }
 
+void set_core(core_t *core)
+{
+	coreslot = core;
+}
+
+core_t* get_core()
+{	
+	return coreslot;
+}
+
+
 int main(int argc, char* argv[])
 {
 	int ch;
@@ -1042,6 +1060,7 @@ int main(int argc, char* argv[])
 
 // FIXME: Make normal buffer allocation function
 	core.curbuf = &buf;
+	set_core(&core);
 
 	/* Hotkeys and keymap initialization */
 	keys__Init(&core);
@@ -1052,7 +1071,7 @@ int main(int argc, char* argv[])
 
 #ifdef HAVE_LUA_H
 	/* Lua subsystem initialization */
-	bvim_lua_init();
+	bvim_lua_init(&core);
 #endif
 
 	/* Commands parser initialization */
@@ -1065,6 +1084,9 @@ int main(int argc, char* argv[])
 		markers[i].address = 0;
 
 	core.curbuf->state.mode = BVI_MODE_EDIT; // default mode from start
+
+	/* !!!! JUST TEMPORARY HACK !!!!*/
+	coretmp = &core;
 
 	poi = strrchr(argv[0], DELIM);
 
@@ -1182,12 +1204,12 @@ int main(int argc, char* argv[])
 	curfile = 0;
 
 	/* UI initialization */
-	ui__Init();
+	ui__Init(&core, &buf);
 
 	signal(SIGINT, SIG_IGN);
-	filesize = load(name);
+	filesize = load(&core, &buf, name);
 
-	bvim_init(argv[0]);
+	bvim_init(&core, argv[0]);
 	params[P_TT].svalue = terminal;
 	if (block_flag && (P(P_MM) == TRUE)) {
 		P(P_MM) = FALSE;
@@ -1201,9 +1223,9 @@ int main(int argc, char* argv[])
 	// Main loop
 	do {
 		setjmp(env);
-		buf.state.current = (PTR) (buf.state.pagepos + y * core.params.COLUMNS_DATA + xpos());
+		buf.state.current = (PTR) (buf.state.pagepos + y * core.params.COLUMNS_DATA + xpos(&core, &buf));
 		if (wrstat)
-			statpos();
+			statpos(&core, &buf);
 		wrstat = 1;
 		setcur();
 		ch = vgetc();
@@ -1320,7 +1342,7 @@ int main(int argc, char* argv[])
 		}
 */
 		if (lflag)
-			ui__lineout();
+			ui__lineout(&core, &buf);
 	} while (1);
 }
 
@@ -1355,10 +1377,12 @@ off_t calc_size(char* arg)
 /* argument sig not used, because only SIGINT will be catched */
 void jmpproc(int sig)
 {
+	core_t *core = NULL;
+	core = get_core();
 	if (P(P_EB))
 		beep();
-	ui__Screen_Repaint();
-	clearstr();
+	ui__Screen_Repaint(core, core->curbuf);
+	ui__clearstr(core, core->curbuf);
 	signal(SIGINT, SIG_IGN);
 	longjmp(env, 0);
 }
@@ -1384,7 +1408,7 @@ off_t range(core_t *core, buf_t *buf, int ch)
 	case '/':	/**** Search String ****/
 	case '\\':
 		strcat(rep_buf, "\n");
-		clearstr();
+		ui__clearstr(core, buf);
 		addch(ch1);
 		refresh();
 		if (getcmdstr(core, line, 1))
@@ -1398,7 +1422,7 @@ off_t range(core_t *core, buf_t *buf, int ch)
 	case '?':
 	case '#':
 		strcat(rep_buf, "\n");
-		clearstr();
+		ui__clearstr(core, buf);
 		addch(ch1);
 		refresh();
 		if (getcmdstr(core, line, 1))
@@ -1412,7 +1436,7 @@ off_t range(core_t *core, buf_t *buf, int ch)
 	case 'f':
 	case 't':
 		precount = count;
-		end_addr = do_ft(ch1, 1);
+		end_addr = do_ft(core, buf, ch1, 1);
 		if (!end_addr) {
 			beep();
 			return 0;
@@ -1421,7 +1445,7 @@ off_t range(core_t *core, buf_t *buf, int ch)
 	case 'F':
 	case 'T':
 		precount = count;
-		start_addr = do_ft(ch1, 1);
+		start_addr = do_ft(core, buf, ch1, 1);
 		if (!start_addr) {
 			beep();
 			return 0;

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "search.h"
 #include "bvim.h"
+#include "search.h"
 
 extern core_t core;
 extern state_t state;
@@ -98,18 +98,18 @@ long bitap_fuzzy_bitwise_search_binary(mlist ml, const char *buf, long buf_lengt
 }
 
 // TODO: Add distance propose
-struct found fuzzy_search(void* input, long input_size, void *pattern, long pattern_size, int algo, int distance)
+struct found fuzzy_search(core_t *core, buf_t *buf, long input_size, void *pattern, long pattern_size, int algo, int distance)
 {
 	struct found fnd;
 	fnd.cnt = 0;
 	fnd.ml = NULL;
 
 	if (algo == FUZZY_BITAP_HAMMINGTON_DISTANCE) {
-		fnd.cnt = bitap_fuzzy_bitwise_search_binary(fnd.ml, input, input_size, pattern, pattern_size, distance);
+		fnd.cnt = bitap_fuzzy_bitwise_search_binary(fnd.ml, buf->mem, input_size, pattern, pattern_size, distance);
 	} else if (algo == FUZZY_BITAP_LEVENSHTEIN_DISTANCE) {
-		bvim_error(state.mode, "Levenshtein distance: not yet supported!");
+		bvim_error(core, buf, "Levenshtein distance: not yet supported!");
 	} else {
-		bvim_error(state.mode, "Wrong fuzzy search algorithm!");
+		bvim_error(core, buf, "Wrong fuzzy search algorithm!");
 	}
 	return fnd;
 }

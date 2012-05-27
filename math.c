@@ -26,9 +26,9 @@
 #include "ui.h"
 #include "bmath.h"
 
-extern struct MARKERS_ markers[MARK_COUNT];
-extern core_t core;
-extern state_t state;
+//extern struct MARKERS_ markers[MARK_COUNT];
+//extern core_t core;
+//extern state_t state;
 
 /* Math expressions */
 
@@ -71,18 +71,21 @@ long math__eval(int mode, char* expression) {
 
 /* Logic functions */
 
-int math__logic(int mode, char* str)
+int math__logic(core_t *core, buf_t* buf, int mode, char* str)
 {
 	int a, b;
 	int value;
 	size_t n;
+	char* start_addr = NULL;
+	char* end_addr = NULL;
+
 	char *err_str = "Invalid value@for bit manipulation";
 
 	if (mode == LSHIFT || mode == RSHIFT || mode == LROTATE
 	    || mode == RROTATE) {
 		value = atoi(str);
 		if (value < 1 || value > 8) {
-			ui__ErrorMsg(err_str);
+			bvim_error(core, buf, err_str);
 			return 1;
 		}
 	} else {
@@ -108,12 +111,13 @@ int math__logic(int mode, char* str)
 			value = atoi(str);
 		}
 		if (value < 0 || value > 255) {
-			ui__ErrorMsg(err_str);
+			bvim_error(core, buf, err_str);
 			return 1;
 		}
 	}
-	if ((undo_count =
-	     alloc_buf((off_t) (end_addr - start_addr + 1), &undo_buf))) {
+	start_addr = buf->mem;
+	end_addr = buf->maxpos;
+	if ((undo_count = alloc_buf(core, buf, (off_t) (end_addr - start_addr + 1), &undo_buf))) {
 		memcpy(undo_buf, start_addr, undo_count);
 	}
 	undo_start = start_addr;
@@ -160,21 +164,24 @@ int math__logic(int mode, char* str)
 		}
 		*start_addr++ = (char)(a & 0xff);
 	}
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 	return (0);
 }
 
-int math__logic_block(int mode, char* str, int block_id)
+int math__logic_block(core_t *core, buf_t* buf, int mode, char* str, int block_id)
 {
 	int a, b;
 	int value;
 	size_t n;
+	char* start_addr = NULL;
+	char* end_addr = NULL;
+
 	char *err_str = "Invalid value@for bit manipulation";
 	struct block_item *tmp_blk;
 	
-	tmp_blk = blocks__GetByID(block_id);
+	tmp_blk = blocks__GetByID(buf, block_id);
 	if ((tmp_blk == NULL) | ((tmp_blk != NULL) & (tmp_blk->pos_start < tmp_blk->pos_end))) {
-		bvim_error(state.mode, "Invalid block %d for bit manupulation!", block_id);
+		bvim_error(core, buf, "Invalid block %d for bit manupulation!", block_id);
 		return 1;
 	}
 
@@ -182,7 +189,7 @@ int math__logic_block(int mode, char* str, int block_id)
 	    || mode == RROTATE) {
 		value = atoi(str);
 		if (value < 1 || value > 8) {
-			ui__ErrorMsg(err_str);
+			bvim_error(core, buf, err_str);
 			return 1;
 		}
 	} else {
@@ -208,23 +215,20 @@ int math__logic_block(int mode, char* str, int block_id)
 			value = atoi(str);
 		}
 		if (value < 0 || value > 255) {
-			ui__ErrorMsg(err_str);
+			bvim_error(core, buf, err_str);
 			return 1;
 		}
 	}
-	if ((undo_count =
-	     alloc_buf((off_t) (tmp_blk->pos_end -
-				tmp_blk->pos_start + 1),
-		       &undo_buf))) {
-		memcpy(undo_buf,
-		       start_addr + tmp_blk->pos_start,
-		       undo_count);
+	start_addr = buf->mem;
+	end_addr = buf->maxpos;
+
+	if ((undo_count = alloc_buf(core, buf, (off_t) (tmp_blk->pos_end - tmp_blk->pos_start + 1), &undo_buf))) {
+		memcpy(undo_buf, start_addr + tmp_blk->pos_start, undo_count);
 	}
 	undo_start = start_addr + tmp_blk->pos_start;
 	edits = U_EDIT;
 	start_addr = start_addr + tmp_blk->pos_start;
-	end_addr =
-	    start_addr + tmp_blk->pos_end - tmp_blk->pos_start;
+	end_addr = start_addr + tmp_blk->pos_end - tmp_blk->pos_start;
 	while (start_addr <= end_addr) {
 		a = *start_addr;
 		a &= 0xff;
@@ -267,11 +271,11 @@ int math__logic_block(int mode, char* str, int block_id)
 		}
 		*start_addr++ = (char)(a & 0xff);
 	}
-	ui__Screen_Repaint();
+	ui__Screen_Repaint(core, buf);
 	return (0);
 }
 
-double math__entropy(int block_id)
+double math__entropy(core_t *core, buf_t* buf, int block_id)
 {
 	long i = 0;
 	int j = 0;
@@ -285,14 +289,14 @@ double math__entropy(int block_id)
 	for (i = 0; i <= 256; i++)
 		freq[i] = 0;
 	
-	tmp_blk = blocks__GetByID(block_id);
+	tmp_blk = blocks__GetByID(buf, block_id);
 	if (tmp_blk == NULL) {
-		bvim_error(state.mode, "Invalid block %d for entropy calculation!", block_id);
+		bvim_error(core, buf, "Invalid block %d for entropy calculation!", block_id);
 		return -1;
 	}
 	size = tmp_blk->pos_end - tmp_blk->pos_start;
 	while (i < size) {
-		j = (unsigned int)core.editor.mem[tmp_blk->pos_start + i];
+		j = (unsigned int)buf->mem[tmp_blk->pos_start + i];
 		freq[j]++;
 		i++;
 	}
@@ -405,9 +409,7 @@ struct crc_param {
  * Note: len is given in bits
  */
 
-static crc_reg_t crc_calc(const unsigned char *data,
-                          size_t len,
-                          const struct crc_param *param)
+static crc_reg_t crc_calc(const unsigned char *data, size_t len, const struct crc_param *param)
 {
     struct bit_reg reg;
     struct bit_reg poly;
