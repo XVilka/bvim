@@ -653,7 +653,10 @@ void ui__Line_Print(core_t *core, buf_t *buf, PTR mempos, int scpos)
 	*linbuf = '\0';
 
 	tmp_mem = mempos;
-	blocks__Iterator(buf, highlight_block, 1);
+	// check if buf has blocks!
+	if (buf->blocks != NULL) {
+		blocks__Iterator(buf, highlight_block, 1);
+	}
 	mempos = tmp_mem;
 
 	for (print_pos = 0; print_pos < core->params.COLUMNS_DATA; print_pos++) {
